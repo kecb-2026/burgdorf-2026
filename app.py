@@ -1,109 +1,139 @@
 import streamlit as st
 import pandas as pd
+from collections import Counter
 
-# --- 1. SETUP ---
+# --- 1. SETUP & STYLING ---
 st.set_page_config(layout="wide", page_title="KECB Burgdorf 2026", page_icon="🐾")
 
 st.markdown("""
     <style>
-    .stCheckbox { background-color: #f0f2f6; padding: 5px; border-radius: 5px; margin-bottom: 2px; }
-    .judge-col { border: 2px solid #1a4a9e; padding: 15px; border-radius: 15px; background-color: #ffffff; min-height: 400px; }
-    .cat-card { padding: 10px; border-bottom: 1px solid #eee; font-size: 14px; }
-    .status-tag { font-weight: bold; color: #ff4b4b; }
+    html, body, [class*="ViewContainer"] { font-size: 24px !important; }
+    .judge-col { border: 4px solid #1a4a9e; padding: 15px; border-radius: 20px; background-color: #ffffff; min-height: 450px; }
+    .judge-col h3 { font-size: 40px !important; color: #1a4a9e; text-align: center; border-bottom: 2px solid #eee; }
+    
+    .tag-aufruf { background-color: #007bff; color: white; padding: 4px 10px; border-radius: 8px; font-weight: bold; font-size: 20px; }
+    .tag-biv { background-color: #28a745; color: white; padding: 4px 10px; border-radius: 8px; font-weight: bold; font-size: 20px; }
+    .tag-nom { background-color: #ffc107; color: black; padding: 4px 10px; border-radius: 8px; font-weight: bold; font-size: 20px; }
+    
+    .winner-box { text-align: center; border: 15px solid #1a4a9e; padding: 40px; background-color: white; border-radius: 50px; }
+    .stCheckbox label { font-size: 28px !important; font-weight: bold !important; }
     </style>
     """, unsafe_allow_html=True)
 
 # --- 2. DATEN LADEN ---
-@st.cache_data(ttl=10)
+@st.cache_data(ttl=5)
 def load_data():
     try:
-        # Header ist in Zeile 2 (Index 1)
         df = pd.read_excel("LABELS.xlsm", engine='openpyxl', header=1)
         df.columns = df.columns.astype(str).str.strip()
-        for col in df.columns:
-            df[col] = df[col].astype(str).str.strip()
         return df
-    except Exception as e:
-        st.error(f"Excel-Fehler: {e}")
+    except:
         return None
 
 df_full = load_data()
 
-# --- 3. LOGIN ---
+# --- 3. SESSION STATES ---
+if 'steward_actions' not in st.session_state: st.session_state.steward_actions = {}
+if 'judge_votes' not in st.session_state: st.session_state.judge_votes = {}
+if 'sieger_id' not in st.session_state: st.session_state.sieger_id = None
 if 'auth' not in st.session_state: st.session_state.auth = None
+
+# --- 4. LOGIN ---
 if st.session_state.auth is None:
     pw = st.text_input("Passwort", type="password")
-    if st.button("Anmelden"):
-        if pw == "ring26": st.session_state.auth = "steward"
-        elif pw == "Burgdorf26": st.session_state.auth = "admin"
-        elif pw == "hallenaufl": st.session_state.auth = "monitor"
+    if st.button("Login"):
+        if pw == "Burgdorf26": st.session_state.auth = "admin"
+        elif pw == "judge26": st.session_state.auth = "richter"
+        elif pw == "ring26": st.session_state.auth = "steward"
         st.rerun()
     st.stop()
 
-# --- 4. TAGES-FILTER ---
-selected_tag = st.sidebar.radio("Tag wählen", ["Tag 1", "Tag 2"])
-tag_col = selected_tag
-df_tag = df_full[df_full[tag_col].str.upper() == 'X'].copy()
+# --- 5. TAGES-FILTER ---
+tag = st.sidebar.radio("Tag", ["Tag 1", "Tag 2"])
+df_tag = df_full[df_full[tag].astype(str).str.upper() == 'X'].copy() if df_full is not None else None
+r_col = "Richter Tag 1" if tag == "Tag 1" else "Richter Tag 2"
 
-# Live-Status Speicher (wer ist gerade aufgerufen/BIV/NOM)
-if 'steward_actions' not in st.session_state:
-    st.session_state.steward_actions = {} 
+# --- 6. NAVIGATION ---
+if st.session_state.auth == "admin":
+    menu = ["Dashboard", "Steward-Eingabe", "Richter-Votum", "Beamer-Regie"]
+elif st.session_state.auth == "richter":
+    menu = ["Richter-Votum", "Dashboard"]
+else:
+    menu = ["Steward-Eingabe", "Dashboard"]
 
-# --- 5. STEWARD-PANEL ---
-st.title(f"📋 Steward-Management ({selected_tag})")
+view = st.sidebar.radio("Menü", menu)
 
-# Gruppen nach Kategorien
-categories = sorted([c for c in df_tag['Kategorie'].unique() if c != "nan"])
-richter_col_name = "Richter Tag 1" if selected_tag == "Tag 1" else "Richter Tag 2"
-all_judges = sorted([r for r in df_tag[richter_col_name].unique() if r != "nan"])
+# --- MODUL: DASHBOARD (Aufstellung wie Schema) ---
+if view == "Dashboard":
+    st.title(f"Ring-Status {tag}")
+    judges = sorted([r for r in df_tag[r_col].unique() if str(r) != "nan"])
+    cols = st.columns(len(judges))
+    
+    for i, j in enumerate(judges):
+        with cols[i]:
+            st.markdown(f"<div class='judge-col'><h3>{j}</h3>", unsafe_allow_html=True)
+            active = [(nr, stat) for (nr, j_name), stat in st.session_state.steward_actions.items() 
+                      if j_name == j and any(stat.values())]
+            for nr, stat in active:
+                st.write(f"**Nr. {nr}**")
+                if stat["Aufruf"]: st.markdown("<span class='tag-aufruf'>AUFRUF</span>", unsafe_allow_html=True)
+                if stat["BIV"]: st.markdown("<span class='tag-biv'>BIV</span>", unsafe_allow_html=True)
+                if stat["NOM"]: st.markdown("<span class='tag-nom'>NOM</span>", unsafe_allow_html=True)
+                st.markdown("<hr>", unsafe_allow_html=True)
+            st.markdown("</div>", unsafe_allow_html=True)
 
-# --- ANZEIGE DER RICHTER-SPALTEN (Dashboard) ---
-st.subheader("Aktueller Status in den Ringen")
-judge_cols = st.columns(len(all_judges))
+# --- MODUL: STEWARD-EINGABE ---
+elif view == "Steward-Eingabe":
+    st.title("Steward-Pult")
+    cats = sorted([c for c in df_tag['Kategorie'].unique() if str(c) != "nan"])
+    for c in cats:
+        with st.expander(f"KATEGORIE {c}", expanded=True):
+            df_cat = df_tag[df_tag['Kategorie'] == c].sort_values('Katalog-Nr')
+            for _, row in df_cat.iterrows():
+                nr, r_name = row['Katalog-Nr'], row[r_col]
+                key = (nr, r_name)
+                if key not in st.session_state.steward_actions:
+                    st.session_state.steward_actions[key] = {"Aufruf": False, "BIV": False, "NOM": False}
+                
+                c1, c2, c3, c4 = st.columns([2, 2, 2, 2])
+                with c1: st.write(f"**{nr}** ({r_name})")
+                with c2: st.session_state.steward_actions[key]["Aufruf"] = st.checkbox("Aufruf", value=st.session_state.steward_actions[key]["Aufruf"], key=f"a{nr}{c}")
+                with c3: st.session_state.steward_actions[key]["BIV"] = st.checkbox("BIV", value=st.session_state.steward_actions[key]["BIV"], key=f"b{nr}{c}")
+                with c4: st.session_state.steward_actions[key]["NOM"] = st.checkbox("NOM", value=st.session_state.steward_actions[key]["NOM"], key=f"n{nr}{c}")
 
-for i, judge in enumerate(all_judges):
-    with judge_cols[i]:
-        st.markdown(f"<div class='judge-col'><h3>{judge}</h3>", unsafe_allow_html=True)
-        # Zeige nur Katzen, die für diesen Richter aktiviert wurden
-        active_for_judge = [
-            (nr, status) for (nr, j_name), status in st.session_state.steward_actions.items() 
-            if j_name == judge and any(status.values())
-        ]
-        if not active_for_judge:
-            st.write("Keine aktiven Aufrufe")
-        for nr, status in active_for_judge:
-            tags = [k for k, v in status.items() if v]
-            st.markdown(f"<div class='cat-card'><b>Nr. {nr}</b>: <span class='status-tag'>{', '.join(tags)}</span></div>", unsafe_allow_html=True)
-        st.markdown("</div>", unsafe_allow_html=True)
+# --- MODUL: RICHTER-VOTUM (Separat) ---
+elif view == "Richter-Votum":
+    st.title("Richter-Abstimmung")
+    mein_name = st.selectbox("Mein Name (Richter)", sorted([r for r in df_tag[r_col].unique() if str(r) != "nan"]))
+    
+    # Zeige nur Katzen, die als NOM markiert wurden
+    nom_fuer_mich = [nr for (nr, j_name), stat in st.session_state.steward_actions.items() 
+                     if j_name == mein_name and stat["NOM"]]
+    
+    if nom_fuer_mich:
+        for nr in nom_fuer_mich:
+            st.info(f"Nominiert: Katze Nr. {nr}")
+            vote = st.text_input(f"Dein Votum für {nr}", key=f"vote_{mein_name}_{nr}")
+            if st.button(f"Stimme für {nr} speichern"):
+                st.session_state.judge_votes[(nr, mein_name)] = vote
+                st.success("Gespeichert!")
+    else:
+        st.write("Keine nominierten Katzen für Sie vorhanden.")
 
-st.divider()
+# --- MODUL: BEAMER-REGIE ---
+elif view == "Beamer-Regie":
+    st.title("Regie & Beamer")
+    st.subheader("Eingegangene Voten")
+    st.write(st.session_state.judge_votes)
+    
+    nom_gesamt = list(set([nr for (nr, j), stat in st.session_state.steward_actions.items() if stat["NOM"]]))
+    choice = st.selectbox("Sieger für Beamer wählen", ["-"] + nom_gesamt)
+    
+    if st.button("Sieg anzeigen") and choice != "-":
+        st.session_state.sieger_id = choice
+        st.rerun()
 
-# --- EINGABE-BEREICH FÜR STEWARDS ---
-st.subheader("Katzen verwalten (Checkboxes)")
-
-for cat_name in categories:
-    with st.expander(f"Kategorie {cat_name}", expanded=True):
-        df_cat = df_tag[df_tag['Kategorie'] == cat_name].sort_values('Katalog-Nr')
-        
-        # Tabellarische Ansicht für Checkboxen
-        for _, row in df_cat.iterrows():
-            nr = row['Katalog-Nr']
-            r_name = row[richter_col_name]
-            
-            # Key für Session State
-            state_key = (nr, r_name)
-            if state_key not in st.session_state.steward_actions:
-                st.session_state.steward_actions[state_key] = {"Aufruf": False, "BIV": False, "NOM": False}
-            
-            c1, c2, c3, c4, c5 = st.columns([1, 2, 1, 1, 1])
-            with c1: st.write(f"**{nr}**")
-            with c2: st.write(f"{row['Rasse']} ({r_name})")
-            with c3: 
-                st.session_state.steward_actions[state_key]["Aufruf"] = st.checkbox("Aufruf", value=st.session_state.steward_actions[state_key]["Aufruf"], key=f"auf_{nr}_{cat_name}")
-            with c4: 
-                st.session_state.steward_actions[state_key]["BIV"] = st.checkbox("BIV", value=st.session_state.steward_actions[state_key]["BIV"], key=f"biv_{nr}_{cat_name}")
-            with c5: 
-                st.session_state.steward_actions[state_key]["NOM"] = st.checkbox("NOM", value=st.session_state.steward_actions[state_key]["NOM"], key=f"nom_{nr}_{cat_name}")
-
-if st.button("Änderungen für alle Ringe bestätigen"):
-    st.rerun()
+    if st.session_state.sieger_id:
+        res = df_tag[df_tag['Katalog-Nr'] == st.session_state.sieger_id].iloc[0]
+        st.markdown(f"<div class='winner-box'><h1>{res['Katalog-Nr']}</h1><h2>{res['Name']}</h2></div>", unsafe_allow_html=True)
+        if st.button("Reset"): st.session_state.sieger_id = None; st.rerun()
