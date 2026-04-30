@@ -3,13 +3,6 @@ import pandas as pd
 import re
 
 
-# Zeigt die aktuelle Netzwerk-URL in der Seitenleiste an (hilfreich für Stewards)
-import socket
-hostname = socket.gethostname()
-local_ip = socket.gethostbyname(hostname)
-st.sidebar.info(f"Netzwerk-URL: http://{local_ip}:8501")
-
-
 
 # --- 1. SETUP & STYLING ---
 st.set_page_config(layout="wide", page_title="KECB Burgdorf 2026", page_icon="🐾")
