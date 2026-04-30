@@ -1,27 +1,25 @@
 import streamlit as st
 import pandas as pd
-import base64
-import os
 
-# --- 1. KONFIGURATION ---
+# --- 1. SETUP ---
 st.set_page_config(layout="wide", page_title="KECB Burgdorf 2026", page_icon="🐾")
 
 st.markdown("""
     <style>
-    .winner-box { text-align: center; border: 15px solid #1a4a9e; padding: 40px; background-color: white; border-radius: 50px; box-shadow: 0px 15px 40px rgba(0,0,0,0.15); margin: 20px auto; max-width: 900px; }
-    .stButton>button { border-radius: 12px; height: 3em; font-weight: bold; background-color: #1a4a9e; color: white; }
+    .stCheckbox { background-color: #f0f2f6; padding: 5px; border-radius: 5px; margin-bottom: 2px; }
+    .judge-col { border: 2px solid #1a4a9e; padding: 15px; border-radius: 15px; background-color: #ffffff; min-height: 400px; }
+    .cat-card { padding: 10px; border-bottom: 1px solid #eee; font-size: 14px; }
+    .status-tag { font-weight: bold; color: #ff4b4b; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 2. DATEN LADEN (Angepasst an deine Excel-Struktur) ---
-@st.cache_data(ttl=30)
+# --- 2. DATEN LADEN ---
+@st.cache_data(ttl=10)
 def load_data():
     try:
-        # Deine Datei hat in Zeile 1 (Index 0) leere Felder, Header ist in Zeile 2 (Index 1)
+        # Header ist in Zeile 2 (Index 1)
         df = pd.read_excel("LABELS.xlsm", engine='openpyxl', header=1)
-        # Spaltennamen bereinigen
         df.columns = df.columns.astype(str).str.strip()
-        # Inhalte bereinigen
         for col in df.columns:
             df[col] = df[col].astype(str).str.strip()
         return df
@@ -32,93 +30,80 @@ def load_data():
 df_full = load_data()
 
 # --- 3. LOGIN ---
-CREDENTIALS = {"admin": "Burgdorf26", "steward": "ring26", "monitor": "hallenaufl"}
 if 'auth' not in st.session_state: st.session_state.auth = None
-
 if st.session_state.auth is None:
-    st.title("🐾 Burgdorf 2026 - KECB Login")
-    with st.form("login"):
-        pw = st.text_input("Passwort", type="password")
-        if st.form_submit_button("Anmelden"):
-            if pw in CREDENTIALS.values():
-                st.session_state.auth = [k for k, v in CREDENTIALS.items() if v == pw][0]
-                st.rerun()
-            st.error("Falsches Passwort")
+    pw = st.text_input("Passwort", type="password")
+    if st.button("Anmelden"):
+        if pw == "ring26": st.session_state.auth = "steward"
+        elif pw == "Burgdorf26": st.session_state.auth = "admin"
+        elif pw == "hallenaufl": st.session_state.auth = "monitor"
+        st.rerun()
     st.stop()
 
-if df_full is None:
-    st.error("Konnte LABELS.xlsm nicht laden.")
-    st.stop()
-
-# --- 4. TAGES-LOGIK ---
+# --- 4. TAGES-FILTER ---
 selected_tag = st.sidebar.radio("Tag wählen", ["Tag 1", "Tag 2"])
+tag_col = selected_tag
+df_tag = df_full[df_full[tag_col].str.upper() == 'X'].copy()
 
-# Filter: Nur Katzen, die am gewählten Tag ein 'X' haben
-if selected_tag in df_full.columns:
-    df = df_full[df_full[selected_tag].str.upper() == 'X'].copy()
-else:
-    st.error(f"Spalte '{selected_tag}' nicht gefunden! Vorhanden: {list(df_full.columns)}")
-    st.stop()
+# Live-Status Speicher (wer ist gerade aufgerufen/BIV/NOM)
+if 'steward_actions' not in st.session_state:
+    st.session_state.steward_actions = {} 
 
-# --- 5. NAVIGATION ---
-menu = ["Katzenaufruf", "BIS-Regie", "Gewinner-Slide"]
-view = st.sidebar.radio("Menü", menu)
+# --- 5. STEWARD-PANEL ---
+st.title(f"📋 Steward-Management ({selected_tag})")
 
-if view == "Katzenaufruf":
-    st.title(f"📢 Aufruf - {selected_tag}")
-    # Spaltenname für Richter je nach Tag wählen
-    richter_col = "Richter Tag 1" if selected_tag == "Tag 1" else "Richter Tag 2"
-    
-    if richter_col in df.columns:
-        r_list = sorted([r for r in df[richter_col].unique() if r != "nan"])
-        r_wahl = st.selectbox("Richter / Ring", r_list)
+# Gruppen nach Kategorien
+categories = sorted([c for c in df_tag['Kategorie'].unique() if c != "nan"])
+richter_col_name = "Richter Tag 1" if selected_tag == "Tag 1" else "Richter Tag 2"
+all_judges = sorted([r for r in df_tag[richter_col_name].unique() if r != "nan"])
+
+# --- ANZEIGE DER RICHTER-SPALTEN (Dashboard) ---
+st.subheader("Aktueller Status in den Ringen")
+judge_cols = st.columns(len(all_judges))
+
+for i, judge in enumerate(all_judges):
+    with judge_cols[i]:
+        st.markdown(f"<div class='judge-col'><h3>{judge}</h3>", unsafe_allow_html=True)
+        # Zeige nur Katzen, die für diesen Richter aktiviert wurden
+        active_for_judge = [
+            (nr, status) for (nr, j_name), status in st.session_state.steward_actions.items() 
+            if j_name == judge and any(status.values())
+        ]
+        if not active_for_judge:
+            st.write("Keine aktiven Aufrufe")
+        for nr, status in active_for_judge:
+            tags = [k for k, v in status.items() if v]
+            st.markdown(f"<div class='cat-card'><b>Nr. {nr}</b>: <span class='status-tag'>{', '.join(tags)}</span></div>", unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
+
+st.divider()
+
+# --- EINGABE-BEREICH FÜR STEWARDS ---
+st.subheader("Katzen verwalten (Checkboxes)")
+
+for cat_name in categories:
+    with st.expander(f"Kategorie {cat_name}", expanded=True):
+        df_cat = df_tag[df_tag['Kategorie'] == cat_name].sort_values('Katalog-Nr')
         
-        cats = df[df[richter_col] == r_wahl].sort_values('Katalog-Nr')
-        
-        col1, col2 = st.columns([1, 2])
-        with col1:
-            st.subheader("Katzen im Ring")
-            for _, cat in cats.iterrows():
-                st.markdown(f"**Nr. {cat['Katalog-Nr']}** - {cat['Rasse']} ({cat['Ausstellungsklasse']})")
-        with col2:
-            st.subheader("Großanzeige")
-            nr = st.text_input("Käfignummer für Aufruf")
-            if nr:
-                st.markdown(f"<div style='font-size:100px; color:red; text-align:center; border:5px solid red;'>RING {r_wahl}:<br>{nr}</div>", unsafe_allow_html=True)
-    else:
-        st.warning(f"Spalte '{richter_col}' nicht gefunden.")
+        # Tabellarische Ansicht für Checkboxen
+        for _, row in df_cat.iterrows():
+            nr = row['Katalog-Nr']
+            r_name = row[richter_col_name]
+            
+            # Key für Session State
+            state_key = (nr, r_name)
+            if state_key not in st.session_state.steward_actions:
+                st.session_state.steward_actions[state_key] = {"Aufruf": False, "BIV": False, "NOM": False}
+            
+            c1, c2, c3, c4, c5 = st.columns([1, 2, 1, 1, 1])
+            with c1: st.write(f"**{nr}**")
+            with c2: st.write(f"{row['Rasse']} ({r_name})")
+            with c3: 
+                st.session_state.steward_actions[state_key]["Aufruf"] = st.checkbox("Aufruf", value=st.session_state.steward_actions[state_key]["Aufruf"], key=f"auf_{nr}_{cat_name}")
+            with c4: 
+                st.session_state.steward_actions[state_key]["BIV"] = st.checkbox("BIV", value=st.session_state.steward_actions[state_key]["BIV"], key=f"biv_{nr}_{cat_name}")
+            with c5: 
+                st.session_state.steward_actions[state_key]["NOM"] = st.checkbox("NOM", value=st.session_state.steward_actions[state_key]["NOM"], key=f"nom_{nr}_{cat_name}")
 
-elif view == "BIS-Regie":
-    st.title("🏆 Best in Show")
-    # In deiner Datei heißt die Spalte 'SELECTION'
-    if 'SELECTION' in df.columns:
-        bis_cats = df[df['SELECTION'].str.upper() == 'X']
-        if not bis_cats.empty:
-            cols = st.columns(len(bis_cats))
-            for i, (idx, cat) in enumerate(bis_cats.iterrows()):
-                with cols[i]:
-                    if st.button(f"SIEG Nr. {cat['Katalog-Nr']}", key=idx):
-                        st.session_state.sieger = cat['Katalog-Nr']
-                        st.balloons()
-        else:
-            st.info("Keine Katzen mit 'X' in Spalte 'SELECTION' markiert.")
-    else:
-        st.error("Spalte 'SELECTION' fehlt.")
-
-elif view == "Gewinner-Slide":
-    if st.session_state.get('sieger'):
-        s_id = st.session_state.sieger
-        row = df[df['Katalog-Nr'] == s_id].iloc[0]
-        st.markdown(f"""
-            <div class="winner-box">
-                <h1 style="font-size:200px; color:#1a4a9e;">{s_id}</h1>
-                <h2 style="font-size:60px;">{row['Name']}</h2>
-                <p style="font-size:30px;">{row['Rasse']} | {row['Farbe']}</p>
-                <p style="font-size:25px;">Besitzer: {row['Besitzer Nachname']}</p>
-            </div>
-            """, unsafe_allow_html=True)
-        if st.button("Reset"):
-            st.session_state.sieger = None
-            st.rerun()
-    else:
-        st.title("Warten auf die Jury...")
+if st.button("Änderungen für alle Ringe bestätigen"):
+    st.rerun()
