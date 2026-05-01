@@ -8,27 +8,20 @@ st.set_page_config(layout="wide", page_title="KECB Burgdorf 2026", page_icon="�
 st.markdown("""
     <style>
     .stButton button { 
-        width: 100%; 
-        height: 60px; 
-        font-size: 13px !important; 
-        font-weight: bold !important; 
-        border-radius: 12px !important;
-        margin-bottom: 5px;
-        border: 2px solid #1a4a9e !important;
+        width: 100%; height: 60px; font-size: 13px !important; 
+        font-weight: bold !important; border-radius: 12px !important;
+        margin-bottom: 5px; border: 2px solid #1a4a9e !important;
     }
-    
     .judge-col { 
         border: 2px solid #1a4a9e; padding: 5px; border-radius: 15px; 
         background-color: #ffffff; margin-bottom: 8px; 
         box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
         display: flex; flex-direction: column; gap: 5px;
     }
-
     .judge-col h3 { 
         font-size: 14px !important; color: white; background-color: #1a4a9e; 
         padding: 3px; border-radius: 8px; text-align: center; margin-bottom: 5px;
     }
-
     .cat-card { 
         padding: 5px; border: 1px solid #e0e0e0; text-align: center; 
         background-color: #ffffff; border-radius: 15px; 
@@ -38,7 +31,6 @@ st.markdown("""
     .cat-number { font-size: 38px !important; font-weight: 900 !important; color: #1a4a9e; line-height: 0.9; margin: 2px 0; }
     .cat-label { font-size: 11px; color: #333; font-weight: bold; margin: 2px 0; }
     .cat-category-red { font-size: 10px; font-weight: bold; color: #ff0000; margin-bottom: 2px; }
-
     .tag-container { margin-top: 5px; display: flex; justify-content: center; flex-wrap: wrap; gap: 5px; }
     .tag { font-weight: bold; padding: 4px 10px; border-radius: 6px; font-size: 10px; display: inline-block; }
     .tag-aufruf { background-color: #007bff; color: white; }
@@ -74,14 +66,20 @@ def roman_to_numeric(text):
 @st.cache_data(ttl=30)
 def load_labels():
     try:
-        # Hier wurde die Endung auf .xlsx geändert
         df = pd.read_excel("LABELS.xlsx", engine='openpyxl', header=0)
         df.columns = [str(c).strip().upper() for c in df.columns]
+        
+        # Mapping für flexible Spaltennamen
+        if 'AUSSTELLUNGSKLASSE' in df.columns:
+            df['KLASSE_INTERNAL'] = df['AUSSTELLUNGSKLASSE']
+        elif 'KLASSE' in df.columns:
+            df['KLASSE_INTERNAL'] = df['KLASSE']
+            
         if 'KATALOG-NR' in df.columns:
             df['KAT_STR'] = df['KATALOG-NR'].astype(str).str.replace('.0', '', regex=False)
         return df
     except Exception as e:
-        st.error(f"Excel-Fehler (Datei LABELS.xlsx nicht gefunden?): {e}")
+        st.error(f"Excel-Fehler: {e}")
         return None
 
 def get_full_label(row):
@@ -123,14 +121,11 @@ elif st.session_state.view == "Admin_Login":
 
 elif st.session_state.view == "Admin_Panel":
     st.title("👨‍⚖️ Admin-Konsole")
-    st.subheader("🧹 Daten-Management")
     with st.expander("🚨 Gefahrenzone: Speicher leeren"):
-        st.warning("Dies löscht alle aktuellen Aufrufe (NOM, BIV, Ruf) und alle BIS-Enthüllungen!")
         if st.button("ALLE DATEN ZURÜCKSETZEN"):
             store.data = {} 
-            st.success("Speicher wurde vollständig geleert!")
+            st.success("Speicher geleert!")
             st.rerun()
-    st.divider()
     if st.button("⬅️ Zurück zum Menü"): set_view("Home")
 
 else:
@@ -211,7 +206,11 @@ else:
             sel_cat = st.selectbox("Kategorie wählen:", all_cats, key="pub_cat")
             st.title(f"🏆 Best in Show - Kategorie {sel_cat}")
             
-            if 'SELECTION' in df_full.columns:
+            # Sicherheitscheck für Spalten (KLASSE_INTERNAL wurde oben gemappt)
+            required = ['SELECTION', 'KLASSE_INTERNAL', 'GESCHLECHT']
+            missing = [c for c in required if c not in df_full.columns]
+            
+            if not missing:
                 df_nom = df_full[(df_full['SELECTION'].astype(str).str.upper() == 'X') & (df_full['KATEGORIE'] == sel_cat)].copy()
                 judges = sorted([r for r in df_nom[r_col].unique() if str(r) != "nan"]) if r_col in df_nom.columns else []
                 
@@ -236,18 +235,17 @@ else:
                     for i, j in enumerate(judges):
                         with r_cols[i+1]:
                             if is_revealed:
-                                match = df_nom[(df_nom[r_col] == j) & (df_nom['KLASSE'].isin(klassen)) & (df_nom['GESCHLECHT'].astype(str).str.upper() == geschlecht)]
+                                match = df_nom[(df_nom[r_col] == j) & (df_nom['KLASSE_INTERNAL'].isin(klassen)) & (df_nom['GESCHLECHT'].astype(str).str.upper() == geschlecht)]
                                 if not match.empty:
                                     for _, row in match.iterrows():
                                         st.markdown(f"""
                                             <div class='cat-card' style='height: auto; padding: 5px; border: 2px solid #1a4a9e; margin-bottom:5px;'>
                                                 <div class='cat-number' style='font-size: 26px !important;'>{row['KAT_STR']}</div>
                                                 <div style='font-size: 10px; font-weight: bold;'>{row['RASSE']} {row['FARBGRUPPE']}</div>
-                                                <div style='font-size: 9px; line-height: 1.1;'>{row['FARBE']}</div>
                                             </div>
                                         """, unsafe_allow_html=True)
                             else:
                                 st.markdown("<div style='height:80px; border:1px dashed #ccc; border-radius:10px; margin-bottom:5px;'></div>", unsafe_allow_html=True)
                     st.divider()
             else:
-                st.error("Spalte 'SELECTION' nicht gefunden!")
+                st.error(f"Fehlende Spalten im Excel: AUSSTELLUNGSKLASSE (oder KLASSE), SELECTION, GESCHLECHT")
