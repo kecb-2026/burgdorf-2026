@@ -11,7 +11,7 @@ st.markdown("""
     .stButton button { 
         width: 100%; 
         height: 120px; 
-        font-size: 26px !important; 
+        font-size: 13px !important; 
         font-weight: bold !important; 
         border-radius: 15px !important;
         margin-bottom: 20px;
@@ -20,7 +20,7 @@ st.markdown("""
     
     /* Dashboard & Cards */
     .judge-col { border: 3px solid #1a4a9e; padding: 15px; border-radius: 20px; background-color: #ffffff; margin-bottom: 20px; box-shadow: 2px 2px 10px rgba(0,0,0,0.1); }
-    .judge-col h3 { font-size: 32px !important; color: white; background-color: #1a4a9e; padding: 10px; border-radius: 10px; text-align: center; }
+    .judge-col h3 { font-size: 16px !important; color: white; background-color: #1a4a9e; padding: 10px; border-radius: 10px; text-align: center; }
     
     .cat-card { 
         padding: 20px; 
@@ -31,15 +31,15 @@ st.markdown("""
         border-radius: 20px; 
         box-shadow: 0px 4px 6px rgba(0,0,0,0.05);
     }
-    .cat-number { font-size: 110px !important; font-weight: 900 !important; color: #1a4a9e; line-height: 0.8; margin: 10px 0; }
-    .cat-label { font-size: 26px; color: #333; font-weight: bold; margin: 5px 0 15px 0; }
+    .cat-number { font-size: 55px !important; font-weight: 900 !important; color: #1a4a9e; line-height: 0.8; margin: 10px 0; }
+    .cat-label { font-size: 13px; color: #333; font-weight: bold; margin: 5px 0 15px 0; }
     
     /* Kategorie-Styling in Rot für das Display */
-    .cat-category-red { font-size: 22px; font-weight: bold; color: #ff0000; margin-bottom: 5px; }
+    .cat-category-red { font-size: 11px; font-weight: bold; color: #ff0000; margin-bottom: 5px; }
 
     /* Tags & Steward Farben */
     .tag-container { margin-top: 10px; display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; }
-    .tag { font-weight: bold; padding: 10px 20px; border-radius: 10px; font-size: 22px; display: inline-block; }
+    .tag { font-weight: bold; padding: 10px 20px; border-radius: 10px; font-size: 11px; display: inline-block; }
     
     .tag-aufruf { background-color: #007bff; color: white; }
     @keyframes blinker { 50% { opacity: 0.2; } }
@@ -49,10 +49,10 @@ st.markdown("""
     /* Best in Show Grid */
     .bis-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; table-layout: fixed; background: white; }
     .bis-table th, .bis-table td { border: 2px solid #1a4a9e; padding: 5px; text-align: center; vertical-align: middle; min-height: 100px; }
-    .bis-table th { background-color: #1a4a9e; color: white; font-size: 18px; }
+    .bis-table th { background-color: #1a4a9e; color: white; font-size: 9px; }
     .class-header { background-color: #f0f0f0 !important; font-weight: bold; text-align: left !important; width: 180px; color: #1a4a9e; }
-    .bis-nr { font-size: 48px !important; font-weight: 900 !important; color: #000; margin: 0; line-height: 1; }
-    .bis-label { font-size: 13px; font-weight: bold; color: #333; margin-top: 2px; }
+    .bis-nr { font-size: 24px !important; font-weight: 900 !important; color: #000; margin: 0; line-height: 1; }
+    .bis-label { font-size: 10px; font-weight: bold; color: #333; margin-top: 2px; }
     </style>
     """, unsafe_allow_html=True)
 
