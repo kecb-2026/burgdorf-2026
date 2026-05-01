@@ -173,7 +173,7 @@ elif st.session_state.view == "BIS_Admin_Control":
     df_full = load_labels()
     if df_full is not None:
         sel_cat = st.selectbox("Kategorie verwalten:", sorted(df_full['KATEGORIE'].unique()))
-        bis_defs = ["Adult Male", "Adult Female", "Neuter Male", "Neuter Female", "Junior (11) Male", "Junior (11) Female", "Kitten (12) Male", "Kitten (12) Female"]
+        bis_defs = ["Adult Male", "Adult Female", "Neuter Male", "Neuter Female", "Junior 8-12 Male", "Junior 8-12 Female", "Kitten 4-8 Male", "Kitten 4-8 Female"]
         st.subheader("1. Sichtbarkeit (Public Screen)")
         cols = st.columns(4)
         for idx, label in enumerate(bis_defs):
@@ -212,8 +212,8 @@ elif st.session_state.view == "BIS_Public":
         bis_defs = [
             ("Adult Male", [1,3,5,7,9], "M"), ("Adult Female", [1,3,5,7,9], "W"), 
             ("Neuter Male", [2,4,6,8,10], "M"), ("Neuter Female", [2,4,6,8,10], "W"), 
-            ("Junior (11) Male", [11], "M"), ("Junior (11) Female", [11], "W"), 
-            ("Kitten (12) Male", [12], "M"), ("Kitten (12) Female", [12], "W")
+            ("Junior 8-12 Male", [11], "M"), ("Junior 8-12 Female", [11], "W"), 
+            ("Kitten 4-8 Male", [12], "M"), ("Kitten 4-8 Female", [12], "W")
         ]
         
         r_col = f"RICHTER {tag}"
@@ -260,7 +260,7 @@ elif st.session_state.view == "Steward_Panel":
                 if k not in store.data: store.data[k] = {"Aufruf": False, "BIV": False, "NOM": False}
                 c1, c2, c3, c4 = st.columns([3, 1, 1, 1])
                 c1.write(f"**#{nr}** {get_full_label(row)}")
-                store.data[k]["Aufruf"] = c2.checkbox("Ruf", value=store.data[k]["Aufruf"], key=f"auf{k}")
+                store.data[k]["Zum Richten"] = c2.checkbox("Ruf", value=store.data[k]["Zum Richten"], key=f"auf{k}")
                 store.data[k]["BIV"] = c3.checkbox("BIV", value=store.data[k]["BIV"], key=f"biv{k}")
                 store.data[k]["NOM"] = c4.checkbox("NOM", value=store.data[k]["NOM"], key=f"nom{k}")
     if st.button("⬅️ Zurück zum Menü"): set_view("Home")
@@ -277,7 +277,7 @@ elif st.session_state.view == "Judge_Voting":
         with c2: active_cat = st.selectbox("Kategorie:", sorted(df_full['KATEGORIE'].unique()))
         if active_j != "--":
             if "votes" not in store.data: store.data["votes"] = {}
-            bis_defs = [("Adult Male", [1,3,5,7,9], "M"), ("Adult Female", [1,3,5,7,9], "W"), ("Neuter Male", [2,4,6,8,10], "M"), ("Neuter Female", [2,4,6,8,10], "W"), ("Junior (11) Male", [11], "M"), ("Junior (11) Female", [11], "W"), ("Kitten (12) Male", [12], "M"), ("Kitten (12) Female", [12], "W")]
+            bis_defs = [("Adult Male", [1,3,5,7,9], "M"), ("Adult Female", [1,3,5,7,9], "W"), ("Neuter Male", [2,4,6,8,10], "M"), ("Neuter Female", [2,4,6,8,10], "W"), ("Junior 8-12 Male", [11], "M"), ("Junior 8-12 Female", [11], "W"), ("Kitten 4-8 Male", [12], "M"), ("Kitten 4-8 Female", [12], "W")]
             for label, klassen, geschl in bis_defs:
                 with st.expander(f"Wahl für {label}"):
                     pool = df_full[(df_full['SELECTION'].astype(str).str.upper() == 'X') & (df_full['KATEGORIE'] == active_cat) & (df_full['KLASSE_INTERNAL'].isin(klassen)) & (df_full['GESCHLECHT'].astype(str).str.upper() == geschl)]
