@@ -7,18 +7,38 @@ st.set_page_config(layout="wide", page_title="KECB Burgdorf 2026", page_icon="�
 
 st.markdown("""
     <style>
-    /* Große Buttons für den Startbildschirm */
-    .stButton button { width: 100%; height: 100px; font-size: 24px !important; font-weight: bold !important; border-radius: 20px !important; }
-    .judge-col { border: 3px solid #1a4a9e; padding: 15px; border-radius: 20px; background-color: #ffffff; margin-bottom: 20px; }
+    /* Startbildschirm Buttons */
+    .stButton button { 
+        width: 100%; 
+        height: 120px; 
+        font-size: 26px !important; 
+        font-weight: bold !important; 
+        border-radius: 15px !important;
+        margin-bottom: 20px;
+        border: 2px solid #1a4a9e !important;
+    }
+    
+    /* Dashboard & Cards */
+    .judge-col { border: 3px solid #1a4a9e; padding: 15px; border-radius: 20px; background-color: #ffffff; margin-bottom: 20px; box-shadow: 2px 2px 10px rgba(0,0,0,0.1); }
     .judge-col h3 { font-size: 32px !important; color: white; background-color: #1a4a9e; padding: 10px; border-radius: 10px; text-align: center; }
     .cat-card { padding: 20px; border-bottom: 2px solid #f0f0f0; margin-bottom: 25px; text-align: center; background-color: #fafafa; border-radius: 20px; }
     .cat-number { font-size: 110px !important; font-weight: 900 !important; color: #1a4a9e; line-height: 0.8; margin: 10px 0; }
     .cat-label { font-size: 26px; color: #333; font-weight: bold; margin: 10px 0; }
+    
+    /* Tags & Animationen */
     .tag { font-weight: bold; padding: 10px 20px; border-radius: 10px; font-size: 22px; display: inline-block; margin: 5px; }
     .tag-aufruf { background-color: #007bff; color: white; }
     @keyframes blinker { 50% { opacity: 0.2; } }
     .tag-biv { background-color: #28a745; color: white; animation: blinker 1.5s linear infinite; }
     .tag-nom { background-color: #ffc107; color: black; animation: blinker 1s linear infinite; }
+
+    /* Best in Show Grid */
+    .bis-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; table-layout: fixed; background: white; }
+    .bis-table th, .bis-table td { border: 2px solid #1a4a9e; padding: 5px; text-align: center; vertical-align: middle; min-height: 100px; }
+    .bis-table th { background-color: #1a4a9e; color: white; font-size: 18px; }
+    .class-header { background-color: #f0f0f0 !important; font-weight: bold; text-align: left !important; width: 180px; color: #1a4a9e; }
+    .bis-nr { font-size: 48px !important; font-weight: 900 !important; color: #000; margin: 0; line-height: 1; }
+    .bis-label { font-size: 13px; font-weight: bold; color: #333; margin-top: 2px; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -33,11 +53,9 @@ def get_store():
 
 store = get_store()
 
-# --- 3. SESSION STATE INITIALISIERUNG ---
+# --- 3. SESSION STATE ---
 if "view" not in st.session_state:
     st.session_state.view = "Home"
-if "auth_role" not in st.session_state:
-    st.session_state.auth_role = None
 
 # --- 4. HILFSFUNKTIONEN ---
 def roman_to_numeric(text):
@@ -67,79 +85,66 @@ def get_full_label(row):
 
 # --- 5. KLASSEN LOGIK ---
 rows_def = [
-    {"label": "Adult M", "f": lambda r: str(r.get('Klasse','')) in ['1','3','5','7','9'] and str(r.get('Geschlecht','')).upper() in ['M','1.0']},
-    {"label": "Adult W", "f": lambda r: str(r.get('Klasse','')) in ['1','3','5','7','9'] and str(r.get('Geschlecht','')).upper() in ['W','F','0.1']},
-    {"label": "Kastriert M", "f": lambda r: str(r.get('Klasse','')) in ['2','4','6','8','10'] and str(r.get('Geschlecht','')).upper() in ['M','KM','1.0']},
-    {"label": "Kastriert W", "f": lambda r: str(r.get('Klasse','')) in ['2','4','6','8','10'] and str(r.get('Geschlecht','')).upper() in ['W','F','KW','0.1']},
+    {"label": "Adult M (1,3,5,7,9)", "f": lambda r: str(r.get('Klasse','')) in ['1','3','5','7','9'] and str(r.get('Geschlecht','')).upper() in ['M','1.0']},
+    {"label": "Adult W (1,3,5,7,9)", "f": lambda r: str(r.get('Klasse','')) in ['1','3','5','7','9'] and str(r.get('Geschlecht','')).upper() in ['W','F','0.1']},
+    {"label": "Kastriert M (2,4,6,8,10)", "f": lambda r: str(r.get('Klasse','')) in ['2','4','6','8','10'] and str(r.get('Geschlecht','')).upper() in ['M','KM','1.0']},
+    {"label": "Kastriert W (2,4,6,8,10)", "f": lambda r: str(r.get('Klasse','')) in ['2','4','6','8','10'] and str(r.get('Geschlecht','')).upper() in ['W','F','KW','0.1']},
     {"label": "Junior 11 (8-12)", "f": lambda r: str(r.get('Klasse','')) == '11'},
     {"label": "Kitten 12 (4-8)", "f": lambda r: str(r.get('Klasse','')) == '12'}
 ]
 
-# --- 6. LANDING PAGE ---
+# --- 6. NAVIGATION LOGIK ---
+def set_view(name):
+    st.session_state.view = name
+    st.rerun()
+
+# --- 7. VIEWS ---
+
+# --- HOME SCREEN ---
 if st.session_state.view == "Home":
-    st.title("🐾 KECB Burgdorf 2026 - Systemauswahl")
-    st.write("Bitte wählen Sie Ihren Bereich aus:")
+    st.title("🐾 KECB Burgdorf 2026")
+    st.subheader("Willkommen! Bitte wählen Sie Ihren Zugang:")
     
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("📢 DISPLAY (Öffentlich)"):
-            st.session_state.view = "Dashboard"
-            st.rerun()
-        if st.button("📝 STEWARD (Login)"):
-            st.session_state.view = "Steward_Login"
-            st.rerun()
+        if st.button("📢 LIVE-DASHBOARD\n(Öffentlich)"): set_view("Dashboard")
+        if st.button("🏆 BEST IN SHOW GRID\n(Öffentlich)"): set_view("BIS_Grid")
     with col2:
-        if st.button("🏆 BIS GRID (Öffentlich)"):
-            st.session_state.view = "BIS_Grid"
-            st.rerun()
-        if st.button("⚙️ ADMIN / RICHTER"):
-            st.session_state.view = "Admin_Login"
-            st.rerun()
+        if st.button("📝 STEWARD-PULT\n(Login)"): set_view("Steward_Login")
+        if st.button("👨‍⚖️ RICHTER / ⚙️ ADMIN\n(Login)"): set_view("Admin_Login")
 
-# --- 7. LOGIN SCREENS ---
+# --- LOGIN SCREENS ---
 elif st.session_state.view == "Steward_Login":
     st.title("🔒 Steward Login")
     pwd = st.text_input("Passwort", type="password")
     if st.button("Anmelden"):
-        if pwd == "steward2026":
-            st.session_state.auth_role = "steward"
-            st.session_state.view = "Steward_Panel"
-            st.rerun()
-        else: st.error("Falsch")
-    if st.button("Zurück"): st.session_state.view = "Home"; st.rerun()
+        if pwd == "steward2026": set_view("Steward_Panel")
+        else: st.error("Falsches Passwort")
+    if st.button("Abbrechen"): set_view("Home")
 
 elif st.session_state.view == "Admin_Login":
     st.title("🔒 Admin / Richter Login")
     pwd = st.text_input("Passwort", type="password")
     if st.button("Anmelden"):
-        if pwd == "admin2026":
-            st.session_state.auth_role = "admin"
-            st.session_state.view = "Admin_Panel"
-            st.rerun()
-        elif pwd == "richter2026":
-            st.session_state.auth_role = "richter"
-            st.session_state.view = "Richter_Panel"
-            st.rerun()
-        else: st.error("Falsch")
-    if st.button("Zurück"): st.session_state.view = "Home"; st.rerun()
+        if pwd == "admin2026": set_view("Admin_Panel")
+        elif pwd == "richter2026": set_view("Richter_Panel")
+        else: st.error("Falsches Passwort")
+    if st.button("Abbrechen"): set_view("Home")
 
-# --- 8. HAUPTANSICHTEN (NACH LOGIN / AUSWAHL) ---
+# --- HAUPTPROGRAMM ---
 else:
-    # Sidebar Navigation für eingeloggte User / gewählte Views
+    # Sidebar für alle aktiven Sessions
     st.sidebar.title("KECB 2026")
-    if st.sidebar.button("🏠 Hauptmenü / Logout"):
-        st.session_state.view = "Home"
-        st.session_state.auth_role = None
-        st.rerun()
-    
     tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"])
+    
     df_full = load_labels()
     r_col = f"Richter {tag}"
     df_tag = df_full[df_full[tag].astype(str).str.upper() == 'X'].copy() if df_full is not None else None
 
+    if st.sidebar.button("🏠 Hauptmenü / Logout"): set_view("Home")
+
     if st.session_state.view == "Dashboard":
         st.title(f"Live-Aufruf ({tag})")
-        # ... (Dashboard Code wie oben)
         if df_tag is not None:
             judges = sorted([r for r in df_tag[r_col].unique() if str(r) != "nan"])
             cols = st.columns(len(judges))
@@ -153,7 +158,7 @@ else:
                             if not m.empty:
                                 row = m.iloc[0]
                                 st.markdown(f"<div class='cat-card'><div class='cat-number'>{nr}</div><div class='cat-label'>{get_full_label(row)}</div>", unsafe_allow_html=True)
-                                if v.get("Aufruf"): st.markdown("<span class='tag tag-aufruf'>RUF</span>", unsafe_allow_html=True)
+                                if v.get("Aufruf"): st.markdown("<span class='tag tag-aufruf'>AUFRUF</span>", unsafe_allow_html=True)
                                 if v.get("BIV"): st.markdown("<span class='tag tag-biv'>BIV</span>", unsafe_allow_html=True)
                                 if v.get("NOM"): st.markdown("<span class='tag tag-nom'>NOM</span>", unsafe_allow_html=True)
                                 st.markdown("</div>", unsafe_allow_html=True)
@@ -161,14 +166,13 @@ else:
 
     elif st.session_state.view == "BIS_Grid":
         st.title("Best in Show Grid")
-        # ... (Grid Code wie oben)
         if df_tag is not None:
             judges = sorted([r for r in df_tag[r_col].unique() if str(r) != "nan"])
-            html = "<table style='width:100%; border-collapse: collapse; border: 2px solid #1a4a9e;'><tr><th style='border: 2px solid #1a4a9e; background:#1a4a9e; color:white;'>Klasse</th>"
-            for j in judges: html += f"<th style='border: 2px solid #1a4a9e; background:#1a4a9e; color:white;'>{j}</th>"
+            html = "<table class='bis-table'><tr><th class='class-header'>Klasse</th>"
+            for j in judges: html += f"<th>{j}</th>"
             html += "</tr>"
             for rd in rows_def:
-                html += f"<tr><td style='border: 2px solid #1a4a9e; background:#f0f0f0; font-weight:bold;'>{rd['label']}</td>"
+                html += f"<tr><td class='class-header'>{rd['label']}</td>"
                 for j in judges:
                     cell = ""
                     for k, v in store.data.items():
@@ -177,8 +181,8 @@ else:
                             if r_n == j:
                                 match = df_tag[df_tag['KAT_STR'] == nr]
                                 if not match.empty and rd['f'](match.iloc[0]):
-                                    cell += f"<div style='text-align:center;'><span style='font-size:30px; font-weight:bold;'>{nr}</span><br><small>{get_full_label(match.iloc[0])}</small></div>"
-                    html += f"<td style='border: 2px solid #1a4a9e;'>{cell}</td>"
+                                    cell += f"<div><p class='bis-nr'>{nr}</p><p class='bis-label'>{get_full_label(match.iloc[0])}</p></div>"
+                    html += f"<td>{cell}</td>"
                 html += "</tr>"
             st.markdown(html + "</table>", unsafe_allow_html=True)
 
@@ -187,7 +191,7 @@ else:
         all_j = sorted([r for r in df_tag[r_col].unique() if str(r) != "nan"])
         mein_richter = st.selectbox("Richter:", ["--"] + all_j)
         if mein_richter != "--":
-            df_j = df_tag[df_tag[r_col] == mein_richter]
+            df_j = df_tag[df_tag[r_col] == mein_richter].sort_values(['Katalog-Nr'])
             for _, row in df_j.iterrows():
                 nr = row['KAT_STR']; k = f"{nr}|{mein_richter}"
                 if k not in store.data: store.data[k] = {"Aufruf": False, "BIV": False, "NOM": False}
@@ -196,3 +200,16 @@ else:
                 store.data[k]["Aufruf"] = c2.checkbox("Ruf", value=store.data[k]["Aufruf"], key=f"a{k}")
                 store.data[k]["BIV"] = c3.checkbox("BIV", value=store.data[k]["BIV"], key=f"b{k}")
                 store.data[k]["NOM"] = c4.checkbox("NOM", value=store.data[k]["NOM"], key=f"n{k}")
+
+    elif st.session_state.view == "Admin_Panel":
+        st.title("Admin")
+        if st.button("🔴 ALLE DATEN ZURÜCKSETZEN"):
+            store.data = {}
+            st.success("Erfolgreich gelöscht.")
+        st.write("Live Daten:", store.data)
+
+    elif st.session_state.view == "Richter_Panel":
+        st.title("Richter-Ansicht")
+        all_j = sorted([r for r in df_tag[r_col].unique() if str(r) != "nan"])
+        j_sel = st.selectbox("Ich bin:", all_j)
+        st.table(df_tag[df_tag[r_col] == j_sel][['Katalog-Nr', 'Rasse_Kurz', 'Farbe', 'Klasse', 'Geschlecht']])
