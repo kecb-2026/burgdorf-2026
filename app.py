@@ -27,7 +27,7 @@ st.markdown("""
         background-color: #ffffff; border-radius: 18px; 
         box-shadow: 0px 4px 6px rgba(0,0,0,0.1);
         margin-bottom: 10px;
-        min-height: 105px; /* Angleichen der Höhe */
+        min-height: 105px; 
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -173,22 +173,39 @@ elif st.session_state.view == "BIS_Public":
     df_full = load_labels()
     if df_full is not None:
         tag_input = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"])
-        tag = tag_input.upper(); sel_cat = st.selectbox("Kategorie wählen:", sorted(df_full['KATEGORIE'].unique()))
+        tag = tag_input.upper()
+        sel_cat = st.selectbox("Kategorie wählen:", sorted(df_full['KATEGORIE'].unique()))
         bis_defs = [("Adult Male", [1,3,5,7,9], "M"), ("Adult Female", [1,3,5,7,9], "W"), ("Neuter Male", [2,4,6,8,10], "M"), ("Neuter Female", [2,4,6,8,10], "W"), ("Junior (11) Male", [11], "M"), ("Junior (11) Female", [11], "W"), ("Kitten (12) Male", [12], "M"), ("Kitten (12) Female", [12], "W")]
         r_col = f"RICHTER {tag}"
         judges = sorted([r for r in df_full[df_full[tag].astype(str).str.upper() == 'X'][r_col].unique() if str(r) != "nan"])
+        
+        # Header: Leere Ecke links oben, dann Richternamen
+        h_cols = st.columns([1.5] + [1] * len(judges))
+        h_cols[0].write("")
+        for i, j in enumerate(judges):
+            h_cols[i+1].markdown(f"<div style='text-align:center; font-weight:bold; font-size:14px; color:#1a4a9e; margin-bottom:10px;'>{j}</div>", unsafe_allow_html=True)
+
         for label, klassen, geschl in bis_defs:
             if store.data.get(f"reveal_{sel_cat}_{label}", False):
-                st.subheader(label)
-                cols = st.columns(len(judges) if judges else 1)
+                row_cols = st.columns([1.5] + [1] * len(judges))
+                
+                # Linke Spalte: Klassenname
+                row_cols[0].markdown(f"""
+                    <div style='display: flex; align-items: center; justify-content: flex-start; height: 105px;'>
+                        <span style='font-weight: bold; font-size: 16px; color: #1a4a9e;'>{label}</span>
+                    </div>
+                """, unsafe_allow_html=True)
+                
+                # Daten-Spalten: Nominierte Katzen pro Richter
                 for i, j in enumerate(judges):
-                    with cols[i]:
-                        st.markdown(f"<div style='text-align:center; font-weight:bold; font-size:12px; margin-bottom:5px;'>{j}</div>", unsafe_allow_html=True)
+                    with row_cols[i+1]:
                         match = df_full[(df_full['SELECTION'].astype(str).str.upper() == 'X') & (df_full[r_col] == j) & (df_full['KATEGORIE'] == sel_cat) & (df_full['KLASSE_INTERNAL'].isin(klassen)) & (df_full['GESCHLECHT'].astype(str).str.upper() == geschl)]
                         if not match.empty:
                             row = match.iloc[0]
                             st.markdown(f"<div class='cat-card'><div class='cat-number'>{row['KAT_STR']}</div><div class='cat-details'>{get_full_label(row)}</div></div>", unsafe_allow_html=True)
                         else: st.markdown("<div class='placeholder-box'>–</div>", unsafe_allow_html=True)
+                st.divider()
+
     if st.button("⬅️ Zurück zum Menü"): set_view("Home")
 
 elif st.session_state.view == "Steward_Panel":
