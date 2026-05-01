@@ -23,14 +23,14 @@ st.markdown("""
         padding: 3px; border-radius: 8px; text-align: center; margin-bottom: 5px;
     }
     .cat-card { 
-        padding: 5px; border: 1px solid #e0e0e0; text-align: center; 
+        padding: 8px; border: 1px solid #e0e0e0; text-align: center; 
         background-color: #ffffff; border-radius: 15px; 
         box-shadow: 0px 2px 4px rgba(0,0,0,0.05);
-        height: 160px; display: flex; flex-direction: column; justify-content: center; 
+        height: auto; min-height: 120px; display: flex; flex-direction: column; justify-content: center; 
     }
-    .cat-number { font-size: 38px !important; font-weight: 900 !important; color: #1a4a9e; line-height: 0.9; margin: 2px 0; }
-    .cat-label { font-size: 11px; color: #333; font-weight: bold; margin: 2px 0; }
-    .cat-category-red { font-size: 10px; font-weight: bold; color: #ff0000; margin-bottom: 2px; }
+    .cat-number { font-size: 32px !important; font-weight: 900 !important; color: #1a4a9e; line-height: 0.9; margin: 2px 0; }
+    .cat-details { font-size: 14px; color: #333; font-weight: bold; margin-top: 5px; line-height: 1.2; }
+    
     .tag-container { margin-top: 5px; display: flex; justify-content: center; flex-wrap: wrap; gap: 5px; }
     .tag { font-weight: bold; padding: 4px 10px; border-radius: 6px; font-size: 10px; display: inline-block; }
     .tag-aufruf { background-color: #007bff; color: white; }
@@ -69,7 +69,6 @@ def load_labels():
         df = pd.read_excel("LABELS.xlsx", engine='openpyxl', header=0)
         df.columns = [str(c).strip().upper() for c in df.columns]
         
-        # Mapping für flexible Spaltennamen
         if 'AUSSTELLUNGSKLASSE' in df.columns:
             df['KLASSE_INTERNAL'] = df['AUSSTELLUNGSKLASSE']
         elif 'KLASSE' in df.columns:
@@ -158,9 +157,9 @@ else:
                                 if not m.empty:
                                     row = m.iloc[0]
                                     card_html = f"""<div class='cat-card'>
-                                        <div class='cat-category-red'>Kat. {row.get('KATEGORIE', '–')}</div>
+                                        <div style='font-size: 10px; font-weight: bold; color: #ff0000;'>Kat. {row.get('KATEGORIE', '–')}</div>
                                         <div class='cat-number'>{nr}</div>
-                                        <div class='cat-label'>{get_full_label(row)}</div>
+                                        <div class='cat-details'>{get_full_label(row)}</div>
                                         <div class='tag-container'>"""
                                     if v.get("Aufruf"): card_html += "<span class='tag tag-aufruf'>AUFRUF</span>"
                                     if v.get("BIV"): card_html += "<span class='tag tag-biv'>BIV</span>"
@@ -206,17 +205,18 @@ else:
             sel_cat = st.selectbox("Kategorie wählen:", all_cats, key="pub_cat")
             st.title(f"🏆 Best in Show - Kategorie {sel_cat}")
             
-            # Sicherheitscheck für Spalten (KLASSE_INTERNAL wurde oben gemappt)
             required = ['SELECTION', 'KLASSE_INTERNAL', 'GESCHLECHT']
             missing = [c for c in required if c not in df_full.columns]
             
             if not missing:
-                df_nom = df_full[(df_full['SELECTION'].astype(str).str.upper() == 'X') & (df_full['KATEGORIE'] == sel_cat)].copy()
-                judges = sorted([r for r in df_nom[r_col].unique() if str(r) != "nan"]) if r_col in df_nom.columns else []
+                # Alle aktiven Richter für diesen TAG ermitteln (damit immer alle Spalten da sind)
+                all_active_judges = sorted([r for r in df_full[r_col].unique() if str(r) != "nan"])
                 
-                h_cols = st.columns([1.5] + [1] * len(judges))
+                df_nom = df_full[(df_full['SELECTION'].astype(str).str.upper() == 'X') & (df_full['KATEGORIE'] == sel_cat)].copy()
+                
+                h_cols = st.columns([1.5] + [1] * len(all_active_judges))
                 h_cols[0].markdown("**Klasse**")
-                for i, j in enumerate(judges):
+                for i, j in enumerate(all_active_judges):
                     h_cols[i+1].markdown(f"<div style='background-color:#1a4a9e; color:white; padding:5px; border-radius:8px; text-align:center; font-size:10px; font-weight:bold;'>{j}</div>", unsafe_allow_html=True)
                 st.divider()
 
@@ -228,24 +228,24 @@ else:
                 ]
 
                 for label, klassen, geschlecht in bis_defs:
-                    r_cols = st.columns([1.5] + [1] * len(judges))
+                    r_cols = st.columns([1.5] + [1] * len(all_active_judges))
                     r_cols[0].markdown(f"<div style='font-size:12px; font-weight:bold; padding-top:15px;'>{label}</div>", unsafe_allow_html=True)
                     
                     is_revealed = store.data.get(f"reveal_{sel_cat}_{label}", False)
-                    for i, j in enumerate(judges):
+                    for i, j in enumerate(all_active_judges):
                         with r_cols[i+1]:
                             if is_revealed:
                                 match = df_nom[(df_nom[r_col] == j) & (df_nom['KLASSE_INTERNAL'].isin(klassen)) & (df_nom['GESCHLECHT'].astype(str).str.upper() == geschlecht)]
                                 if not match.empty:
                                     for _, row in match.iterrows():
                                         st.markdown(f"""
-                                            <div class='cat-card' style='height: auto; padding: 5px; border: 2px solid #1a4a9e; margin-bottom:5px;'>
-                                                <div class='cat-number' style='font-size: 26px !important;'>{row['KAT_STR']}</div>
-                                                <div style='font-size: 10px; font-weight: bold;'>{row['RASSE']} {row['FARBGRUPPE']}</div>
+                                            <div class='cat-card' style='border: 2px solid #1a4a9e;'>
+                                                <div class='cat-number'>{row['KAT_STR']}</div>
+                                                <div class='cat-details'>{get_full_label(row)}</div>
                                             </div>
                                         """, unsafe_allow_html=True)
                             else:
-                                st.markdown("<div style='height:80px; border:1px dashed #ccc; border-radius:10px; margin-bottom:5px;'></div>", unsafe_allow_html=True)
+                                st.markdown("<div style='height:80px; border:1px dashed #ccc; border-radius:10px; margin-bottom:5px; background-color:#f9f9f9;'></div>", unsafe_allow_html=True)
                     st.divider()
             else:
-                st.error(f"Fehlende Spalten im Excel: AUSSTELLUNGSKLASSE (oder KLASSE), SELECTION, GESCHLECHT")
+                st.error(f"Fehlende Spalten im Excel: AUSSTELLUNGSKLASSE, SELECTION, GESCHLECHT")
