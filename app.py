@@ -7,69 +7,71 @@ st.set_page_config(layout="wide", page_title="KECB Burgdorf 2026", page_icon="�
 
 st.markdown("""
     <style>
-    /* Startbildschirm Buttons */
+    /* Startbildschirm Buttons - Höhe reduziert */
     .stButton button { 
         width: 100%; 
-        height: 120px; 
+        height: 60px; 
         font-size: 13px !important; 
         font-weight: bold !important; 
-        border-radius: 15px !important;
-        margin-bottom: 10px;
+        border-radius: 12px !important;
+        margin-bottom: 5px;
         border: 2px solid #1a4a9e !important;
     }
     
-    /* Dashboard & Cards */
+    /* Dashboard & Cards - Kompakterer Rahmen und Abstände */
     .judge-col { 
-        border: 3px solid #1a4a9e; 
-        padding: 7px; 
-        border-radius: 20px; 
+        border: 2px solid #1a4a9e; 
+        padding: 5px; 
+        border-radius: 15px; 
         background-color: #ffffff; 
-        margin-bottom: 10px; 
-        box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
+        margin-bottom: 8px; 
+        box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
         display: flex; 
         flex-direction: column;
-        gap: 10px;
+        gap: 5px;
     }
 
     .judge-col h3 { 
-        font-size: 16px !important; 
+        font-size: 14px !important; 
         color: white; 
         background-color: #1a4a9e; 
-        padding: 5px; 
-        border-radius: 10px; 
+        padding: 3px; 
+        border-radius: 8px; 
         text-align: center; 
-        margin-bottom: 7px;
+        margin-bottom: 5px;
     }
 
     .cat-card { 
-        padding: 10px; 
+        padding: 5px; 
         border: 1px solid #e0e0e0; 
         text-align: center; 
         background-color: #ffffff; 
-        border-radius: 20px; 
-        box-shadow: 0px 4px 6px rgba(0,0,0,0.05);
-        height: 250px; 
+        border-radius: 15px; 
+        box-shadow: 0px 2px 4px rgba(0,0,0,0.05);
+        height: 160px; 
         display: flex;
         flex-direction: column;
         justify-content: center; 
     }
-    .cat-number { font-size: 55px !important; font-weight: 900 !important; color: #1a4a9e; line-height: 0.8; margin: 10px 0; }
-    .cat-label { font-size: 13px; color: #333; font-weight: bold; margin: 5px 0 7px 0; }
-    .cat-category-red { font-size: 11px; font-weight: bold; color: #ff0000; margin-bottom: 5px; }
+    /* Nummer und Labels verkleinert für vertikalen Platz */
+    .cat-number { font-size: 38px !important; font-weight: 900 !important; color: #1a4a9e; line-height: 0.9; margin: 2px 0; }
+    .cat-label { font-size: 11px; color: #333; font-weight: bold; margin: 2px 0; }
+    .cat-category-red { font-size: 10px; font-weight: bold; color: #ff0000; margin-bottom: 2px; }
 
-    .tag-container { margin-top: 10px; display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; }
-    .tag { font-weight: bold; padding: 10px 20px; border-radius: 10px; font-size: 11px; display: inline-block; }
+    .tag-container { margin-top: 5px; display: flex; justify-content: center; flex-wrap: wrap; gap: 5px; }
+    .tag { font-weight: bold; padding: 4px 10px; border-radius: 6px; font-size: 10px; display: inline-block; }
     .tag-aufruf { background-color: #007bff; color: white; }
     @keyframes blinker { 50% { opacity: 0.2; } }
     .tag-biv { background-color: #28a745; color: white; animation: blinker 1.5s linear infinite; }
     .tag-nom { background-color: #ffc107; color: black; animation: blinker 1s linear infinite; }
 
-    .bis-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; table-layout: fixed; background: white; }
-    .bis-table th, .bis-table td { border: 2px solid #1a4a9e; padding: 5px; text-align: center; vertical-align: middle; min-height: 100px; }
+    /* Tabellen kompakter */
+    .bis-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; table-layout: fixed; background: white; }
+    .bis-table th, .bis-table td { border: 1px solid #1a4a9e; padding: 3px; text-align: center; vertical-align: middle; }
     .bis-table th { background-color: #1a4a9e; color: white; font-size: 9px; }
-    .class-header { background-color: #f0f0f0 !important; font-weight: bold; text-align: left !important; width: 180px; color: #1a4a9e; }
-    .bis-nr { font-size: 24px !important; font-weight: 900 !important; color: #000; margin: 0; line-height: 1; }
-    .bis-label { font-size: 10px; font-weight: bold; color: #333; margin-top: 2px; }
+    .class-header { background-color: #f0f0f0 !important; font-weight: bold; text-align: left !important; width: 150px; color: #1a4a9e; font-size: 11px; }
+    .bis-nr { font-size: 18px !important; font-weight: 900 !important; color: #000; margin: 0; line-height: 1; }
+    .bis-label { font-size: 9px; font-weight: bold; color: #333; margin-top: 1px; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -99,7 +101,6 @@ def roman_to_numeric(text):
 @st.cache_data(ttl=30)
 def load_labels():
     try:
-        # Fix: Dateiname LABELS.xlsm und korrekte Spaltenerkennung[span_3](start_span)[span_3](end_span)[span_4](start_span)[span_4](end_span)
         df = pd.read_excel("LABELS.xlsm", engine='openpyxl', header=0)
         df.columns = df.columns.astype(str).str.strip()
         if 'Katalog-Nr' in df.columns:
@@ -151,7 +152,7 @@ elif st.session_state.view == "Admin_Panel":
     with st.expander("Gefahrenzone: Speicher leeren"):
         st.warning("Dies löscht alle aktuellen Aufrufe von den Dashboards!")
         if st.button("🚨 ALLE DATEN ZURÜCKSETZEN"):
-            store.data = {} # Leert den globalen Speicher[span_5](start_span)[span_5](end_span)
+            store.data = {} 
             st.success("Speicher geleert!")
             st.rerun()
     st.divider()
@@ -211,4 +212,4 @@ else:
                     store.data[k]["BIV"] = c3.checkbox("BIV", value=store.data[k]["BIV"], key=f"b{k}")
                     store.data[k]["NOM"] = c4.checkbox("NOM", value=store.data[k]["NOM"], key=f"n{k}")
         else:
-            st.error(f"Spalte '{r_col}' fehlt!")[span_6](start_span)[span_6](end_span)[span_7](start_span)[span_7](end_span)
+            st.error(f"Spalte '{r_col}' fehlt!")
