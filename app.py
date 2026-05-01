@@ -144,25 +144,40 @@ elif st.session_state.view == "BIS_Admin_Control":
             store.data[key] = cols[idx % 4].checkbox(label, value=store.data.get(key, False), key=f"cb_{key}")
 
         st.divider()
-        st.subheader("2. Wahlergebnisse (Live)")
+        st.subheader("2. Detaillierte Wahlergebnisse")
         if "votes" in store.data:
             for label in bis_defs:
-                # Sammle alle Stimmen für diese Kategorie und Klasse
-                v_list = [v for k, v in store.data["votes"].items() if k.startswith(f"v_{sel_cat}_{label}_") and v != "Keine Wahl"]
-                if v_list:
-                    with st.expander(f"Ergebnis: {label}", expanded=True):
-                        counts = pd.Series(v_list).value_counts()
-                        # Suche Details zur Katze für die Anzeige
-                        results_df = []
-                        for kat_nr, stimmanzahl in counts.items():
+                # Extrahiere Stimmen: {Richtername: Katze_Nr}
+                prefix = f"v_{sel_cat}_{label}_"
+                votes_in_class = {k.replace(prefix, ""): v for k, v in store.data["votes"].items() if k.startswith(prefix) and v != "Keine Wahl"}
+                
+                if votes_in_class:
+                    with st.expander(f"Klasse: {label}", expanded=True):
+                        # Gruppieren nach Katze, um zu sehen wer wen gewählt hat
+                        summary = {}
+                        for judge, kat_nr in votes_in_class.items():
+                            if kat_nr not in summary: summary[kat_nr] = []
+                            summary[kat_nr].append(judge)
+                        
+                        # Tabelle aufbereiten
+                        results_table = []
+                        for kat_nr, judges_list in summary.items():
                             m = df_full[df_full['KAT_STR'] == str(kat_nr)]
                             info = get_full_label(m.iloc[0]) if not m.empty else "Unbekannt"
-                            results_df.append({"Katze": f"#{kat_nr}", "Info": info, "Stimmen": stimmanzahl})
-                        st.table(results_df)
+                            results_table.append({
+                                "Katze": f"#{kat_nr}",
+                                "Stimmen": len(judges_list),
+                                "Gewählt von": ", ".join(judges_list),
+                                "Details": info
+                            })
+                        
+                        # Sortieren nach meisten Stimmen
+                        df_res = pd.DataFrame(results_table).sort_values("Stimmen", ascending=False)
+                        st.table(df_res)
                 else:
                     st.write(f"Sektion {label}: Noch keine Stimmen.")
         else:
-            st.info("Noch keine Voting-Daten im System vorhanden.")
+            st.info("Noch keine Voting-Daten vorhanden.")
             
     if st.button("⬅️ Zurück zum Menü"): set_view("Home")
 
@@ -188,24 +203,21 @@ elif st.session_state.view == "Judge_Voting":
                         v_key = f"v_{active_cat}_{label}_{active_j}"
                         curr = store.data["votes"].get(v_key, "Keine Wahl")
                         
-                        # Index finden für Radio-Button Reset
                         idx = 0
                         if curr in opts.values():
                             idx = list(opts.values()).index(curr) + 1
                             
                         sel = st.radio("Favorit:", ["Keine Wahl"] + list(opts.keys()), index=idx, key=f"r_{v_key}")
                         store.data["votes"][v_key] = opts[sel] if sel != "Keine Wahl" else "Keine Wahl"
-                    else: st.info("Keine Nominierten in dieser Klasse.")
+                    else: st.info("Keine Nominierten.")
     if st.button("⬅️ Zurück zum Menü"): set_view("Home")
 
-# ... (Steward_Panel, Login-Views, BIS_Public bleiben wie zuletzt)
 elif st.session_state.view == "BIS_Public":
     st.title("🏆 Best in Show - Public Screen")
     df_full = load_labels()
     if df_full is not None:
         tag_input = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"])
-        tag = tag_input.upper()
-        sel_cat = st.selectbox("Kategorie wählen:", sorted(df_full['KATEGORIE'].unique()))
+        tag = tag_input.upper(); sel_cat = st.selectbox("Kategorie wählen:", sorted(df_full['KATEGORIE'].unique()))
         bis_defs = [("Adult Male", [1,3,5,7,9], "M"), ("Adult Female", [1,3,5,7,9], "W"), ("Neuter Male", [2,4,6,8,10], "M"), ("Neuter Female", [2,4,6,8,10], "W"), ("Junior (11) Male", [11], "M"), ("Junior (11) Female", [11], "W"), ("Kitten (12) Male", [12], "M"), ("Kitten (12) Female", [12], "W")]
         r_col = f"RICHTER {tag}"
         judges = sorted([r for r in df_full[df_full[tag].astype(str).str.upper() == 'X'][r_col].unique() if str(r) != "nan"])
