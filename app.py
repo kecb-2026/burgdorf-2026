@@ -7,7 +7,6 @@ st.set_page_config(layout="wide", page_title="KECB Burgdorf 2026", page_icon="�
 
 st.markdown("""
     <style>
-    /* Startbildschirm Buttons - Höhe reduziert */
     .stButton button { 
         width: 100%; 
         height: 60px; 
@@ -18,40 +17,23 @@ st.markdown("""
         border: 2px solid #1a4a9e !important;
     }
     
-    /* Dashboard & Cards - Kompakterer Rahmen und Abstände */
     .judge-col { 
-        border: 2px solid #1a4a9e; 
-        padding: 5px; 
-        border-radius: 15px; 
-        background-color: #ffffff; 
-        margin-bottom: 8px; 
+        border: 2px solid #1a4a9e; padding: 5px; border-radius: 15px; 
+        background-color: #ffffff; margin-bottom: 8px; 
         box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
-        display: flex; 
-        flex-direction: column;
-        gap: 5px;
+        display: flex; flex-direction: column; gap: 5px;
     }
 
     .judge-col h3 { 
-        font-size: 14px !important; 
-        color: white; 
-        background-color: #1a4a9e; 
-        padding: 3px; 
-        border-radius: 8px; 
-        text-align: center; 
-        margin-bottom: 5px;
+        font-size: 14px !important; color: white; background-color: #1a4a9e; 
+        padding: 3px; border-radius: 8px; text-align: center; margin-bottom: 5px;
     }
 
     .cat-card { 
-        padding: 5px; 
-        border: 1px solid #e0e0e0; 
-        text-align: center; 
-        background-color: #ffffff; 
-        border-radius: 15px; 
+        padding: 5px; border: 1px solid #e0e0e0; text-align: center; 
+        background-color: #ffffff; border-radius: 15px; 
         box-shadow: 0px 2px 4px rgba(0,0,0,0.05);
-        height: 160px; 
-        display: flex;
-        flex-direction: column;
-        justify-content: center; 
+        height: 160px; display: flex; flex-direction: column; justify-content: center; 
     }
     .cat-number { font-size: 38px !important; font-weight: 900 !important; color: #1a4a9e; line-height: 0.9; margin: 2px 0; }
     .cat-label { font-size: 11px; color: #333; font-weight: bold; margin: 2px 0; }
@@ -63,13 +45,6 @@ st.markdown("""
     @keyframes blinker { 50% { opacity: 0.2; } }
     .tag-biv { background-color: #28a745; color: white; animation: blinker 1.5s linear infinite; }
     .tag-nom { background-color: #ffc107; color: black; animation: blinker 1s linear infinite; }
-
-    .bis-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; table-layout: fixed; background: white; }
-    .bis-table th, .bis-table td { border: 1px solid #1a4a9e; padding: 3px; text-align: center; vertical-align: middle; }
-    .bis-table th { background-color: #1a4a9e; color: white; font-size: 9px; }
-    .class-header { background-color: #f0f0f0 !important; font-weight: bold; text-align: left !important; width: 150px; color: #1a4a9e; font-size: 11px; }
-    .bis-nr { font-size: 18px !important; font-weight: 900 !important; color: #000; margin: 0; line-height: 1; }
-    .bis-label { font-size: 9px; font-weight: bold; color: #333; margin-top: 1px; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -87,7 +62,7 @@ store = get_store()
 if "view" not in st.session_state:
     st.session_state.view = "Home"
 
-# --- 4. HILFSFUNKTIONEN ---
+# --- 3. HILFSFUNKTIONEN ---
 def roman_to_numeric(text):
     roman_map = {'IX': '9', 'VIII': '8', 'VII': '7', 'VI': '6', 'IV': '4', 'V': '5', 'III': '3', 'II': '2', 'I': '1'}
     if pd.isna(text) or text == "": return ""
@@ -99,13 +74,14 @@ def roman_to_numeric(text):
 @st.cache_data(ttl=30)
 def load_labels():
     try:
-        df = pd.read_excel("LABELS.xlsm", engine='openpyxl', header=0)
+        # Hier wurde die Endung auf .xlsx geändert
+        df = pd.read_excel("LABELS.xlsx", engine='openpyxl', header=0)
         df.columns = [str(c).strip().upper() for c in df.columns]
         if 'KATALOG-NR' in df.columns:
             df['KAT_STR'] = df['KATALOG-NR'].astype(str).str.replace('.0', '', regex=False)
         return df
     except Exception as e:
-        st.error(f"Excel-Fehler: {e}")
+        st.error(f"Excel-Fehler (Datei LABELS.xlsx nicht gefunden?): {e}")
         return None
 
 def get_full_label(row):
@@ -120,7 +96,7 @@ def set_view(name):
     st.session_state.view = name
     st.rerun()
 
-# --- 7. VIEWS ---
+# --- 4. VIEWS ---
 
 if st.session_state.view == "Home":
     st.title("🐾 KECB Burgdorf 2026")
@@ -131,6 +107,7 @@ if st.session_state.view == "Home":
     with col2:
         if st.button("📝 STEWARD-PULT"): set_view("Steward_Login")
         if st.button("👨‍⚖️ BIS ADMIN / CONTROL"): set_view("BIS_Admin_Control")
+        if st.button("⚙️ ADMIN-KONSOLE (RESET)"): set_view("Admin_Login")
 
 elif st.session_state.view == "Steward_Login":
     st.title("🔒 Steward Login")
@@ -139,7 +116,7 @@ elif st.session_state.view == "Steward_Login":
     if st.button("Zurück"): set_view("Home")
 
 elif st.session_state.view == "Admin_Login":
-    st.title("⚙️ Admin / Richter Login")
+    st.title("⚙️ Admin Login")
     pwd = st.text_input("Passwort", type="password")
     if st.button("Anmelden") and pwd == "admin2026": set_view("Admin_Panel")
     if st.button("Zurück"): set_view("Home")
@@ -147,11 +124,11 @@ elif st.session_state.view == "Admin_Login":
 elif st.session_state.view == "Admin_Panel":
     st.title("👨‍⚖️ Admin-Konsole")
     st.subheader("🧹 Daten-Management")
-    with st.expander("Gefahrenzone: Speicher leeren"):
-        st.warning("Dies löscht alle aktuellen Aufrufe von den Dashboards!")
-        if st.button("🚨 ALLE DATEN ZURÜCKSETZEN"):
+    with st.expander("🚨 Gefahrenzone: Speicher leeren"):
+        st.warning("Dies löscht alle aktuellen Aufrufe (NOM, BIV, Ruf) und alle BIS-Enthüllungen!")
+        if st.button("ALLE DATEN ZURÜCKSETZEN"):
             store.data = {} 
-            st.success("Speicher geleert!")
+            st.success("Speicher wurde vollständig geleert!")
             st.rerun()
     st.divider()
     if st.button("⬅️ Zurück zum Menü"): set_view("Home")
@@ -186,7 +163,7 @@ else:
                                 if not m.empty:
                                     row = m.iloc[0]
                                     card_html = f"""<div class='cat-card'>
-                                        <div class='cat-category-red'>Kategorie {row.get('KATEGORIE', '–')}</div>
+                                        <div class='cat-category-red'>Kat. {row.get('KATEGORIE', '–')}</div>
                                         <div class='cat-number'>{nr}</div>
                                         <div class='cat-label'>{get_full_label(row)}</div>
                                         <div class='tag-container'>"""
@@ -213,15 +190,15 @@ else:
                     store.data[k]["NOM"] = c4.checkbox("NOM", value=store.data[k]["NOM"], key=f"n{k}")
 
     elif st.session_state.view == "BIS_Admin_Control":
-        st.title("👨‍⚖️ BIS Admin Steuerung")
+        st.title("🏆 BIS Steuerung")
         if df_full is not None:
             all_cats = sorted(df_full['KATEGORIE'].unique())
             sel_cat = st.selectbox("Kategorie verwalten:", all_cats, key="admin_cat")
             bis_defs = [
                 ("Adult Male", [1, 3, 5, 7, 9], "M"), ("Adult Female", [1, 3, 5, 7, 9], "W"),
                 ("Neuter Male", [2, 4, 6, 8, 10], "M"), ("Neuter Female", [2, 4, 6, 8, 10], "W"),
-                ("Junior Male (11)", [11], "M"), ("Junior Female (11)", [11], "W"),
-                ("Kitten Male (12)", [12], "M"), ("Kitten Female (12)", [12], "W")
+                ("Junior (11) Male", [11], "M"), ("Junior (11) Female", [11], "W"),
+                ("Kitten (12) Male", [12], "M"), ("Kitten (12) Female", [12], "W")
             ]
             for label, _, _ in bis_defs:
                 key = f"reveal_{sel_cat}_{label}"
@@ -235,13 +212,9 @@ else:
             st.title(f"🏆 Best in Show - Kategorie {sel_cat}")
             
             if 'SELECTION' in df_full.columns:
-                # Hole alle Nominierten dieser Kategorie (Basis für Richterliste)
                 df_nom = df_full[(df_full['SELECTION'].astype(str).str.upper() == 'X') & (df_full['KATEGORIE'] == sel_cat)].copy()
-                
-                # Richterliste aus ALLEN Nominierten dieser Kategorie generieren
                 judges = sorted([r for r in df_nom[r_col].unique() if str(r) != "nan"]) if r_col in df_nom.columns else []
                 
-                # Tabellen-Header (Immer sichtbar)
                 h_cols = st.columns([1.5] + [1] * len(judges))
                 h_cols[0].markdown("**Klasse**")
                 for i, j in enumerate(judges):
@@ -251,8 +224,8 @@ else:
                 bis_defs = [
                     ("Adult Male", [1, 3, 5, 7, 9], "M"), ("Adult Female", [1, 3, 5, 7, 9], "W"),
                     ("Neuter Male", [2, 4, 6, 8, 10], "M"), ("Neuter Female", [2, 4, 6, 8, 10], "W"),
-                    ("Junior Male (11)", [11], "M"), ("Junior Female (11)", [11], "W"),
-                    ("Kitten Male (12)", [12], "M"), ("Kitten Female (12)", [12], "W")
+                    ("Junior (11) Male", [11], "M"), ("Junior (11) Female", [11], "W"),
+                    ("Kitten (12) Male", [12], "M"), ("Kitten (12) Female", [12], "W")
                 ]
 
                 for label, klassen, geschlecht in bis_defs:
