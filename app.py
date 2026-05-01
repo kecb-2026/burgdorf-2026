@@ -34,6 +34,9 @@ st.markdown("""
     .cat-number { font-size: 110px !important; font-weight: 900 !important; color: #1a4a9e; line-height: 0.8; margin: 10px 0; }
     .cat-label { font-size: 26px; color: #333; font-weight: bold; margin: 5px 0 15px 0; }
     
+    /* Kategorie-Styling in Rot für das Display */
+    .cat-category-red { font-size: 22px; font-weight: bold; color: #ff0000; margin-bottom: 5px; }
+
     /* Tags & Steward Farben */
     .tag-container { margin-top: 10px; display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; }
     .tag { font-weight: bold; padding: 10px 20px; border-radius: 10px; font-size: 22px; display: inline-block; }
@@ -145,7 +148,7 @@ else:
                             if not m.empty:
                                 row = m.iloc[0]
                                 card_html = f"""<div class='cat-card'>
-                                    <div style='font-size:20px; font-weight:bold;'>Kategorie {row['Kategorie']}</div>
+                                    <div class='cat-category-red'>Kategorie {row['Kategorie']}</div>
                                     <div class='cat-number'>{nr}</div>
                                     <div class='cat-label'>{get_full_label(row)}</div>
                                     <div class='tag-container'>"""
