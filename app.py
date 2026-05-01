@@ -120,22 +120,22 @@ elif st.session_state.view == "BIS_Admin_Control":
             with st.expander(f"Klasse: {label}"):
                 c1, c2, c3, c4 = st.columns([1, 1, 1.5, 2])
                 
-                # Stimmen zählen für die Anzeige im Admin
+                # Stimmen zählen für die Anzeige im Admin[span_1](start_span)[span_1](end_span)
                 prefix = f"v_{sel_cat}_{label}_"
                 class_votes = [v for k, v in store.data.get("votes", {}).items() if k.startswith(prefix) and v != "Keine Wahl"]
                 vote_summary = pd.Series(class_votes).value_counts().to_dict() if class_votes else {}
                 vote_str = " | ".join([f"#{k}: {v} St." for k, v in vote_summary.items()]) if vote_summary else "Keine Stimmen"
                 
-                # 1. & 2. Sichtbarkeit
+                # Sichtbarkeit Steuerungen[span_2](start_span)[span_2](end_span)
                 key_reveal = f"reveal_{sel_cat}_{label}"
                 key_winner_reveal = f"winner_reveal_{sel_cat}_{label}"
                 store.data[key_reveal] = c1.checkbox("Einblenden", value=store.data.get(key_reveal, False), key=f"vis_{key_reveal}")
                 store.data[key_winner_reveal] = c2.checkbox("🏆 Gewinner", value=store.data.get(key_winner_reveal, False), key=f"win_{key_winner_reveal}")
                 
-                # 3. Stimmen Anzeige
+                # Stimmen Anzeige im Admin-Bereich[span_3](start_span)[span_3](end_span)
                 c3.info(f"🗳️ {vote_str}")
                 
-                # 4. Manueller Override (Gefiltert auf Katzen dieser Klasse)
+                # Manueller Override - Filterung auf Katzen dieser Klasse[span_4](start_span)[span_4](end_span)
                 pool = df_full[(df_full['SELECTION'].astype(str).str.upper() == 'X') & (df_full['KATEGORIE'] == sel_cat) & (df_full['KLASSE_INTERNAL'].isin(klassen)) & (df_full['GESCHLECHT'].astype(str).str.upper() == geschl)]
                 options = ["Automatisch (Stimmen)"] + sorted(pool['KAT_STR'].unique().tolist())
                 
@@ -176,6 +176,7 @@ elif st.session_state.view == "BIS_Public":
                             st.markdown(f"<div class='cat-card'><div class='cat-number'>{row['KAT_STR']}</div><div class='cat-details'>{get_full_label(row)}</div></div>", unsafe_allow_html=True)
                         else: st.markdown("<div class='placeholder-box'>–</div>", unsafe_allow_html=True)
                 
+                # Winner Column mit Override-Logik[span_5](start_span)[span_5](end_span)
                 with row_cols[-1]:
                     if store.data.get(f"winner_reveal_{sel_cat}_{label}", False):
                         manual_winner = store.data.get(f"override_{sel_cat}_{label}", "Automatisch (Stimmen)")
@@ -202,7 +203,6 @@ elif st.session_state.view == "BIS_Public":
                 st.divider()
     if st.button("⬅️ Zurück zum Menü"): set_view("Home")
 
-# Rest des Codes bleibt gleich (Dashboard, Steward, Voting, Admin_Login) ...
 elif st.session_state.view == "Dashboard":
     st.title("📢 Live-Aufruf & Status")
     tag_input = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"])
