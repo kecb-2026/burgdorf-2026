@@ -19,63 +19,51 @@ st.markdown("""
     }
     
     /* Dashboard & Cards */
-.judge-col { 
-    border: 3px solid #1a4a9e; 
-    padding: 7px; 
-    border-radius: 20px; 
-    background-color: #ffffff; 
-    margin-bottom: 20px; 
-    box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
-    display: flex; /* Neu: Erlaubt den Karten, sich auszurichten */
-    flex-direction: column;
-    gap: 5px;
-}
+    .judge-col { 
+        border: 3px solid #1a4a9e; 
+        padding: 15px; 
+        border-radius: 20px; 
+        background-color: #ffffff; 
+        margin-bottom: 20px; 
+        box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
+        display: flex; 
+        flex-direction: column;
+        gap: 10px;
+    }
 
-.judge-col h3 { 
-    font-size: 16px !important; 
-    color: white; 
-    background-color: #1a4a9e; 
-    padding: 5px; 
-    border-radius: 10px; 
-    text-align: center; 
-    margin-bottom: 8px;
-}
+    .judge-col h3 { 
+        font-size: 16px !important; 
+        color: white; 
+        background-color: #1a4a9e; 
+        padding: 10px; 
+        border-radius: 10px; 
+        text-align: center; 
+        margin-bottom: 15px;
+    }
 
-.cat-card { 
-    padding: 10px; 
-    border: 1px solid #e0e0e0; 
-    text-align: center; 
-    background-color: #ffffff; 
-    border-radius: 20px; 
-	margin: 7px;
-    box-shadow: 0px 4px 6px rgba(0,0,0,0.05);
-    
-    /* Höhen-Fix */
-    height: 200px; /* Hier eine feste Höhe wählen, die für alle passt */
-    display: flex;
-    flex-direction: column;
-    justify-content: center; /* Zentriert den Inhalt vertikal */
-
-
-
+    .cat-card { 
+        padding: 20px; 
+        border: 1px solid #e0e0e0; 
+        text-align: center; 
+        background-color: #ffffff; 
+        border-radius: 20px; 
+        box-shadow: 0px 4px 6px rgba(0,0,0,0.05);
+        height: 250px; 
+        display: flex;
+        flex-direction: column;
+        justify-content: center; 
     }
     .cat-number { font-size: 55px !important; font-weight: 900 !important; color: #1a4a9e; line-height: 0.8; margin: 10px 0; }
     .cat-label { font-size: 13px; color: #333; font-weight: bold; margin: 5px 0 15px 0; }
-    
-    /* Kategorie-Styling in Rot für das Display */
     .cat-category-red { font-size: 11px; font-weight: bold; color: #ff0000; margin-bottom: 5px; }
 
-    /* Tags & Steward Farben */
     .tag-container { margin-top: 10px; display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; }
     .tag { font-weight: bold; padding: 10px 20px; border-radius: 10px; font-size: 11px; display: inline-block; }
-    
     .tag-aufruf { background-color: #007bff; color: white; }
     @keyframes blinker { 50% { opacity: 0.2; } }
     .tag-biv { background-color: #28a745; color: white; animation: blinker 1.5s linear infinite; }
     .tag-nom { background-color: #ffc107; color: black; animation: blinker 1s linear infinite; }
 
-
-    /* Best in Show Grid */
     .bis-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; table-layout: fixed; background: white; }
     .bis-table th, .bis-table td { border: 2px solid #1a4a9e; padding: 5px; text-align: center; vertical-align: middle; min-height: 100px; }
     .bis-table th { background-color: #1a4a9e; color: white; font-size: 9px; }
@@ -111,11 +99,15 @@ def roman_to_numeric(text):
 @st.cache_data(ttl=30)
 def load_labels():
     try:
-        df = pd.read_excel("LABELS.xlsm", engine='openpyxl', header=1)
+        # Fix: Dateiname LABELS.xlsm und korrekte Spaltenerkennung[span_3](start_span)[span_3](end_span)[span_4](start_span)[span_4](end_span)
+        df = pd.read_excel("LABELS.xlsm", engine='openpyxl', header=0)
         df.columns = df.columns.astype(str).str.strip()
-        df['KAT_STR'] = df['Katalog-Nr'].astype(str).str.replace('.0', '', regex=False)
+        if 'Katalog-Nr' in df.columns:
+            df['KAT_STR'] = df['Katalog-Nr'].astype(str).str.replace('.0', '', regex=False)
         return df
-    except: return None
+    except Exception as e:
+        st.error(f"Excel-Fehler: {e}")
+        return None
 
 def get_full_label(row):
     r = row.get('Rasse_Kurz', row.get('Rasse', ''))
@@ -153,26 +145,36 @@ elif st.session_state.view == "Admin_Login":
     if st.button("Anmelden") and pwd == "admin2026": set_view("Admin_Panel")
     if st.button("Zurück"): set_view("Home")
 
+elif st.session_state.view == "Admin_Panel":
+    st.title("👨‍⚖️ Admin-Konsole")
+    st.subheader("🧹 Daten-Management")
+    with st.expander("Gefahrenzone: Speicher leeren"):
+        st.warning("Dies löscht alle aktuellen Aufrufe von den Dashboards!")
+        if st.button("🚨 ALLE DATEN ZURÜCKSETZEN"):
+            store.data = {} # Leert den globalen Speicher[span_5](start_span)[span_5](end_span)
+            st.success("Speicher geleert!")
+            st.rerun()
+    st.divider()
+    if st.button("⬅️ Zurück zum Menü"): set_view("Home")
+
 else:
     st.sidebar.title("KECB 2026")
     tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"])
+    if st.sidebar.button("⬅️ Menü"): set_view("Home")
     
-    # Navigation Buttons in der Sidebar
-    if st.sidebar.button("⬅️ Zurück zum Menü"):
-        set_view("Home")
-            
-    if st.sidebar.button("🚪 Logout"):
-        set_view("Home")
-
     df_full = load_labels()
     r_col = f"Richter {tag}"
-    df_tag = df_full[df_full[tag].astype(str).str.upper() == 'X'].copy() if df_full is not None else None
+    
+    if df_full is not None and tag in df_full.columns:
+        df_tag = df_full[df_full[tag].astype(str).str.upper() == 'X'].copy()
+    else:
+        df_tag = None
 
     if st.session_state.view == "Dashboard":
         st.title(f"Live-Aufruf ({tag})")
-        if df_tag is not None:
+        if df_tag is not None and r_col in df_tag.columns:
             judges = sorted([r for r in df_tag[r_col].unique() if str(r) != "nan"])
-            cols = st.columns(len(judges))
+            cols = st.columns(max(1, len(judges)))
             for i, j in enumerate(judges):
                 with cols[i]:
                     st.markdown(f"<div class='judge-col'><h3>{j}</h3>", unsafe_allow_html=True)
@@ -183,7 +185,7 @@ else:
                             if not m.empty:
                                 row = m.iloc[0]
                                 card_html = f"""<div class='cat-card'>
-                                    <div class='cat-category-red'>Kategorie {row['Kategorie']}</div>
+                                    <div class='cat-category-red'>Kategorie {row.get('Kategorie', '–')}</div>
                                     <div class='cat-number'>{nr}</div>
                                     <div class='cat-label'>{get_full_label(row)}</div>
                                     <div class='tag-container'>"""
@@ -195,15 +197,18 @@ else:
 
     elif st.session_state.view == "Steward_Panel":
         st.title("Steward-Steuerung")
-        all_j = sorted([r for r in df_tag[r_col].unique() if str(r) != "nan"])
-        mein_richter = st.selectbox("Richter wählen:", ["--"] + all_j)
-        if mein_richter != "--":
-            df_j = df_tag[df_tag[r_col] == mein_richter].sort_values(['Katalog-Nr'])
-            for _, row in df_j.iterrows():
-                nr = row['KAT_STR']; k = f"{nr}|{mein_richter}"
-                if k not in store.data: store.data[k] = {"Aufruf": False, "BIV": False, "NOM": False}
-                c1, c2, c3, c4 = st.columns([3, 1, 1, 1])
-                c1.write(f"**#{nr}** (Kat {row['Kategorie']}) - {get_full_label(row)}")
-                store.data[k]["Aufruf"] = c2.checkbox("Ruf", value=store.data[k]["Aufruf"], key=f"a{k}")
-                store.data[k]["BIV"] = c3.checkbox("BIV", value=store.data[k]["BIV"], key=f"b{k}")
-                store.data[k]["NOM"] = c4.checkbox("NOM", value=store.data[k]["NOM"], key=f"n{k}")
+        if df_tag is not None and r_col in df_tag.columns:
+            all_j = sorted([r for r in df_tag[r_col].unique() if str(r) != "nan"])
+            mein_richter = st.selectbox("Richter wählen:", ["--"] + all_j)
+            if mein_richter != "--":
+                df_j = df_tag[df_tag[r_col] == mein_richter].sort_values(['Katalog-Nr'])
+                for _, row in df_j.iterrows():
+                    nr = row['KAT_STR']; k = f"{nr}|{mein_richter}"
+                    if k not in store.data: store.data[k] = {"Aufruf": False, "BIV": False, "NOM": False}
+                    c1, c2, c3, c4 = st.columns([3, 1, 1, 1])
+                    c1.write(f"**#{nr}** - {get_full_label(row)}")
+                    store.data[k]["Aufruf"] = c2.checkbox("Ruf", value=store.data[k]["Aufruf"], key=f"a{k}")
+                    store.data[k]["BIV"] = c3.checkbox("BIV", value=store.data[k]["BIV"], key=f"b{k}")
+                    store.data[k]["NOM"] = c4.checkbox("NOM", value=store.data[k]["NOM"], key=f"n{k}")
+        else:
+            st.error(f"Spalte '{r_col}' fehlt!")[span_6](start_span)[span_6](end_span)[span_7](start_span)[span_7](end_span)
