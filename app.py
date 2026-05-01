@@ -22,15 +22,26 @@ st.markdown("""
         font-size: 14px !important; color: white; background-color: #1a4a9e; 
         padding: 3px; border-radius: 8px; text-align: center; margin-bottom: 5px;
     }
-    .cat-card { 
-        padding: 8px; border: 1px solid #e0e0e0; text-align: center; 
-        background-color: #ffffff; border-radius: 15px; 
-        box-shadow: 0px 2px 4px rgba(0,0,0,0.05);
-        height: auto; min-height: 120px; display: flex; flex-direction: column; justify-content: center; 
-    }
-    .cat-number { font-size: 32px !important; font-weight: 900 !important; color: #1a4a9e; line-height: 0.9; margin: 2px 0; }
-    .cat-details { font-size: 14px; color: #333; font-weight: bold; margin-top: 5px; line-height: 1.2; }
     
+    /* Katzen-Karte Design basierend auf Foto */
+    .cat-card { 
+        padding: 10px; border: 2px solid #1a4a9e; text-align: center; 
+        background-color: #ffffff; border-radius: 18px; 
+        box-shadow: 0px 4px 6px rgba(0,0,0,0.1);
+        min-height: 110px; display: flex; flex-direction: column; justify-content: center;
+        margin-bottom: 10px;
+    }
+    .cat-number { font-size: 34px !important; font-weight: 900 !important; color: #1a4a9e; line-height: 1.0; margin: 0; }
+    .cat-details { font-size: 13px; color: #333; font-weight: bold; margin-top: 4px; line-height: 1.2; }
+    
+    /* Platzhalter-Box mit gestrichelter Linie */
+    .placeholder-box {
+        min-height: 110px; border: 2px dashed #d1d1d1; border-radius: 18px; 
+        background-color: rgba(255,255,255,0.3);
+        display: flex; align-items: center; justify-content: center;
+        color: #bbbbbb; font-size: 11px; font-weight: bold; margin-bottom: 10px;
+    }
+
     .tag-container { margin-top: 5px; display: flex; justify-content: center; flex-wrap: wrap; gap: 5px; }
     .tag { font-weight: bold; padding: 4px 10px; border-radius: 6px; font-size: 10px; display: inline-block; }
     .tag-aufruf { background-color: #007bff; color: white; }
@@ -206,12 +217,10 @@ else:
             st.title(f"🏆 Best in Show - Kategorie {sel_cat}")
             
             required = ['SELECTION', 'KLASSE_INTERNAL', 'GESCHLECHT']
-            missing = [c for c in required if c not in df_full.columns]
-            
-            if not missing:
-                # Alle aktiven Richter für diesen TAG ermitteln (damit immer alle Spalten da sind)
+            if not all(c in df_full.columns for c in required):
+                st.error("Excel-Struktur inkompatibel.")
+            else:
                 all_active_judges = sorted([r for r in df_full[r_col].unique() if str(r) != "nan"])
-                
                 df_nom = df_full[(df_full['SELECTION'].astype(str).str.upper() == 'X') & (df_full['KATEGORIE'] == sel_cat)].copy()
                 
                 h_cols = st.columns([1.5] + [1] * len(all_active_judges))
@@ -239,13 +248,14 @@ else:
                                 if not match.empty:
                                     for _, row in match.iterrows():
                                         st.markdown(f"""
-                                            <div class='cat-card' style='border: 2px solid #1a4a9e;'>
+                                            <div class='cat-card'>
                                                 <div class='cat-number'>{row['KAT_STR']}</div>
                                                 <div class='cat-details'>{get_full_label(row)}</div>
                                             </div>
                                         """, unsafe_allow_html=True)
+                                else:
+                                    st.markdown("<div class='placeholder-box'>–</div>", unsafe_allow_html=True)
                             else:
-                                st.markdown("<div style='height:80px; border:1px dashed #ccc; border-radius:10px; margin-bottom:5px; background-color:#f9f9f9;'></div>", unsafe_allow_html=True)
+                                # Gestrichelter Platzhalter vor der Enthüllung
+                                st.markdown("<div class='placeholder-box'>???</div>", unsafe_allow_html=True)
                     st.divider()
-            else:
-                st.error(f"Fehlende Spalten im Excel: AUSSTELLUNGSKLASSE, SELECTION, GESCHLECHT")
