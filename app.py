@@ -12,7 +12,6 @@ st.markdown("""
         font-weight: bold !important; border-radius: 12px !important;
         margin-bottom: 5px; border: 2px solid #1a4a9e !important;
     }
-    /* Richter Boxen im Dashboard */
     .judge-col { 
         border: 2px solid #1a4a9e; padding: 10px; border-radius: 15px; 
         background-color: #f8f9fa; margin-bottom: 10px; 
@@ -23,69 +22,33 @@ st.markdown("""
         font-size: 16px !important; color: white; background-color: #1a4a9e; 
         padding: 10px; border-radius: 10px; text-align: center; margin-bottom: 15px;
     }
-    
-    /* Boxen für Richter-Header im BIS Public */
     .judge-header-box {
-        background-color: #1a4a9e;
-        color: white;
-        padding: 12px;
-        border-radius: 12px;
-        text-align: center;
-        font-size: 16px !important;
-        font-weight: bold;
-        margin-bottom: 15px;
-        border: 2px solid #0d2a5e;
-        box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+        background-color: #1a4a9e; color: white; padding: 12px; border-radius: 12px;
+        text-align: center; font-size: 16px !important; font-weight: bold;
+        margin-bottom: 15px; border: 2px solid #0d2a5e; box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
     }
-
-    /* Boxen für Klassen-Label im BIS Public */
     .class-label-box {
-        background-color: #e9ecef;
-        color: #1a4a9e;
-        padding: 10px;
-        border-radius: 12px;
-        text-align: center;
-        font-size: 16px !important;
-        font-weight: 800;
-        border: 2px solid #1a4a9e;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 105px;
-        width: 100%;
+        background-color: #e9ecef; color: #1a4a9e; padding: 10px; border-radius: 12px;
+        text-align: center; font-size: 16px !important; font-weight: 800;
+        border: 2px solid #1a4a9e; display: flex; align-items: center; justify-content: center;
+        height: 105px; width: 100%;
     }
-
     .cat-card, .placeholder-box { 
         padding: 10px; border: 2px solid #1a4a9e; text-align: center; 
         background-color: #ffffff; border-radius: 18px; 
-        box-shadow: 0px 4px 6px rgba(0,0,0,0.1);
-        margin-bottom: 10px;
-        min-height: 105px; 
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
+        box-shadow: 0px 4px 6px rgba(0,0,0,0.1); margin-bottom: 10px;
+        min-height: 105px; display: flex; flex-direction: column;
+        justify-content: center; align-items: center;
     }
     .placeholder-box {
-        border: 2px dashed #d1d1d1;
-        background-color: #fcfcfc;
-        color: #bbbbbb;
-        box-shadow: none;
+        border: 2px dashed #d1d1d1; background-color: #fcfcfc; color: #bbbbbb; box-shadow: none;
     }
-    
-    /* Spezielle Winner Card - ROT hinterlegt */
     .winner-card {
-        border: 4px solid #b21f2d !important;
-        background-color: #dc3545 !important;
-        color: white !important;
+        border: 4px solid #b21f2d !important; background-color: #dc3545 !important; color: white !important;
     }
-    .winner-card .cat-number, .winner-card .cat-details {
-        color: white !important;
-    }
-
+    .winner-card .cat-number, .winner-card .cat-details { color: white !important; }
     .cat-number { font-size: 32px !important; font-weight: 900 !important; color: #1a4a9e; line-height: 1.0; margin: 0; }
     .cat-details { font-size: 12px; color: #333; font-weight: bold; margin-top: 4px; }
-    
     .tag-container { margin-top: 8px; display: flex; justify-content: center; flex-wrap: wrap; gap: 4px; }
     .tag { font-weight: bold; padding: 3px 8px; border-radius: 5px; font-size: 10px; }
     .tag-aufruf { background-color: #007bff; color: white; }
@@ -180,20 +143,29 @@ elif st.session_state.view == "Dashboard":
     if st.button("⬅️ Zurück zum Menü"): set_view("Home")
 
 elif st.session_state.view == "BIS_Admin_Control":
-    st.title("🏆 BIS Steuerung & Stimmauszählung")
+    st.title("🏆 BIS Steuerung & Manuelle Wahl")
     df_full = load_labels()
     if df_full is not None:
         sel_cat = st.selectbox("Kategorie verwalten:", sorted(df_full['KATEGORIE'].unique()))
         bis_defs = ["Adult Male", "Adult Female", "Neuter Male", "Neuter Female", "Junior 8-12 Male", "Junior 8-12 Female", "Kitten 4-8 Male", "Kitten 4-8 Female"]
         
-        st.subheader("1. Sichtbarkeit (Public Screen)")
-        cols = st.columns(4)
-        for idx, label in enumerate(bis_defs):
-            with cols[idx % 4]:
+        st.subheader("1. Sichtbarkeit & Manuelle Auswahl")
+        for label in bis_defs:
+            with st.expander(f"Klasse: {label}"):
+                c1, c2, c3 = st.columns([1, 1, 2])
                 key_reveal = f"reveal_{sel_cat}_{label}"
-                key_winner = f"winner_reveal_{sel_cat}_{label}"
-                store.data[key_reveal] = st.checkbox(f"Zeige {label}", value=store.data.get(key_reveal, False), key=f"cb_{key_reveal}")
-                store.data[key_winner] = st.checkbox(f"🏆 Gewinner {label}", value=store.data.get(key_winner, False), key=f"cb_{key_winner}")
+                key_winner_reveal = f"winner_reveal_{sel_cat}_{label}"
+                key_override = f"override_{sel_cat}_{label}"
+                
+                store.data[key_reveal] = c1.checkbox("Zeige Klasse", value=store.data.get(key_reveal, False), key=f"cb1_{key_reveal}")
+                store.data[key_winner_reveal] = c2.checkbox("Zeige Gewinner", value=store.data.get(key_winner_reveal, False), key=f"cb2_{key_winner_reveal}")
+                
+                # Manuelle Auswahl für Unentschieden
+                m = df_full[(df_full['SELECTION'].astype(str).str.upper() == 'X') & (df_full['KATEGORIE'] == sel_cat)]
+                options = ["Automatisch (Stimmen)"] + sorted(m['KAT_STR'].unique().tolist())
+                current_override = store.data.get(key_override, "Automatisch (Stimmen)")
+                idx = options.index(current_override) if current_override in options else 0
+                store.data[key_override] = c3.selectbox("Manueller Gewinner (Override):", options, index=idx, key=f"sb_{key_override}")
         
         st.divider()
         st.subheader("2. Detaillierte Wahlergebnisse")
@@ -202,7 +174,7 @@ elif st.session_state.view == "BIS_Admin_Control":
                 prefix = f"v_{sel_cat}_{label}_"
                 votes_in_class = {k.replace(prefix, ""): v for k, v in store.data["votes"].items() if k.startswith(prefix) and v != "Keine Wahl"}
                 if votes_in_class:
-                    with st.expander(f"Klasse: {label}", expanded=True):
+                    with st.expander(f"Stimmen-Details: {label}"):
                         summary = {}
                         for judge, kat_nr in votes_in_class.items():
                             if kat_nr not in summary: summary[kat_nr] = []
@@ -235,7 +207,6 @@ elif st.session_state.view == "BIS_Public":
         r_col = f"RICHTER {tag}"
         judges = sorted([r for r in df_full[df_full[tag].astype(str).str.upper() == 'X'][r_col].unique() if str(r) != "nan"])
         
-        # Grid Header
         h_cols = st.columns([1.5] + [1] * len(judges) + [1.2])
         h_cols[0].write("")
         for i, j in enumerate(judges):
@@ -247,50 +218,39 @@ elif st.session_state.view == "BIS_Public":
                 row_cols = st.columns([1.5] + [1] * len(judges) + [1.2])
                 row_cols[0].markdown(f"<div class='class-label-box'>{label}</div>", unsafe_allow_html=True)
                 
-                # Nominierte Katzen
                 for i, j in enumerate(judges):
                     with row_cols[i+1]:
                         match = df_full[(df_full['SELECTION'].astype(str).str.upper() == 'X') & (df_full[r_col] == j) & (df_full['KATEGORIE'] == sel_cat) & (df_full['KLASSE_INTERNAL'].isin(klassen)) & (df_full['GESCHLECHT'].astype(str).str.upper() == geschl)]
                         if not match.empty:
                             row = match.iloc[0]
                             st.markdown(f"<div class='cat-card'><div class='cat-number'>{row['KAT_STR']}</div><div class='cat-details'>{get_full_label(row)}</div></div>", unsafe_allow_html=True)
-                        else: 
-                            st.markdown("<div class='placeholder-box'>–</div>", unsafe_allow_html=True)
+                        else: st.markdown("<div class='placeholder-box'>–</div>", unsafe_allow_html=True)
                 
-                # Winner Column mit Unentschieden-Logik
+                # Winner Column mit Override-Logik
                 with row_cols[-1]:
-                    if store.data.get(f"winner_reveal_{sel_cat}_{label}", False) and "votes" in store.data:
-                        prefix = f"v_{sel_cat}_{label}_"
-                        class_votes = [v for k, v in store.data["votes"].items() if k.startswith(prefix) and v != "Keine Wahl"]
+                    if store.data.get(f"winner_reveal_{sel_cat}_{label}", False):
+                        manual_winner = store.data.get(f"override_{sel_cat}_{label}", "Automatisch (Stimmen)")
+                        winner_nr = None
                         
-                        if class_votes:
-                            vote_counts = pd.Series(class_votes).value_counts()
-                            max_votes = vote_counts.max()
-                            winners = vote_counts[vote_counts == max_votes].index.tolist()
-                            
-                            if len(winners) == 1:
-                                winner_nr = winners[0]
-                                m_winner = df_full[df_full['KAT_STR'] == str(winner_nr)]
-                                if not m_winner.empty:
-                                    w_row = m_winner.iloc[0]
-                                    st.markdown(f"""
-                                    <div class='cat-card winner-card'>
-                                        <div class='cat-number'>{winner_nr}</div>
-                                        <div class='cat-details'><b>🏆 WINNER</b><br>{get_full_label(w_row)}</div>
-                                    </div>
-                                    """, unsafe_allow_html=True)
-                            else:
-                                st.markdown("""
-                                <div class='placeholder-box' style='border: 2px solid #dc3545; color: #dc3545;'>
-                                    <b>UNENTSCHIEDEN</b><br>Stichwahl nötig
-                                </div>
-                                """, unsafe_allow_html=True)
-                        else: 
-                            st.markdown("<div class='placeholder-box'>Abstimmung...</div>", unsafe_allow_html=True)
-                    else:
-                        st.markdown("<div class='placeholder-box' style='background-color:#eee;'>🔒</div>", unsafe_allow_html=True)
+                        if manual_winner != "Automatisch (Stimmen)":
+                            winner_nr = manual_winner
+                        elif "votes" in store.data:
+                            prefix = f"v_{sel_cat}_{label}_"
+                            votes = [v for k, v in store.data["votes"].items() if k.startswith(prefix) and v != "Keine Wahl"]
+                            if votes:
+                                counts = pd.Series(votes).value_counts()
+                                if len(counts) > 0 and (len(counts) == 1 or counts.iloc[0] > counts.iloc[1]):
+                                    winner_nr = counts.index[0]
+                                else: # Unentschieden
+                                    st.markdown("<div class='placeholder-box' style='border: 2px solid #dc3545; color: #dc3545;'><b>TIE</b><br>Manual Pick</div>", unsafe_allow_html=True)
+                        
+                        if winner_nr:
+                            m_winner = df_full[df_full['KAT_STR'] == str(winner_nr)]
+                            if not m_winner.empty:
+                                w_row = m_winner.iloc[0]
+                                st.markdown(f"<div class='cat-card winner-card'><div class='cat-number'>{winner_nr}</div><div class='cat-details'><b>🏆 WINNER</b><br>{get_full_label(w_row)}</div></div>", unsafe_allow_html=True)
+                    else: st.markdown("<div class='placeholder-box' style='background-color:#eee;'>🔒</div>", unsafe_allow_html=True)
                 st.divider()
-
     if st.button("⬅️ Zurück zum Menü"): set_view("Home")
 
 elif st.session_state.view == "Steward_Panel":
