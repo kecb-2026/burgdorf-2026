@@ -100,9 +100,7 @@ def roman_to_numeric(text):
 def load_labels():
     try:
         df = pd.read_excel("LABELS.xlsm", engine='openpyxl', header=0)
-        # Normalisierung: Alle Spaltennamen TRIMMEN und zu GROSSBUCHSTABEN[span_1](start_span)[span_1](end_span)
         df.columns = [str(c).strip().upper() for c in df.columns]
-        
         if 'KATALOG-NR' in df.columns:
             df['KAT_STR'] = df['KATALOG-NR'].astype(str).str.replace('.0', '', regex=False)
         return df
@@ -161,11 +159,11 @@ elif st.session_state.view == "Admin_Panel":
 else:
     st.sidebar.title("KECB 2026")
     tag_input = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"])
-    tag = tag_input.upper() # TAG 1 / TAG 2[span_2](start_span)[span_2](end_span)
+    tag = tag_input.upper()
     if st.sidebar.button("⬅️ Menü"): set_view("Home")
     
     df_full = load_labels()
-    r_col = f"RICHTER {tag}" # RICHTER TAG 1
+    r_col = f"RICHTER {tag}"
     
     if df_full is not None and tag in df_full.columns:
         df_tag = df_full[df_full[tag].astype(str).str.upper() == 'X'].copy()
@@ -220,10 +218,10 @@ else:
             all_cats = sorted(df_full['KATEGORIE'].unique())
             sel_cat = st.selectbox("Kategorie verwalten:", all_cats, key="admin_cat")
             bis_defs = [
-                ("Kitten Female (12)", [12], "W"), ("Kitten Male (12)", [12], "M"),
-                ("Junior Female (11)", [11], "W"), ("Junior Male (11)", [11], "M"),
-                ("Neuter Female", [2, 4, 6, 8, 10], "W"), ("Neuter Male", [2, 4, 6, 8, 10], "M"),
-                ("Adult Female", [1, 3, 5, 7, 9], "W"), ("Adult Male", [1, 3, 5, 7, 9], "M")
+                ("Adult Male", [1, 3, 5, 7, 9], "M"), ("Adult Female", [1, 3, 5, 7, 9], "W"),
+                ("Neuter Male", [2, 4, 6, 8, 10], "M"), ("Neuter Female", [2, 4, 6, 8, 10], "W"),
+                ("Junior Male (11)", [11], "M"), ("Junior Female (11)", [11], "W"),
+                ("Kitten Male (12)", [12], "M"), ("Kitten Female (12)", [12], "W")
             ]
             for label, _, _ in bis_defs:
                 key = f"reveal_{sel_cat}_{label}"
@@ -236,31 +234,32 @@ else:
             sel_cat = st.selectbox("Kategorie wählen:", all_cats, key="pub_cat")
             st.title(f"🏆 Best in Show - Kategorie {sel_cat}")
             
-            # Suche nach 'SELECTION[span_3](start_span)'[span_3](end_span)
             if 'SELECTION' in df_full.columns:
                 df_nom = df_full[(df_full['SELECTION'].astype(str).str.upper() == 'X') & (df_full['KATEGORIE'] == sel_cat)].copy()
                 judges = sorted([r for r in df_nom[r_col].unique() if str(r) != "nan"]) if r_col in df_nom.columns else []
                 
                 h_cols = st.columns([1.5] + [1] * len(judges))
-                h_cols[0].write("**Klasse**")
+                h_cols[0].markdown("**Klasse**")
                 for i, j in enumerate(judges):
                     h_cols[i+1].markdown(f"<div style='background-color:#1a4a9e; color:white; padding:5px; border-radius:8px; text-align:center; font-size:10px; font-weight:bold;'>{j}</div>", unsafe_allow_html=True)
                 st.divider()
 
                 bis_defs = [
-                    ("Kitten Female (12)", [12], "W"), ("Kitten Male (12)", [12], "M"),
-                    ("Junior Female (11)", [11], "W"), ("Junior Male (11)", [11], "M"),
-                    ("Neuter Female", [2, 4, 6, 8, 10], "W"), ("Neuter Male", [2, 4, 6, 8, 10], "M"),
-                    ("Adult Female", [1, 3, 5, 7, 9], "W"), ("Adult Male", [1, 3, 5, 7, 9], "M")
+                    ("Adult Male", [1, 3, 5, 7, 9], "M"), ("Adult Female", [1, 3, 5, 7, 9], "W"),
+                    ("Neuter Male", [2, 4, 6, 8, 10], "M"), ("Neuter Female", [2, 4, 6, 8, 10], "W"),
+                    ("Junior Male (11)", [11], "M"), ("Junior Female (11)", [11], "W"),
+                    ("Kitten Male (12)", [12], "M"), ("Kitten Female (12)", [12], "W")
                 ]
 
                 for label, klassen, geschlecht in bis_defs:
-                    if store.data.get(f"reveal_{sel_cat}_{label}", False):
-                        r_cols = st.columns([1.5] + [1] * len(judges))
-                        r_cols[0].markdown(f"<div style='font-size:12px; font-weight:bold; padding-top:15px;'>{label}</div>", unsafe_allow_html=True)
-                        for i, j in enumerate(judges):
-                            match = df_nom[(df_nom[r_col] == j) & (df_nom['KLASSE'].isin(klassen)) & (df_nom['GESCHLECHT'].astype(str).str.upper() == geschlecht)]
-                            with r_cols[i+1]:
+                    r_cols = st.columns([1.5] + [1] * len(judges))
+                    r_cols[0].markdown(f"<div style='font-size:12px; font-weight:bold; padding-top:15px;'>{label}</div>", unsafe_allow_html=True)
+                    
+                    is_revealed = store.data.get(f"reveal_{sel_cat}_{label}", False)
+                    for i, j in enumerate(judges):
+                        with r_cols[i+1]:
+                            if is_revealed:
+                                match = df_nom[(df_nom[r_col] == j) & (df_nom['KLASSE'].isin(klassen)) & (df_nom['GESCHLECHT'].astype(str).str.upper() == geschlecht)]
                                 if not match.empty:
                                     for _, row in match.iterrows():
                                         st.markdown(f"""
@@ -268,9 +267,10 @@ else:
                                                 <div class='cat-number' style='font-size: 26px !important;'>{row['KAT_STR']}</div>
                                                 <div style='font-size: 10px; font-weight: bold;'>{row['RASSE']} {row['FARBGRUPPE']}</div>
                                                 <div style='font-size: 9px; line-height: 1.1;'>{row['FARBE']}</div>
-                                                <div style='font-size: 8px; color: #666;'>* {row['GEBURTSDATUM']}</div>
                                             </div>
                                         """, unsafe_allow_html=True)
-                        st.divider()
+                            else:
+                                st.markdown("<div style='height:80px; border:1px dashed #ccc; border-radius:10px; margin-bottom:5px;'></div>", unsafe_allow_html=True)
+                    st.divider()
             else:
                 st.error("Spalte 'SELECTION' nicht gefunden!")
