@@ -187,7 +187,6 @@ elif st.session_state.view == "BIS_Admin_Control":
         bis_defs = ["Adult Male", "Adult Female", "Neuter Male", "Neuter Female", "Junior 8-12 Male", "Junior 8-12 Female", "Kitten 4-8 Male", "Kitten 4-8 Female"]
         
         st.subheader("1. Sichtbarkeit (Public Screen)")
-        st.write("Wähle aus, was im Public-Screen angezeigt werden soll:")
         cols = st.columns(4)
         for idx, label in enumerate(bis_defs):
             with cols[idx % 4]:
@@ -246,8 +245,6 @@ elif st.session_state.view == "BIS_Public":
         for label, klassen, geschl in bis_defs:
             if store.data.get(f"reveal_{sel_cat}_{label}", False):
                 row_cols = st.columns([1.5] + [1] * len(judges) + [1.2])
-                
-                # Linke Spalte: Klassen-Box
                 row_cols[0].markdown(f"<div class='class-label-box'>{label}</div>", unsafe_allow_html=True)
                 
                 # Nominierte Katzen
@@ -260,19 +257,36 @@ elif st.session_state.view == "BIS_Public":
                         else: 
                             st.markdown("<div class='placeholder-box'>–</div>", unsafe_allow_html=True)
                 
-                # Winner Column (Rot hinterlegt)
+                # Winner Column mit Unentschieden-Logik
                 with row_cols[-1]:
                     if store.data.get(f"winner_reveal_{sel_cat}_{label}", False) and "votes" in store.data:
                         prefix = f"v_{sel_cat}_{label}_"
                         class_votes = [v for k, v in store.data["votes"].items() if k.startswith(prefix) and v != "Keine Wahl"]
+                        
                         if class_votes:
-                            winner_nr = max(set(class_votes), key=class_votes.count)
-                            m_winner = df_full[df_full['KAT_STR'] == str(winner_nr)]
-                            if not m_winner.empty:
-                                w_row = m_winner.iloc[0]
-                                st.markdown(f"<div class='cat-card winner-card'><div class='cat-number'>{winner_nr}</div><div class='cat-details'>🏆 WINNER<br>{get_full_label(w_row)}</div></div>", unsafe_allow_html=True)
-                            else: st.markdown("<div class='placeholder-box'>?</div>", unsafe_allow_html=True)
-                        else: st.markdown("<div class='placeholder-box'>Abstimmung...</div>", unsafe_allow_html=True)
+                            vote_counts = pd.Series(class_votes).value_counts()
+                            max_votes = vote_counts.max()
+                            winners = vote_counts[vote_counts == max_votes].index.tolist()
+                            
+                            if len(winners) == 1:
+                                winner_nr = winners[0]
+                                m_winner = df_full[df_full['KAT_STR'] == str(winner_nr)]
+                                if not m_winner.empty:
+                                    w_row = m_winner.iloc[0]
+                                    st.markdown(f"""
+                                    <div class='cat-card winner-card'>
+                                        <div class='cat-number'>{winner_nr}</div>
+                                        <div class='cat-details'><b>🏆 WINNER</b><br>{get_full_label(w_row)}</div>
+                                    </div>
+                                    """, unsafe_allow_html=True)
+                            else:
+                                st.markdown("""
+                                <div class='placeholder-box' style='border: 2px solid #dc3545; color: #dc3545;'>
+                                    <b>UNENTSCHIEDEN</b><br>Stichwahl nötig
+                                </div>
+                                """, unsafe_allow_html=True)
+                        else: 
+                            st.markdown("<div class='placeholder-box'>Abstimmung...</div>", unsafe_allow_html=True)
                     else:
                         st.markdown("<div class='placeholder-box' style='background-color:#eee;'>🔒</div>", unsafe_allow_html=True)
                 st.divider()
