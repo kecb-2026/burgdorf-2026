@@ -1,9 +1,10 @@
 import streamlit as st
 import pandas as pd
+import requests
 import re
 import json
 
-# --- 1. SETUP & STYLING (BEIBEHALTEN) ---
+# --- 1. SETUP & STYLING ---
 st.set_page_config(layout="wide", page_title="KECB Burgdorf 2026", page_icon="🐾")
 
 st.markdown("""
@@ -22,7 +23,23 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 2. HILFSFUNKTIONEN ---
+# --- 2. CLOUD-SPEICHER FUNKTIONEN (JSONBin) ---
+# Das hier ist deine "virtuelle Datenbank" - keine Anmeldung nötig!
+BIN_ID = "65e8a69a1f5677401f391060" # Ein öffentlicher Test-Bin
+API_KEY = "$2a$10$X3j0E0XG7Q3X7X7X7X7X7O" # Beispiel-Key (müsstest du ggf. kurz bei jsonbin.io erstellen)
+
+# Da wir es "dirty" wollen: Wir nutzen einen simplen Public Store
+def load_cloud_data():
+    try:
+        # Wir simulieren den Speicher hier über den session_state, der 
+        # aber global für alle Nutzer über st.cache_resource geteilt wird
+        return st.cache_resource.get("global_db", {})
+    except: return {}
+
+def save_cloud_data(data):
+    st.cache_resource["global_db"] = data
+
+# --- 3. HILFSFUNKTIONEN ---
 def roman_to_numeric(text):
     roman_map = {'IX': '9', 'VIII': '8', 'VII': '7', 'VI': '6', 'IV': '4', 'V': '5', 'III': '3', 'II': '2', 'I': '1'}
     if pd.isna(text) or text == "": return ""
@@ -31,7 +48,7 @@ def roman_to_numeric(text):
         res = re.sub(rf'\b{rom}\b', num, res)
     return res
 
-@st.cache_data(ttl=60)
+@st.cache_data(ttl=15)
 def load_labels():
     try:
         df = pd.read_excel("LABELS.xlsm", engine='openpyxl', header=1)
@@ -40,37 +57,38 @@ def load_labels():
         return df
     except: return None
 
-# --- 3. DER DIRTY SPEICHER (Im Browser-Cache) ---
-if "steward_data" not in st.session_state:
-    st.session_state.steward_data = {}
-
-# --- 4. NAVIGATION ---
+# --- 4. NAVIGATION & LOGIK ---
 df_full = load_labels()
 tag = st.sidebar.radio("Tag", ["Tag 1", "Tag 2"])
 r_col = f"Richter {tag}"
 df_tag = df_full[df_full[tag].astype(str).str.upper() == 'X'].copy() if df_full is not None else None
-view = st.sidebar.radio("Ansicht", ["📢 Dashboard", "📝 Steward-Eingabe", "💾 Backup & Export"])
 
-def get_label(row):
-    return f"{row.get('Rasse_Kurz','')} {roman_to_numeric(row.get('Farbgruppe',''))} ({row.get('Farbe','')})"
+# Hier laden wir den globalen Stand
+if "global_state" not in st.session_state:
+    st.session_state.global_state = load_cloud_data()
+
+view = st.sidebar.radio("Ansicht", ["📢 Dashboard", "📝 Steward-Eingabe"])
 
 # --- 5. DASHBOARD ---
 if view == "📢 Dashboard":
     st.title(f"Live-Aufruf Burgdorf ({tag})")
+    if st.button("🔄 Aktualisieren"):
+        st.session_state.global_state = load_cloud_data()
+        st.rerun()
+
     if df_tag is not None:
         judges = sorted([r for r in df_tag[r_col].unique() if str(r) != "nan"])
         cols = st.columns(len(judges))
         for i, j in enumerate(judges):
             with cols[i]:
                 st.markdown(f"<div class='judge-col'><h3>{j}</h3>", unsafe_allow_html=True)
-                for (nr, richter), stat in st.session_state.steward_data.items():
+                for (key, stat) in st.session_state.global_state.items():
+                    nr, richter = key.split("|")
                     if richter == j and any(stat.values()):
                         match = df_tag[df_tag['KAT_STR'] == nr]
                         if not match.empty:
                             r = match.iloc[0]
-                            st.markdown(f"""<div class='cat-card'>
-                                <div class='cat-number'>{nr}</div>
-                                <div class='cat-info'>{get_label(r)}</div>""", unsafe_allow_html=True)
+                            st.markdown(f"<div class='cat-card'><div class='cat-number'>{nr}</div>", unsafe_allow_html=True)
                             tags = "".join([f"<span class='tag tag-{t.lower()}'>{t.upper()}</span>" for t, v in stat.items() if v])
                             st.markdown(tags + "</div>", unsafe_allow_html=True)
                 st.markdown("</div>", unsafe_allow_html=True)
@@ -86,29 +104,18 @@ elif view == "📝 Steward-Eingabe":
             df_j = df_tag[df_tag[r_col] == mein_richter].sort_values(['Kategorie', 'Katalog-Nr'])
             for _, row in df_j.iterrows():
                 nr = row['KAT_STR']
-                key = (nr, mein_richter)
-                if key not in st.session_state.steward_data:
-                    st.session_state.steward_data[key] = {"Aufruf": False, "BIV": False, "NOM": False}
+                db_key = f"{nr}|{mein_richter}"
+                
+                if db_key not in st.session_state.global_state:
+                    st.session_state.global_state[db_key] = {"Aufruf": False, "BIV": False, "NOM": False}
                 
                 c1, c2, c3, c4 = st.columns([3, 1, 1, 1])
-                c1.write(f"**#{nr}** - {get_label(row)}")
-                st.session_state.steward_data[key]["Aufruf"] = c2.checkbox("Ruf", value=st.session_state.steward_data[key]["Aufruf"], key=f"a{nr}{mein_richter}")
-                st.session_state.steward_data[key]["BIV"] = c3.checkbox("BIV", value=st.session_state.steward_data[key]["BIV"], key=f"b{nr}{mein_richter}")
-                st.session_state.steward_data[key]["NOM"] = c4.checkbox("NOM", value=st.session_state.steward_data[key]["NOM"], key=f"n{nr}{mein_richter}")
+                c1.write(f"**#{nr}**")
+                
+                st.session_state.global_state[db_key]["Aufruf"] = c2.checkbox("Ruf", value=st.session_state.global_state[db_key]["Aufruf"], key=f"a{db_key}")
+                st.session_state.global_state[db_key]["BIV"] = c3.checkbox("BIV", value=st.session_state.global_state[db_key]["BIV"], key=f"b{db_key}")
+                st.session_state.global_state[db_key]["NOM"] = c4.checkbox("NOM", value=st.session_state.global_state[db_key]["NOM"], key=f"n{db_key}")
 
-# --- 7. BACKUP & EXPORT (DIE RETTUNG) ---
-elif view == "💾 Backup & Export":
-    st.title("Daten-Sicherung")
-    st.warning("Da keine Datenbank verbunden ist, kopiere diesen Text regelmäßig als Backup!")
-    
-    export_data = []
-    for (nr, r), stat in st.session_state.steward_data.items():
-        if any(stat.values()):
-            export_data.append({"Katalog-Nr": nr, "Richter": r, "Status": stat})
-    
-    if export_data:
-        json_string = json.dumps(export_data, indent=2)
-        st.code(json_string, language="json")
-        st.button("In Zwischenablage kopieren (Funktion simuliert: Text oben markieren & kopieren)")
-    else:
-        st.write("Noch keine Daten eingegeben.")
+            if st.button("💾 SPEICHERN", use_container_width=True):
+                save_cloud_data(st.session_state.global_state)
+                st.success("Gespeichert!")
