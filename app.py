@@ -257,7 +257,7 @@ elif st.session_state.view == "Steward_Panel":
             df_j = df_full[(df_full[tag].astype(str).str.upper() == 'X') & (df_full[r_col] == mein_richter)].sort_values('KATALOG-NR')
             for _, row in df_j.iterrows():
                 nr = row['KAT_STR']; k = f"{nr}|{mein_richter}"
-                if k not in store.data: store.data[k] = {"Aufruf": False, "BIV": False, "NOM": False}
+                if k not in store.data: store.data[k] = {"Zum Richten": False, "BIV": False, "NOM": False}
                 c1, c2, c3, c4 = st.columns([3, 1, 1, 1])
                 c1.write(f"**#{nr}** {get_full_label(row)}")
                 store.data[k]["Zum Richten"] = c2.checkbox("Ruf", value=store.data[k]["Zum Richten"], key=f"auf{k}")
