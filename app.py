@@ -129,10 +129,10 @@ if st.session_state.view == "Home":
     col1, col2 = st.columns(2)
     with col1:
         if st.button("📢 LIVE-DASHBOARD"): set_view("Dashboard")
-        if st.button("🏆 BEST IN SHOW GRID"): set_view("BIS_Grid")
+        if st.button("🏆 BEST IN SHOW (PUBLIC)"): set_view("BIS_Public")
     with col2:
         if st.button("📝 STEWARD-PULT"): set_view("Steward_Login")
-        if st.button("👨‍⚖️ RICHTER / ⚙️ ADMIN"): set_view("Admin_Login")
+        if st.button("👨‍⚖️ BIS ADMIN / CONTROL"): set_view("BIS_Admin_Control")
 
 elif st.session_state.view == "Steward_Login":
     st.title("🔒 Steward Login")
@@ -213,3 +213,55 @@ else:
                     store.data[k]["NOM"] = c4.checkbox("NOM", value=store.data[k]["NOM"], key=f"n{k}")
         else:
             st.error(f"Spalte '{r_col}' fehlt!")
+
+    elif st.session_state.view == "BIS_Admin_Control":
+        st.title("👨‍⚖️ BIS Admin Steuerung")
+        all_cats = sorted(df_full['Kategorie'].unique())
+        sel_cat = st.selectbox("Kategorie verwalten:", all_cats, key="admin_cat")
+        st.info(f"Hier schaltest du die Zeilen für Kategorie {sel_cat} frei.")
+        bis_defs = [
+            ("Kitten Female (12)", [12], "W"), ("Kitten Male (12)", [12], "M"),
+            ("Junior Female (11)", [11], "W"), ("Junior Male (11)", [11], "M"),
+            ("Neuter Female", [2, 4, 6, 8, 10], "W"), ("Neuter Male", [2, 4, 6, 8, 10], "M"),
+            ("Adult Female", [1, 3, 5, 7, 9], "W"), ("Adult Male", [1, 3, 5, 7, 9], "M")
+        ]
+        for label, _, _ in bis_defs:
+            key = f"reveal_{sel_cat}_{label}"
+            if key not in store.data: store.data[key] = False
+            store.data[key] = st.checkbox(f"Sichtbar: {label}", value=store.data[key], key=f"cb_{key}")
+
+    elif st.session_state.view == "BIS_Public":
+        all_cats = sorted(df_full['Kategorie'].unique())
+        sel_cat = st.selectbox("Kategorie wählen:", all_cats, key="pub_cat")
+        st.title(f"🏆 Best in Show - Kategorie {sel_cat}")
+        bis_defs = [
+            ("Kitten Female (12)", [12], "W"), ("Kitten Male (12)", [12], "M"),
+            ("Junior Female (11)", [11], "W"), ("Junior Male (11)", [11], "M"),
+            ("Neuter Female", [2, 4, 6, 8, 10], "W"), ("Neuter Male", [2, 4, 6, 8, 10], "M"),
+            ("Adult Female", [1, 3, 5, 7, 9], "W"), ("Adult Male", [1, 3, 5, 7, 9], "M")
+        ]
+        df_nom = df_full[(df_full['Selection'].astype(str).str.upper() == 'X') & (df_full['Kategorie'] == sel_cat)].copy()
+        judges = sorted([r for r in df_nom[r_col].unique() if str(r) != "nan"])
+        h_cols = st.columns([1.5] + [1] * len(judges))
+        h_cols[0].write("**Klasse**")
+        for i, j in enumerate(judges):
+            h_cols[i+1].markdown(f"<div style='background-color:#1a4a9e; color:white; padding:5px; border-radius:8px; text-align:center; font-size:10px; font-weight:bold;'>{j}</div>", unsafe_allow_html=True)
+        st.divider()
+        for label, klassen, geschlecht in bis_defs:
+            if store.data.get(f"reveal_{sel_cat}_{label}", False):
+                r_cols = st.columns([1.5] + [1] * len(judges))
+                r_cols[0].markdown(f"<div style='font-size:12px; font-weight:bold; padding-top:15px;'>{label}</div>", unsafe_allow_html=True)
+                for i, j in enumerate(judges):
+                    match = df_nom[(df_nom[r_col] == j) & (df_nom['Klasse'].isin(klassen)) & (df_nom['Geschlecht'].astype(str).str.upper() == geschlecht)]
+                    with r_cols[i+1]:
+                        if not match.empty:
+                            for _, row in match.iterrows():
+                                st.markdown(f"""
+                                    <div class='cat-card' style='height: auto; padding: 5px; border: 2px solid #1a4a9e; margin-bottom:5px;'>
+                                        <div class='cat-number' style='font-size: 26px !important;'>{row['KAT_STR']}</div>
+                                        <div style='font-size: 10px; font-weight: bold;'>{row['Rasse']} {row['Farbgruppe']}</div>
+                                        <div style='font-size: 9px; line-height: 1.1;'>{row['Farbe']}</div>
+                                        <div style='font-size: 8px; color: #666;'>* {row['Geburtsdatum']}</div>
+                                    </div>
+                                """, unsafe_allow_html=True)
+                st.divider()
