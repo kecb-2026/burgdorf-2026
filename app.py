@@ -2,27 +2,46 @@ import streamlit as st
 import pandas as pd
 import re
 
-# --- 1. SETUP & STYLING (UNVERÄNDERT) ---
+# --- 1. SETUP & STYLING ---
 st.set_page_config(layout="wide", page_title="KECB Burgdorf 2026", page_icon="🐾")
 
 st.markdown("""
     <style>
-    .judge-col { border: 3px solid #1a4a9e; padding: 15px; border-radius: 20px; background-color: #ffffff; min-height: 800px; margin-bottom: 20px; }
-    .judge-col h3 { font-size: 32px !important; color: white; background-color: #1a4a9e; padding: 10px; border-radius: 10px; text-align: center; }
-    .cat-card { padding: 15px; border-bottom: 2px solid #f0f0f0; margin-bottom: 15px; text-align: center; background-color: #fafafa; border-radius: 15px; }
-    .cat-number { font-size: 100px !important; font-weight: 900 !important; color: #1a4a9e; line-height: 0.8; margin: 10px 0; }
-    .cat-info { font-size: 22px; color: #333; font-weight: bold; }
-    .tag { font-weight: bold; padding: 8px 16px; border-radius: 8px; font-size: 20px; display: inline-block; margin: 4px; }
+    .judge-col { 
+        border: 3px solid #1a4a9e; padding: 15px; border-radius: 20px; 
+        background-color: #ffffff; min-height: 800px; margin-bottom: 20px; 
+        box-shadow: 2px 2px 15px rgba(0,0,0,0.1);
+    }
+    .judge-col h3 { 
+        font-size: 32px !important; color: white; background-color: #1a4a9e; 
+        padding: 10px; border-radius: 10px; text-align: center; margin-bottom: 20px;
+    }
+    .cat-card { 
+        padding: 20px; border-bottom: 2px solid #f0f0f0; margin-bottom: 25px; 
+        text-align: center; background-color: #fafafa; border-radius: 20px; 
+    }
+    .cat-number { 
+        font-size: 110px !important; font-weight: 900 !important; 
+        color: #1a4a9e; line-height: 0.8; margin: 10px 0;
+    }
+    .cat-label { 
+        font-size: 26px; color: #333; font-weight: bold; margin: 10px 0;
+    }
+    .cat-meta { font-size: 18px; color: #666; font-style: italic; margin-bottom: 5px; }
+    
+    /* Tags innerhalb der Karte */
+    .tag { font-weight: bold; padding: 10px 20px; border-radius: 10px; font-size: 22px; display: inline-block; margin: 5px; }
     .tag-aufruf { background-color: #007bff; color: white; }
+    
     @keyframes blinker { 50% { opacity: 0.2; } }
     .tag-biv { background-color: #28a745; color: white; animation: blinker 1.5s linear infinite; }
     .tag-nom { background-color: #ffc107; color: black; animation: blinker 1s linear infinite; }
-    .stCheckbox { transform: scale(1.3); }
+    
+    .stCheckbox { transform: scale(1.4); }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 2. DER "DIRTY" GLOBAL SPEICHER ---
-# Diese Klasse dient als Container, der im Cache überlebt
+# --- 2. GLOBALER SPEICHER (Refresh-sicher) ---
 class GlobalStore:
     def __init__(self):
         self.data = {}
@@ -51,17 +70,19 @@ def load_labels():
         return df
     except: return None
 
-def get_label(row):
-    return f"{row.get('Rasse_Kurz','')} {roman_to_numeric(row.get('Farbgruppe',''))} ({row.get('Farbe','')})"
+def get_full_label(row):
+    rasse = row.get('Rasse_Kurz', row.get('Rasse', ''))
+    gruppe = roman_to_numeric(row.get('Farbgruppe', ''))
+    return f"{rasse} {gruppe}".strip()
 
 # --- 4. NAVIGATION ---
 df_full = load_labels()
-tag = st.sidebar.radio("Tag", ["Tag 1", "Tag 2"])
+tag = st.sidebar.radio("Ausstellungstag", ["Tag 1", "Tag 2"])
 r_col = f"Richter {tag}"
 df_tag = df_full[df_full[tag].astype(str).str.upper() == 'X'].copy() if df_full is not None else None
-view = st.sidebar.radio("Ansicht", ["📢 Dashboard", "📝 Steward-Eingabe"])
+view = st.sidebar.radio("Modus", ["📢 Dashboard", "📝 Steward-Eingabe"])
 
-# --- 5. DASHBOARD ---
+# --- 5. DASHBOARD (LIVE-ANZEIGE) ---
 if view == "📢 Dashboard":
     st.title(f"Live-Aufruf Burgdorf ({tag})")
     if st.button("🔄 Ansicht aktualisieren"):
@@ -70,24 +91,41 @@ if view == "📢 Dashboard":
     if df_tag is not None:
         judges = sorted([r for r in df_tag[r_col].unique() if str(r) != "nan"])
         cols = st.columns(len(judges))
+        
         for i, j in enumerate(judges):
             with cols[i]:
                 st.markdown(f"<div class='judge-col'><h3>{j}</h3>", unsafe_allow_html=True)
-                # Wir gehen durch den globalen Speicher
+                
+                active_entries = []
                 for key, stat in store.data.items():
-                    # Key-Format: "105|Richter Name"
                     if "|" in key:
                         nr, richter = key.split("|")
                         if richter == j and any(stat.values()):
                             match = df_tag[df_tag['KAT_STR'] == nr]
                             if not match.empty:
-                                r = match.iloc[0]
-                                st.markdown(f"""<div class='cat-card'>
-                                    <div class='cat-meta'>Kat {r.get('Kategorie','')}</div>
-                                    <div class='cat-number'>{nr}</div>
-                                    <div class='cat-info'>{get_label(r)}</div>""", unsafe_allow_html=True)
-                                tags = "".join([f"<span class='tag tag-{t.lower()}'>{t.upper()}</span>" for t, v in stat.items() if v])
-                                st.markdown(tags + "</div>", unsafe_allow_html=True)
+                                active_entries.append({'row': match.iloc[0], 'stat': stat, 'nr': nr})
+                
+                # Sortierung: Kategorie -> Nummer
+                active_entries = sorted(active_entries, key=lambda x: (int(x['row'].get('Kategorie', 99)), int(x['nr'])))
+                
+                for item in active_entries:
+                    r = item['row']
+                    # Start der weißen Karte
+                    st.markdown(f"""
+                        <div class='cat-card'>
+                            <div class='cat-meta'>Kategorie {r.get('Kategorie','')}</div>
+                            <div class='cat-number'>{item['nr']}</div>
+                            <div class='cat-label'>{get_full_label(r)}</div>
+                        """, unsafe_allow_html=True)
+                    
+                    # Tags direkt unter dem Label (noch innerhalb der cat-card)
+                    tags = ""
+                    if item['stat'].get("Aufruf"): tags += "<span class='tag tag-aufruf'>AUFRUF</span>"
+                    if item['stat'].get("BIV"): tags += "<span class='tag tag-biv'>BIV</span>"
+                    if item['stat'].get("NOM"): tags += "<span class='tag tag-nom'>NOM</span>"
+                    
+                    st.markdown(tags + "</div>", unsafe_allow_html=True)
+                
                 st.markdown("</div>", unsafe_allow_html=True)
 
 # --- 6. STEWARD-EINGABE ---
@@ -104,17 +142,15 @@ elif view == "📝 Steward-Eingabe":
                 nr = row['KAT_STR']
                 db_key = f"{nr}|{mein_richter}"
                 
-                # Initialisieren falls neu
                 if db_key not in store.data:
                     store.data[db_key] = {"Aufruf": False, "BIV": False, "NOM": False}
                 
                 c1, c2, c3, c4 = st.columns([3, 1, 1, 1])
-                c1.write(f"**#{nr}** - {get_label(row)}")
+                c1.write(f"**#{nr}** - {get_full_label(row)} (Kat {row.get('Kategorie','')})")
                 
-                # Die Checkboxen schreiben direkt in das globale store.data Objekt
                 store.data[db_key]["Aufruf"] = c2.checkbox("Ruf", value=store.data[db_key]["Aufruf"], key=f"a{db_key}")
                 store.data[db_key]["BIV"] = c3.checkbox("BIV", value=store.data[db_key]["BIV"], key=f"b{db_key}")
                 store.data[db_key]["NOM"] = c4.checkbox("NOM", value=store.data[db_key]["NOM"], key=f"n{db_key}")
             
-            st.success("Daten sind live gespeichert und überleben einen Refresh!")
-
+            st.divider()
+            st.success("Änderungen sind live im Dashboard sichtbar.")
