@@ -144,7 +144,11 @@ else:
                             m = df_tag[df_tag['KAT_STR'] == nr]
                             if not m.empty:
                                 row = m.iloc[0]
-                                card_html = f"""<div class='cat-card'><div class='cat-number'>{nr}</div><div class='cat-label'>{get_full_label(row)}</div><div class='tag-container'>"""
+                                card_html = f"""<div class='cat-card'>
+                                    <div style='font-size:20px; font-weight:bold;'>Kategorie {row['Kategorie']}</div>
+                                    <div class='cat-number'>{nr}</div>
+                                    <div class='cat-label'>{get_full_label(row)}</div>
+                                    <div class='tag-container'>"""
                                 if v.get("Aufruf"): card_html += "<span class='tag tag-aufruf'>AUFRUF</span>"
                                 if v.get("BIV"): card_html += "<span class='tag tag-biv'>BIV</span>"
                                 if v.get("NOM"): card_html += "<span class='tag tag-nom'>NOM</span>"
@@ -161,7 +165,7 @@ else:
                 nr = row['KAT_STR']; k = f"{nr}|{mein_richter}"
                 if k not in store.data: store.data[k] = {"Aufruf": False, "BIV": False, "NOM": False}
                 c1, c2, c3, c4 = st.columns([3, 1, 1, 1])
-                c1.write(f"**#{nr}** - {get_full_label(row)}")
+                c1.write(f"**#{nr}** (Kat {row['Kategorie']}) - {get_full_label(row)}")
                 store.data[k]["Aufruf"] = c2.checkbox("Ruf", value=store.data[k]["Aufruf"], key=f"a{k}")
                 store.data[k]["BIV"] = c3.checkbox("BIV", value=store.data[k]["BIV"], key=f"b{k}")
                 store.data[k]["NOM"] = c4.checkbox("NOM", value=store.data[k]["NOM"], key=f"n{k}")
