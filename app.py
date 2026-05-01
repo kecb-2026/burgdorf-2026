@@ -116,22 +116,28 @@ elif st.session_state.view == "Steward_Login":
     st.title("🔒 Steward Login")
     pwd = st.text_input("Passwort", type="password")
     if st.button("Anmelden") and pwd == "steward2026": set_view("Steward_Panel")
-    if st.button("Abbrechen"): set_view("Home")
+    if st.button("Zurück"): set_view("Home")
 
 elif st.session_state.view == "Admin_Login":
     st.title("⚙️ Admin / Richter Login")
     pwd = st.text_input("Passwort", type="password")
     if st.button("Anmelden") and pwd == "admin2026": set_view("Admin_Panel")
-    if st.button("Abbrechen"): set_view("Home")
+    if st.button("Zurück"): set_view("Home")
 
 else:
     st.sidebar.title("KECB 2026")
     tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"])
+    
+    # Navigation Buttons in der Sidebar
+    if st.sidebar.button("⬅️ Zurück zum Menü"):
+        set_view("Home")
+            
+    if st.sidebar.button("🚪 Logout"):
+        set_view("Home")
+
     df_full = load_labels()
     r_col = f"Richter {tag}"
     df_tag = df_full[df_full[tag].astype(str).str.upper() == 'X'].copy() if df_full is not None else None
-
-    if st.sidebar.button("🏠 Logout"): set_view("Home")
 
     if st.session_state.view == "Dashboard":
         st.title(f"Live-Aufruf ({tag})")
