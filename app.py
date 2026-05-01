@@ -235,9 +235,13 @@ else:
             st.title(f"🏆 Best in Show - Kategorie {sel_cat}")
             
             if 'SELECTION' in df_full.columns:
+                # Hole alle Nominierten dieser Kategorie (Basis für Richterliste)
                 df_nom = df_full[(df_full['SELECTION'].astype(str).str.upper() == 'X') & (df_full['KATEGORIE'] == sel_cat)].copy()
+                
+                # Richterliste aus ALLEN Nominierten dieser Kategorie generieren
                 judges = sorted([r for r in df_nom[r_col].unique() if str(r) != "nan"]) if r_col in df_nom.columns else []
                 
+                # Tabellen-Header (Immer sichtbar)
                 h_cols = st.columns([1.5] + [1] * len(judges))
                 h_cols[0].markdown("**Klasse**")
                 for i, j in enumerate(judges):
