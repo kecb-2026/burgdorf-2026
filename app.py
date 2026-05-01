@@ -20,7 +20,7 @@ st.markdown("""
         min-height: auto; 
     }
     .judge-col h3 { 
-        font-size: 18px !important; color: white; background-color: #1a4a9e; 
+        font-size: 16px !important; color: white; background-color: #1a4a9e; 
         padding: 10px; border-radius: 10px; text-align: center; margin-bottom: 15px;
     }
     
@@ -31,7 +31,7 @@ st.markdown("""
         padding: 12px;
         border-radius: 12px;
         text-align: center;
-        font-size: 20px !important;
+        font-size: 16px !important;
         font-weight: bold;
         margin-bottom: 15px;
         border: 2px solid #0d2a5e;
