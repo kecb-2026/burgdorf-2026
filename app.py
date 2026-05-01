@@ -12,6 +12,7 @@ st.markdown("""
         font-weight: bold !important; border-radius: 12px !important;
         margin-bottom: 5px; border: 2px solid #1a4a9e !important;
     }
+    /* Richter Boxen im Dashboard */
     .judge-col { 
         border: 2px solid #1a4a9e; padding: 10px; border-radius: 15px; 
         background-color: #f8f9fa; margin-bottom: 10px; 
@@ -19,9 +20,41 @@ st.markdown("""
         min-height: auto; 
     }
     .judge-col h3 { 
-        font-size: 16px !important; color: white; background-color: #1a4a9e; 
-        padding: 8px; border-radius: 10px; text-align: center; margin-bottom: 15px;
+        font-size: 18px !important; color: white; background-color: #1a4a9e; 
+        padding: 10px; border-radius: 10px; text-align: center; margin-bottom: 15px;
     }
+    
+    /* Boxen für Richter-Header im BIS Public */
+    .judge-header-box {
+        background-color: #1a4a9e;
+        color: white;
+        padding: 12px;
+        border-radius: 12px;
+        text-align: center;
+        font-size: 20px !important;
+        font-weight: bold;
+        margin-bottom: 15px;
+        border: 2px solid #0d2a5e;
+        box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+    }
+
+    /* Boxen für Klassen-Label im BIS Public */
+    .class-label-box {
+        background-color: #e9ecef;
+        color: #1a4a9e;
+        padding: 10px;
+        border-radius: 12px;
+        text-align: center;
+        font-size: 16px !important;
+        font-weight: 800;
+        border: 2px solid #1a4a9e;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 105px;
+        width: 100%;
+    }
+
     .cat-card, .placeholder-box { 
         padding: 10px; border: 2px solid #1a4a9e; text-align: center; 
         background-color: #ffffff; border-radius: 18px; 
@@ -175,35 +208,39 @@ elif st.session_state.view == "BIS_Public":
         tag_input = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"])
         tag = tag_input.upper()
         sel_cat = st.selectbox("Kategorie wählen:", sorted(df_full['KATEGORIE'].unique()))
-        bis_defs = [("Adult Male", [1,3,5,7,9], "M"), ("Adult Female", [1,3,5,7,9], "W"), ("Neuter Male", [2,4,6,8,10], "M"), ("Neuter Female", [2,4,6,8,10], "W"), ("Junior (11) Male", [11], "M"), ("Junior (11) Female", [11], "W"), ("Kitten (12) Male", [12], "M"), ("Kitten (12) Female", [12], "W")]
+        
+        bis_defs = [
+            ("Adult Male", [1,3,5,7,9], "M"), ("Adult Female", [1,3,5,7,9], "W"), 
+            ("Neuter Male", [2,4,6,8,10], "M"), ("Neuter Female", [2,4,6,8,10], "W"), 
+            ("Junior (11) Male", [11], "M"), ("Junior (11) Female", [11], "W"), 
+            ("Kitten (12) Male", [12], "M"), ("Kitten (12) Female", [12], "W")
+        ]
+        
         r_col = f"RICHTER {tag}"
         judges = sorted([r for r in df_full[df_full[tag].astype(str).str.upper() == 'X'][r_col].unique() if str(r) != "nan"])
         
-        # Header: Leere Ecke links oben, dann Richternamen
+        # Grid Header
         h_cols = st.columns([1.5] + [1] * len(judges))
         h_cols[0].write("")
         for i, j in enumerate(judges):
-            h_cols[i+1].markdown(f"<div style='text-align:center; font-weight:bold; font-size:14px; color:#1a4a9e; margin-bottom:10px;'>{j}</div>", unsafe_allow_html=True)
+            h_cols[i+1].markdown(f"<div class='judge-header-box'>{j}</div>", unsafe_allow_html=True)
 
         for label, klassen, geschl in bis_defs:
             if store.data.get(f"reveal_{sel_cat}_{label}", False):
                 row_cols = st.columns([1.5] + [1] * len(judges))
                 
-                # Linke Spalte: Klassenname
-                row_cols[0].markdown(f"""
-                    <div style='display: flex; align-items: center; justify-content: flex-start; height: 105px;'>
-                        <span style='font-weight: bold; font-size: 16px; color: #1a4a9e;'>{label}</span>
-                    </div>
-                """, unsafe_allow_html=True)
+                # Linke Spalte: Klassen-Box
+                row_cols[0].markdown(f"<div class='class-label-box'>{label}</div>", unsafe_allow_html=True)
                 
-                # Daten-Spalten: Nominierte Katzen pro Richter
+                # Nominierte Katzen
                 for i, j in enumerate(judges):
                     with row_cols[i+1]:
                         match = df_full[(df_full['SELECTION'].astype(str).str.upper() == 'X') & (df_full[r_col] == j) & (df_full['KATEGORIE'] == sel_cat) & (df_full['KLASSE_INTERNAL'].isin(klassen)) & (df_full['GESCHLECHT'].astype(str).str.upper() == geschl)]
                         if not match.empty:
                             row = match.iloc[0]
                             st.markdown(f"<div class='cat-card'><div class='cat-number'>{row['KAT_STR']}</div><div class='cat-details'>{get_full_label(row)}</div></div>", unsafe_allow_html=True)
-                        else: st.markdown("<div class='placeholder-box'>–</div>", unsafe_allow_html=True)
+                        else: 
+                            st.markdown("<div class='placeholder-box'>–</div>", unsafe_allow_html=True)
                 st.divider()
 
     if st.button("⬅️ Zurück zum Menü"): set_view("Home")
