@@ -148,7 +148,6 @@ elif st.session_state.view == "BIS_Admin_Control":
     if df_full is not None:
         sel_cat = st.selectbox("Kategorie verwalten:", sorted(df_full['KATEGORIE'].unique()))
         
-        # Definition der Klassen für die Filterung[span_2](start_span)[span_2](end_span)
         bis_defs = [
             ("Adult Male", [1,3,5,7,9], "M"), 
             ("Adult Female", [1,3,5,7,9], "W"), 
@@ -171,7 +170,6 @@ elif st.session_state.view == "BIS_Admin_Control":
                 store.data[key_reveal] = c1.checkbox("Zeige Klasse", value=store.data.get(key_reveal, False), key=f"cb1_{key_reveal}")
                 store.data[key_winner_reveal] = c2.checkbox("Zeige Gewinner", value=store.data.get(key_winner_reveal, False), key=f"cb2_{key_winner_reveal}")
                 
-                # Angepasster Manueller Override: Nur Katzen der passenden Klasse/Geschlecht/Kategorie[span_3](start_span)[span_3](end_span)
                 m = df_full[
                     (df_full['SELECTION'].astype(str).str.upper() == 'X') & 
                     (df_full['KATEGORIE'] == sel_cat) & 
@@ -227,7 +225,7 @@ elif st.session_state.view == "BIS_Public":
         h_cols = st.columns([1.5] + [1] * len(judges) + [1.2])
         h_cols[0].write("")
         for i, j in enumerate(judges):
-            h_cols[i+1].markdown(f<div class='judge-header-box'>{j}</div>", unsafe_allow_html=True)
+            h_cols[i+1].markdown(f"<div class='judge-header-box'>{j}</div>", unsafe_allow_html=True)
         h_cols[-1].markdown(f"<div class='judge-header-box' style='background-color:#dc3545; color:white;'>WINNER</div>", unsafe_allow_html=True)
 
         for label, klassen, geschl in bis_defs:
