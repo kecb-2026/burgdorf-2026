@@ -14,17 +14,17 @@ st.markdown("""
         font-size: 13px !important; 
         font-weight: bold !important; 
         border-radius: 15px !important;
-        margin-bottom: 20px;
+        margin-bottom: 10px;
         border: 2px solid #1a4a9e !important;
     }
     
     /* Dashboard & Cards */
     .judge-col { 
         border: 3px solid #1a4a9e; 
-        padding: 15px; 
+        padding: 7px; 
         border-radius: 20px; 
         background-color: #ffffff; 
-        margin-bottom: 20px; 
+        margin-bottom: 10px; 
         box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
         display: flex; 
         flex-direction: column;
@@ -35,14 +35,14 @@ st.markdown("""
         font-size: 16px !important; 
         color: white; 
         background-color: #1a4a9e; 
-        padding: 10px; 
+        padding: 5px; 
         border-radius: 10px; 
         text-align: center; 
-        margin-bottom: 15px;
+        margin-bottom: 7px;
     }
 
     .cat-card { 
-        padding: 20px; 
+        padding: 10px; 
         border: 1px solid #e0e0e0; 
         text-align: center; 
         background-color: #ffffff; 
@@ -54,7 +54,7 @@ st.markdown("""
         justify-content: center; 
     }
     .cat-number { font-size: 55px !important; font-weight: 900 !important; color: #1a4a9e; line-height: 0.8; margin: 10px 0; }
-    .cat-label { font-size: 13px; color: #333; font-weight: bold; margin: 5px 0 15px 0; }
+    .cat-label { font-size: 13px; color: #333; font-weight: bold; margin: 5px 0 7px 0; }
     .cat-category-red { font-size: 11px; font-weight: bold; color: #ff0000; margin-bottom: 5px; }
 
     .tag-container { margin-top: 10px; display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; }
