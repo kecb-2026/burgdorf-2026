@@ -147,10 +147,21 @@ elif st.session_state.view == "BIS_Admin_Control":
     df_full = load_labels()
     if df_full is not None:
         sel_cat = st.selectbox("Kategorie verwalten:", sorted(df_full['KATEGORIE'].unique()))
-        bis_defs = ["Adult Male", "Adult Female", "Neuter Male", "Neuter Female", "Junior 8-12 Male", "Junior 8-12 Female", "Kitten 4-8 Male", "Kitten 4-8 Female"]
+        
+        # Definition der Klassen für die Filterung[span_2](start_span)[span_2](end_span)
+        bis_defs = [
+            ("Adult Male", [1,3,5,7,9], "M"), 
+            ("Adult Female", [1,3,5,7,9], "W"), 
+            ("Neuter Male", [2,4,6,8,10], "M"), 
+            ("Neuter Female", [2,4,6,8,10], "W"), 
+            ("Junior 8-12 Male", [11], "M"), 
+            ("Junior 8-12 Female", [11], "W"), 
+            ("Kitten 4-8 Male", [12], "M"), 
+            ("Kitten 4-8 Female", [12], "W")
+        ]
         
         st.subheader("1. Sichtbarkeit & Manuelle Auswahl")
-        for label in bis_defs:
+        for label, klassen, geschl in bis_defs:
             with st.expander(f"Klasse: {label}"):
                 c1, c2, c3 = st.columns([1, 1, 2])
                 key_reveal = f"reveal_{sel_cat}_{label}"
@@ -160,17 +171,23 @@ elif st.session_state.view == "BIS_Admin_Control":
                 store.data[key_reveal] = c1.checkbox("Zeige Klasse", value=store.data.get(key_reveal, False), key=f"cb1_{key_reveal}")
                 store.data[key_winner_reveal] = c2.checkbox("Zeige Gewinner", value=store.data.get(key_winner_reveal, False), key=f"cb2_{key_winner_reveal}")
                 
-                # Manuelle Auswahl für Unentschieden
-                m = df_full[(df_full['SELECTION'].astype(str).str.upper() == 'X') & (df_full['KATEGORIE'] == sel_cat)]
+                # Angepasster Manueller Override: Nur Katzen der passenden Klasse/Geschlecht/Kategorie[span_3](start_span)[span_3](end_span)
+                m = df_full[
+                    (df_full['SELECTION'].astype(str).str.upper() == 'X') & 
+                    (df_full['KATEGORIE'] == sel_cat) & 
+                    (df_full['KLASSE_INTERNAL'].isin(klassen)) & 
+                    (df_full['GESCHLECHT'].astype(str).str.upper() == geschl)
+                ]
+                
                 options = ["Automatisch (Stimmen)"] + sorted(m['KAT_STR'].unique().tolist())
                 current_override = store.data.get(key_override, "Automatisch (Stimmen)")
                 idx = options.index(current_override) if current_override in options else 0
-                store.data[key_override] = c3.selectbox("Manueller Gewinner (Override):", options, index=idx, key=f"sb_{key_override}")
+                store.data[key_override] = c3.selectbox(f"Gewinner {label}:", options, index=idx, key=f"sb_{key_override}")
         
         st.divider()
         st.subheader("2. Detaillierte Wahlergebnisse")
         if "votes" in store.data:
-            for label in bis_defs:
+            for label, klassen, geschl in bis_defs:
                 prefix = f"v_{sel_cat}_{label}_"
                 votes_in_class = {k.replace(prefix, ""): v for k, v in store.data["votes"].items() if k.startswith(prefix) and v != "Keine Wahl"}
                 if votes_in_class:
@@ -181,8 +198,8 @@ elif st.session_state.view == "BIS_Admin_Control":
                             summary[kat_nr].append(judge)
                         results_table = []
                         for kat_nr, judges_list in summary.items():
-                            m = df_full[df_full['KAT_STR'] == str(kat_nr)]
-                            info = get_full_label(m.iloc[0]) if not m.empty else "Unbekannt"
+                            m_info = df_full[df_full['KAT_STR'] == str(kat_nr)]
+                            info = get_full_label(m_info.iloc[0]) if not m_info.empty else "Unbekannt"
                             results_table.append({"Katze": f"#{kat_nr}", "Stimmen": len(judges_list), "Gewählt von": ", ".join(judges_list), "Details": info})
                         df_res = pd.DataFrame(results_table).sort_values("Stimmen", ascending=False)
                         st.table(df_res)
@@ -210,7 +227,7 @@ elif st.session_state.view == "BIS_Public":
         h_cols = st.columns([1.5] + [1] * len(judges) + [1.2])
         h_cols[0].write("")
         for i, j in enumerate(judges):
-            h_cols[i+1].markdown(f"<div class='judge-header-box'>{j}</div>", unsafe_allow_html=True)
+            h_cols[i+1].markdown(f<div class='judge-header-box'>{j}</div>", unsafe_allow_html=True)
         h_cols[-1].markdown(f"<div class='judge-header-box' style='background-color:#dc3545; color:white;'>WINNER</div>", unsafe_allow_html=True)
 
         for label, klassen, geschl in bis_defs:
@@ -226,7 +243,6 @@ elif st.session_state.view == "BIS_Public":
                             st.markdown(f"<div class='cat-card'><div class='cat-number'>{row['KAT_STR']}</div><div class='cat-details'>{get_full_label(row)}</div></div>", unsafe_allow_html=True)
                         else: st.markdown("<div class='placeholder-box'>–</div>", unsafe_allow_html=True)
                 
-                # Winner Column mit Override-Logik
                 with row_cols[-1]:
                     if store.data.get(f"winner_reveal_{sel_cat}_{label}", False):
                         manual_winner = store.data.get(f"override_{sel_cat}_{label}", "Automatisch (Stimmen)")
@@ -241,7 +257,7 @@ elif st.session_state.view == "BIS_Public":
                                 counts = pd.Series(votes).value_counts()
                                 if len(counts) > 0 and (len(counts) == 1 or counts.iloc[0] > counts.iloc[1]):
                                     winner_nr = counts.index[0]
-                                else: # Unentschieden
+                                else:
                                     st.markdown("<div class='placeholder-box' style='border: 2px solid #dc3545; color: #dc3545;'><b>TIE</b><br>Manual Pick</div>", unsafe_allow_html=True)
                         
                         if winner_nr:
