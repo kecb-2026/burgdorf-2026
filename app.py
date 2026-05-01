@@ -29,7 +29,6 @@ st.markdown("""
     }
     .cat-meta { font-size: 18px; color: #666; font-style: italic; margin-bottom: 5px; }
     
-    /* Tags innerhalb der Karte */
     .tag { font-weight: bold; padding: 10px 20px; border-radius: 10px; font-size: 22px; display: inline-block; margin: 5px; }
     .tag-aufruf { background-color: #007bff; color: white; }
     
@@ -71,9 +70,15 @@ def load_labels():
     except: return None
 
 def get_full_label(row):
+    """Erzeugt das Label Format: MCO 3 (n 22)"""
     rasse = row.get('Rasse_Kurz', row.get('Rasse', ''))
     gruppe = roman_to_numeric(row.get('Farbgruppe', ''))
-    return f"{rasse} {gruppe}".strip()
+    ems = row.get('Farbe', '') # Hier steht z.B. n 22
+    
+    label = f"{rasse} {gruppe}".strip()
+    if pd.notna(ems) and ems != "":
+        label += f" ({ems})"
+    return label
 
 # --- 4. NAVIGATION ---
 df_full = load_labels()
@@ -105,12 +110,10 @@ if view == "📢 Dashboard":
                             if not match.empty:
                                 active_entries.append({'row': match.iloc[0], 'stat': stat, 'nr': nr})
                 
-                # Sortierung: Kategorie -> Nummer
                 active_entries = sorted(active_entries, key=lambda x: (int(x['row'].get('Kategorie', 99)), int(x['nr'])))
                 
                 for item in active_entries:
                     r = item['row']
-                    # Start der weißen Karte
                     st.markdown(f"""
                         <div class='cat-card'>
                             <div class='cat-meta'>Kategorie {r.get('Kategorie','')}</div>
@@ -118,14 +121,12 @@ if view == "📢 Dashboard":
                             <div class='cat-label'>{get_full_label(r)}</div>
                         """, unsafe_allow_html=True)
                     
-                    # Tags direkt unter dem Label (noch innerhalb der cat-card)
                     tags = ""
                     if item['stat'].get("Aufruf"): tags += "<span class='tag tag-aufruf'>AUFRUF</span>"
                     if item['stat'].get("BIV"): tags += "<span class='tag tag-biv'>BIV</span>"
                     if item['stat'].get("NOM"): tags += "<span class='tag tag-nom'>NOM</span>"
                     
                     st.markdown(tags + "</div>", unsafe_allow_html=True)
-                
                 st.markdown("</div>", unsafe_allow_html=True)
 
 # --- 6. STEWARD-EINGABE ---
@@ -153,4 +154,4 @@ elif view == "📝 Steward-Eingabe":
                 store.data[db_key]["NOM"] = c4.checkbox("NOM", value=store.data[db_key]["NOM"], key=f"n{db_key}")
             
             st.divider()
-            st.success("Änderungen sind live im Dashboard sichtbar.")
+            st.success("Daten sind live gespeichert.")
