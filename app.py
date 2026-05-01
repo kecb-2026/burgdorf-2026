@@ -113,13 +113,13 @@ elif st.session_state.view == "Steward_Login":
     st.title("🔒 Steward Login")
     pwd = st.text_input("Passwort", type="password")
     if st.button("Anmelden") and pwd == "steward2026": set_view("Steward_Panel")
-    if st.button("Zurück"): set_view("Home")
+    if st.button("⬅️ Zurück zum Menü"): set_view("Home")
 
 elif st.session_state.view == "Admin_Login":
     st.title("⚙️ Admin Login")
     pwd = st.text_input("Passwort", type="password")
     if st.button("Anmelden") and pwd == "admin2026": set_view("Admin_Panel")
-    if st.button("Zurück"): set_view("Home")
+    if st.button("⬅️ Zurück zum Menü"): set_view("Home")
 
 elif st.session_state.view == "Admin_Panel":
     st.title("👨‍⚖️ Admin-Konsole")
@@ -164,7 +164,7 @@ elif st.session_state.view == "Judge_Voting":
                                        index=0 if curr == "Keine Wahl" else list(opts.values()).index(curr) + 1, key=f"r_{v_key}")
                         store.data["votes"][v_key] = opts[sel] if sel != "Keine Wahl" else "Keine Wahl"
                     else: st.info("Keine Nominierten.")
-    if st.button("⬅️ Menü"): set_view("Home")
+    if st.button("⬅️ Zurück zum Menü"): set_view("Home")
 
 elif st.session_state.view == "Dashboard":
     st.title("Live-Aufruf")
@@ -192,7 +192,7 @@ elif st.session_state.view == "Dashboard":
                                 if v.get("NOM"): card_html += "<span class='tag tag-nom'>NOM</span>"
                                 st.markdown(card_html + "</div></div>", unsafe_allow_html=True)
                 st.markdown("</div>", unsafe_allow_html=True)
-    if st.button("⬅️ Menü"): set_view("Home")
+    if st.button("⬅️ Zurück zum Menü"): set_view("Home")
 
 elif st.session_state.view == "Steward_Panel":
     st.title("Steward-Steuerung")
@@ -213,7 +213,7 @@ elif st.session_state.view == "Steward_Panel":
                 store.data[k]["Aufruf"] = c2.checkbox("Ruf", value=store.data[k]["Aufruf"], key=f"a{k}")
                 store.data[k]["BIV"] = c3.checkbox("BIV", value=store.data[k]["BIV"], key=f"b{k}")
                 store.data[k]["NOM"] = c4.checkbox("NOM", value=store.data[k]["NOM"], key=f"n{k}")
-    if st.button("⬅️ Menü"): set_view("Home")
+    if st.button("⬅️ Zurück zum Menü"): set_view("Home")
 
 elif st.session_state.view == "BIS_Admin_Control":
     st.title("🏆 BIS Steuerung & Auszählung")
@@ -241,7 +241,7 @@ elif st.session_state.view == "BIS_Admin_Control":
                     st.write(f"**Ergebnis {label}:**")
                     counts = pd.Series(v_list).value_counts()
                     st.dataframe(counts.rename("Stimmen"), use_container_width=True)
-    if st.button("⬅️ Menü"): set_view("Home")
+    if st.button("⬅️ Zurück zum Menü"): set_view("Home")
 
 elif st.session_state.view == "BIS_Public":
     df_full = load_labels()
@@ -283,4 +283,4 @@ elif st.session_state.view == "BIS_Public":
                         else: st.markdown("<div class='placeholder-box'>–</div>", unsafe_allow_html=True)
                     else: st.markdown("<div class='placeholder-box'>???</div>", unsafe_allow_html=True)
             st.divider()
-    if st.button("⬅️ Menü"): set_view("Home")
+    if st.button("⬅️ Zurück zum Menü"): set_view("Home")
