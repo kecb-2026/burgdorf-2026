@@ -5,7 +5,6 @@ import re
 # --- 1. SETUP & STYLING ---
 st.set_page_config(layout="wide", page_title="KECB Burgdorf 2026", page_icon="🐾")
 
-# Exakte Übernahme des Stylings aus Quelle[span_3](start_span)[span_3](end_span)
 st.markdown("""
     <style>
     /* Startbildschirm Buttons */
@@ -52,8 +51,8 @@ st.markdown("""
         height: 250px; 
         display: flex;
         flex-direction: column;
+margin: 10px;
         justify-content: center; 
-margin: 15px;
     }
     .cat-number { font-size: 55px !important; font-weight: 900 !important; color: #1a4a9e; line-height: 0.8; margin: 10px 0; }
     .cat-label { font-size: 13px; color: #333; font-weight: bold; margin: 5px 0 15px 0; }
@@ -101,14 +100,14 @@ def roman_to_numeric(text):
 @st.cache_data(ttl=30)
 def load_labels():
     try:
-        # Korrektur: Dateiname 'LABELS.xlsm' und header=0 zur Spaltenerkennung[span_4](start_span)[span_4](end_span)[span_5](start_span)[span_5](end_span)
+        # Fix: Dateiname LABELS.xlsm und korrekte Spaltenerkennung[span_3](start_span)[span_3](end_span)[span_4](start_span)[span_4](end_span)
         df = pd.read_excel("LABELS.xlsm", engine='openpyxl', header=0)
         df.columns = df.columns.astype(str).str.strip()
         if 'Katalog-Nr' in df.columns:
             df['KAT_STR'] = df['Katalog-Nr'].astype(str).str.replace('.0', '', regex=False)
         return df
     except Exception as e:
-        st.error(f"Fehler beim Laden der LABELS.xlsm: {e}")
+        st.error(f"Excel-Fehler: {e}")
         return None
 
 def get_full_label(row):
@@ -147,20 +146,26 @@ elif st.session_state.view == "Admin_Login":
     if st.button("Anmelden") and pwd == "admin2026": set_view("Admin_Panel")
     if st.button("Zurück"): set_view("Home")
 
+elif st.session_state.view == "Admin_Panel":
+    st.title("👨‍⚖️ Admin-Konsole")
+    st.subheader("🧹 Daten-Management")
+    with st.expander("Gefahrenzone: Speicher leeren"):
+        st.warning("Dies löscht alle aktuellen Aufrufe von den Dashboards!")
+        if st.button("🚨 ALLE DATEN ZURÜCKSETZEN"):
+            store.data = {} # Leert den globalen Speicher[span_5](start_span)[span_5](end_span)
+            st.success("Speicher geleert!")
+            st.rerun()
+    st.divider()
+    if st.button("⬅️ Zurück zum Menü"): set_view("Home")
+
 else:
     st.sidebar.title("KECB 2026")
     tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"])
+    if st.sidebar.button("⬅️ Menü"): set_view("Home")
     
-    if st.sidebar.button("⬅️ Zurück zum Menü"):
-        set_view("Home")
-            
-    if st.sidebar.button("🚪 Logout"):
-        set_view("Home")
-
     df_full = load_labels()
     r_col = f"Richter {tag}"
     
-    # Filterung nach Tag[span_6](start_span)[span_6](end_span)
     if df_full is not None and tag in df_full.columns:
         df_tag = df_full[df_full[tag].astype(str).str.upper() == 'X'].copy()
     else:
@@ -193,7 +198,6 @@ else:
 
     elif st.session_state.view == "Steward_Panel":
         st.title("Steward-Steuerung")
-        # Prüfung der Spaltenexistenz zur Vermeidung von KeyErrors[span_7](start_span)[span_7](end_span)
         if df_tag is not None and r_col in df_tag.columns:
             all_j = sorted([r for r in df_tag[r_col].unique() if str(r) != "nan"])
             mein_richter = st.selectbox("Richter wählen:", ["--"] + all_j)
@@ -203,9 +207,9 @@ else:
                     nr = row['KAT_STR']; k = f"{nr}|{mein_richter}"
                     if k not in store.data: store.data[k] = {"Aufruf": False, "BIV": False, "NOM": False}
                     c1, c2, c3, c4 = st.columns([3, 1, 1, 1])
-                    c1.write(f"**#{nr}** (Kat {row.get('Kategorie', '–')}) - {get_full_label(row)}")
+                    c1.write(f"**#{nr}** - {get_full_label(row)}")
                     store.data[k]["Aufruf"] = c2.checkbox("Ruf", value=store.data[k]["Aufruf"], key=f"a{k}")
                     store.data[k]["BIV"] = c3.checkbox("BIV", value=store.data[k]["BIV"], key=f"b{k}")
                     store.data[k]["NOM"] = c4.checkbox("NOM", value=store.data[k]["NOM"], key=f"n{k}")
         else:
-            st.error(f"Spalte '{r_col}' nicht in Excel gefunden.")[span_8](start_span)[span_8](end_span)
+            st.error(f"Spalte '{r_col}' fehlt!")[span_6](start_span)[span_6](end_span)[span_7](start_span)[span_7](end_span)
