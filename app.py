@@ -18,10 +18,6 @@ st.markdown("""
         box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
         display: flex; flex-direction: column; gap: 5px;
     }
-    .judge-col h3 { 
-        font-size: 14px !important; color: white; background-color: #1a4a9e; 
-        padding: 3px; border-radius: 8px; text-align: center; margin-bottom: 5px;
-    }
     .cat-card { 
         padding: 10px; border: 2px solid #1a4a9e; text-align: center; 
         background-color: #ffffff; border-radius: 18px; 
@@ -172,20 +168,64 @@ elif st.session_state.view == "Judge_Voting":
 
 elif st.session_state.view == "Dashboard":
     st.title("Live-Aufruf")
-    # ... (bestehender Dashboard-Code)
+    tag_input = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"])
+    tag = tag_input.upper()
+    df_full = load_labels()
+    r_col = f"RICHTER {tag}"
+    if df_full is not None:
+        df_tag = df_full[df_full[tag].astype(str).str.upper() == 'X'].copy()
+        judges = sorted([r for r in df_tag[r_col].unique() if str(r) != "nan"])
+        cols = st.columns(max(1, len(judges)))
+        for i, j in enumerate(judges):
+            with cols[i]:
+                st.markdown(f"<div class='judge-col'><h3>{j}</h3>", unsafe_allow_html=True)
+                for k, v in store.data.items():
+                    if "|" in k:
+                        nr, r_n = k.split("|")
+                        if r_n == j and any(v.values()):
+                            m = df_tag[df_tag['KAT_STR'] == nr]
+                            if not m.empty:
+                                row = m.iloc[0]
+                                card_html = f"<div class='cat-card'><div class='cat-number'>{nr}</div><div class='cat-details'>{get_full_label(row)}</div><div class='tag-container'>"
+                                if v.get("Aufruf"): card_html += "<span class='tag tag-aufruf'>AUFRUF</span>"
+                                if v.get("BIV"): card_html += "<span class='tag tag-biv'>BIV</span>"
+                                if v.get("NOM"): card_html += "<span class='tag tag-nom'>NOM</span>"
+                                st.markdown(card_html + "</div></div>", unsafe_allow_html=True)
+                st.markdown("</div>", unsafe_allow_html=True)
+    if st.button("⬅️ Menü"): set_view("Home")
+
+elif st.session_state.view == "Steward_Panel":
+    st.title("Steward-Steuerung")
+    tag_input = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"])
+    tag = tag_input.upper()
+    df_full = load_labels()
+    r_col = f"RICHTER {tag}"
+    if df_full is not None:
+        all_j = sorted([r for r in df_full[df_full[tag].astype(str).str.upper() == 'X'][r_col].unique() if str(r) != "nan"])
+        mein_richter = st.selectbox("Richter wählen:", ["--"] + all_j)
+        if mein_richter != "--":
+            df_j = df_full[(df_full[tag].astype(str).str.upper() == 'X') & (df_full[r_col] == mein_richter)].sort_values(['KATALOG-NR'])
+            for _, row in df_j.iterrows():
+                nr = row['KAT_STR']; k = f"{nr}|{mein_richter}"
+                if k not in store.data: store.data[k] = {"Aufruf": False, "BIV": False, "NOM": False}
+                c1, c2, c3, c4 = st.columns([3, 1, 1, 1])
+                c1.write(f"**#{nr}** - {get_full_label(row)}")
+                store.data[k]["Aufruf"] = c2.checkbox("Ruf", value=store.data[k]["Aufruf"], key=f"a{k}")
+                store.data[k]["BIV"] = c3.checkbox("BIV", value=store.data[k]["BIV"], key=f"b{k}")
+                store.data[k]["NOM"] = c4.checkbox("NOM", value=store.data[k]["NOM"], key=f"n{k}")
+    if st.button("⬅️ Menü"): set_view("Home")
 
 elif st.session_state.view == "BIS_Admin_Control":
     st.title("🏆 BIS Steuerung & Auszählung")
     df_full = load_labels()
     if df_full is not None:
         sel_cat = st.selectbox("Kategorie verwalten:", sorted(df_full['KATEGORIE'].unique()))
-        
-        st.subheader("1. Sichtbarkeit (Public Screen)")
         bis_defs = [("Adult Male", [1, 3, 5, 7, 9], "M"), ("Adult Female", [1, 3, 5, 7, 9], "W"),
                     ("Neuter Male", [2, 4, 6, 8, 10], "M"), ("Neuter Female", [2, 4, 6, 8, 10], "W"),
                     ("Junior (11) Male", [11], "M"), ("Junior (11) Female", [11], "W"),
                     ("Kitten (12) Male", [12], "M"), ("Kitten (12) Female", [12], "W")]
         
+        st.subheader("1. Sichtbarkeit (Public Screen)")
         cols = st.columns(4)
         for idx, (label, _, _) in enumerate(bis_defs):
             key = f"reveal_{sel_cat}_{label}"
@@ -201,11 +241,46 @@ elif st.session_state.view == "BIS_Admin_Control":
                     st.write(f"**Ergebnis {label}:**")
                     counts = pd.Series(v_list).value_counts()
                     st.dataframe(counts.rename("Stimmen"), use_container_width=True)
-                else: st.caption(f"Keine Stimmen für {label}")
     if st.button("⬅️ Menü"): set_view("Home")
 
 elif st.session_state.view == "BIS_Public":
-    # ... (bestehender BIS_Public Code)
-    st.title("🏆 Best in Show")
-    # (Rest wie zuvor)
+    df_full = load_labels()
+    if df_full is not None:
+        tag_input = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"])
+        tag = tag_input.upper()
+        r_col = f"RICHTER {tag}"
+        sel_cat = st.selectbox("Kategorie wählen:", sorted(df_full['KATEGORIE'].unique()))
+        st.title(f"🏆 Best in Show - Kategorie {sel_cat}")
+        
+        all_active_judges = sorted([r for r in df_full[df_full[tag].astype(str).str.upper() == 'X'][r_col].unique() if str(r) != "nan"])
+        df_nom = df_full[(df_full['SELECTION'].astype(str).str.upper() == 'X') & (df_full['KATEGORIE'] == sel_cat)].copy()
+        
+        h_cols = st.columns([1.5] + [1] * len(all_active_judges))
+        h_cols[0].markdown("**Klasse**")
+        for i, j in enumerate(all_active_judges):
+            h_cols[i+1].markdown(f"<div style='background-color:#1a4a9e; color:white; padding:5px; border-radius:8px; text-align:center; font-size:10px; font-weight:bold;'>{j}</div>", unsafe_allow_html=True)
+        st.divider()
+
+        bis_defs = [
+            ("Adult Male", [1, 3, 5, 7, 9], "M"), ("Adult Female", [1, 3, 5, 7, 9], "W"),
+            ("Neuter Male", [2, 4, 6, 8, 10], "M"), ("Neuter Female", [2, 4, 6, 8, 10], "W"),
+            ("Junior (11) Male", [11], "M"), ("Junior (11) Female", [11], "W"),
+            ("Kitten (12) Male", [12], "M"), ("Kitten (12) Female", [12], "W")
+        ]
+
+        for label, klassen, geschlecht in bis_defs:
+            r_cols = st.columns([1.5] + [1] * len(all_active_judges))
+            r_cols[0].markdown(f"<div style='font-size:12px; font-weight:bold; padding-top:15px;'>{label}</div>", unsafe_allow_html=True)
+            is_revealed = store.data.get(f"reveal_{sel_cat}_{label}", False)
+            
+            for i, j in enumerate(all_active_judges):
+                with r_cols[i+1]:
+                    if is_revealed:
+                        match = df_nom[(df_nom[r_col] == j) & (df_nom['KLASSE_INTERNAL'].isin(klassen)) & (df_nom['GESCHLECHT'].astype(str).str.upper() == geschlecht)]
+                        if not match.empty:
+                            for _, row in match.iterrows():
+                                st.markdown(f"<div class='cat-card'><div class='cat-number'>{row['KAT_STR']}</div><div class='cat-details'>{get_full_label(row)}</div></div>", unsafe_allow_html=True)
+                        else: st.markdown("<div class='placeholder-box'>–</div>", unsafe_allow_html=True)
+                    else: st.markdown("<div class='placeholder-box'>???</div>", unsafe_allow_html=True)
+            st.divider()
     if st.button("⬅️ Menü"): set_view("Home")
