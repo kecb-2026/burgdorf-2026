@@ -154,6 +154,10 @@ else:
     if st.sidebar.button("🏠 Hauptmenü / Logout"): set_view("Home")
 
     if st.session_state.view == "Dashboard":
+        # NEU: Kategorie-Filter aus der Excel-Spalte
+        cat_options = sorted(df_tag['Kategorie'].unique().tolist()) if df_tag is not None else [1,2,3,4]
+        cat_filter = st.sidebar.multiselect("Kategorien filtern:", cat_options, default=cat_options)
+
         st.title(f"Live-Aufruf ({tag})")
         if df_tag is not None:
             judges = sorted([r for r in df_tag[r_col].unique() if str(r) != "nan"])
@@ -164,7 +168,8 @@ else:
                     for k, v in store.data.items():
                         nr, r_n = k.split("|")
                         if r_n == j and any(v.values()):
-                            m = df_tag[df_tag['KAT_STR'] == nr]
+                            # NEU: Filterung nach Katalog-Nr UND gewählter Kategorie aus Excel
+                            m = df_tag[(df_tag['KAT_STR'] == nr) & (df_tag['Kategorie'].isin(cat_filter))]
                             if not m.empty:
                                 row = m.iloc[0]
                                 
@@ -186,36 +191,45 @@ else:
     elif st.session_state.view == "BIS_Grid":
         st.title("Best in Show Grid")
         if df_tag is not None:
-            judges = sorted([r for r in df_tag[r_col].unique() if str(r) != "nan"])
-            html = "<table class='bis-table'><tr><th class='class-header'>Klasse</th>"
-            for j in judges: html += f"<th>{j}</th>"
-            html += "</tr>"
-            for rd in rows_def:
-                html += f"<tr><td class='class-header'>{rd['label']}</td>"
-                for j in judges:
-                    cell = ""
-                    for k, v in store.data.items():
-                        if v.get("NOM"):
-                            nr, r_n = k.split("|")
-                            if r_n == j:
-                                match = df_tag[df_tag['KAT_STR'] == nr]
-                                if not match.empty and rd['f'](match.iloc[0]):
-                                    cell += f"<div><p class='bis-nr'>{nr}</p><p class='bis-label'>{get_full_label(match.iloc[0])}</p></div>"
-                    html += f"<td>{cell}</td>"
+            # NEU: Gruppierung nach Kategorie aus Excel
+            cat_list = sorted(df_tag['Kategorie'].unique().tolist())
+            for cat in cat_list:
+                st.subheader(f"Kategorie {cat}")
+                judges_cat = sorted([r for r in df_tag[df_tag['Kategorie'] == cat][r_col].unique() if str(r) != "nan"])
+                
+                if not judges_cat: continue
+                
+                html = "<table class='bis-table'><tr><th class='class-header'>Klasse</th>"
+                for j in judges_cat: html += f"<th>{j}</th>"
                 html += "</tr>"
-            st.markdown(html + "</table>", unsafe_allow_html=True)
+                for rd in rows_def:
+                    html += f"<tr><td class='class-header'>{rd['label']}</td>"
+                    for j in judges_cat:
+                        cell = ""
+                        for k, v in store.data.items():
+                            if v.get("NOM"):
+                                nr, r_n = k.split("|")
+                                if r_n == j:
+                                    match = df_tag[(df_tag['KAT_STR'] == nr) & (df_tag['Kategorie'] == cat)]
+                                    if not match.empty and rd['f'](match.iloc[0]):
+                                        cell += f"<div><p class='bis-nr'>{nr}</p><p class='bis-label'>{get_full_label(match.iloc[0])}</p></div>"
+                        html += f"<td>{cell}</td>"
+                    html += "</tr>"
+                st.markdown(html + "</table>", unsafe_allow_html=True)
 
     elif st.session_state.view == "Steward_Panel":
         st.title("Steward-Steuerung")
         all_j = sorted([r for r in df_tag[r_col].unique() if str(r) != "nan"])
         mein_richter = st.selectbox("Richter wählen:", ["--"] + all_j)
         if mein_richter != "--":
-            df_j = df_tag[df_tag[r_col] == mein_richter].sort_values(['Katalog-Nr'])
+            # NEU: Sortierung auch nach Kategorie beim Steward
+            df_j = df_tag[df_tag[r_col] == mein_richter].sort_values(['Kategorie', 'Katalog-Nr'])
             for _, row in df_j.iterrows():
                 nr = row['KAT_STR']; k = f"{nr}|{mein_richter}"
                 if k not in store.data: store.data[k] = {"Aufruf": False, "BIV": False, "NOM": False}
                 c1, c2, c3, c4 = st.columns([3, 1, 1, 1])
-                c1.write(f"**#{nr}** - {get_full_label(row)}")
+                # NEU: Kategorie-Info in der Zeile
+                c1.write(f"**#{nr}** (Kat {row['Kategorie']}) - {get_full_label(row)}")
                 store.data[k]["Aufruf"] = c2.checkbox("Ruf", value=store.data[k]["Aufruf"], key=f"a{k}")
                 store.data[k]["BIV"] = c3.checkbox("BIV", value=store.data[k]["BIV"], key=f"b{k}")
                 store.data[k]["NOM"] = c4.checkbox("NOM", value=store.data[k]["NOM"], key=f"n{k}")
@@ -231,4 +245,4 @@ else:
         st.title("Richter-Ansicht")
         all_j = sorted([r for r in df_tag[r_col].unique() if str(r) != "nan"])
         j_sel = st.selectbox("Ich bin:", all_j)
-        st.table(df_tag[df_tag[r_col] == j_sel][['Katalog-Nr', 'Rasse_Kurz', 'Farbe', 'Klasse', 'Geschlecht']])
+        st.table(df_tag[df_tag[r_col] == j_sel][['Katalog-Nr', 'Kategorie', 'Rasse_Kurz', 'Farbe', 'Klasse', 'Geschlecht']])
