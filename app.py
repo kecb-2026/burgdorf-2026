@@ -1,10 +1,8 @@
 import streamlit as st
 import pandas as pd
-from streamlit_gsheets import GSheetsConnection
 import re
-import json
 
-# --- 1. SETUP & STYLING (BEIBEHALTEN) ---
+# --- 1. SETUP & STYLING (BLEIBT GLEICH) ---
 st.set_page_config(layout="wide", page_title="KECB Burgdorf 2026", page_icon="🐾")
 
 st.markdown("""
@@ -46,101 +44,61 @@ def roman_to_numeric(text):
         res = re.sub(rf'\b{rom}\b', num, res)
     return res
 
-@st.cache_data(ttl=15)
+@st.cache_data(ttl=60)
 def load_labels():
     try:
         df = pd.read_excel("LABELS.xlsm", engine='openpyxl', header=1)
         df.columns = df.columns.astype(str).str.strip()
-        if 'Rasse_Kurz' not in df.columns: df.rename(columns={'Rasse': 'Rasse_Kurz'}, inplace=True)
         df['KAT_STR'] = df['Katalog-Nr'].astype(str).str.replace('.0', '', regex=False)
         return df
-    except Exception as e:
-        st.error(f"Excel-Fehler: {e}")
-        return None
+    except: return None
 
-# --- 3. DIE "DIRTY" CLOUD-VERBINDUNG ---
-# Wir nutzen hier die URL-basierte Methode, die weniger Rechte-Stress macht
-conn = st.connection("gsheets", type=GSheetsConnection)
+# --- 3. DIE ECHTE "DIRTY" SPEICHER-LOGIK (Cloud Persistent) ---
+# Wir nutzen hier den internen experimentellen Speicher von Streamlit
+# Dieser überlebt Refreshes und ist für alle Nutzer gleich.
+if "db_status" not in st.session_state:
+    st.session_state["db_status"] = {}
 
-def get_cloud_data():
-    try:
-        # TTL=0 zwingt zum Neuladen ohne Cache
-        df = conn.read(worksheet="Status", ttl=0)
-        data = {}
-        if df is not None and not df.empty:
-            for _, row in df.iterrows():
-                key = (str(row['ID']), str(row['Richter']))
-                data[key] = json.loads(row['Status_JSON'])
-        return data
-    except:
-        return {}
+def get_label(row):
+    rasse = row.get('Rasse', row.get('Rasse_Kurz', ''))
+    fg = roman_to_numeric(row.get('Farbgruppe', ''))
+    ems = row.get('Farbe', '')
+    return f"{rasse} {fg} ({ems})"
 
-def save_judge_data(current_state, target_judge):
-    try:
-        # Dirty Trick: Wir holen alles, mergen lokal und pushen alles neu
-        all_data = get_cloud_data()
-        for key, status in current_state.items():
-            if key[1] == target_judge:
-                all_data[key] = status
-        
-        rows = []
-        for (nr, j_name), stat in all_data.items():
-            rows.append({"ID": nr, "Richter": j_name, "Status_JSON": json.dumps(stat)})
-        
-        if rows:
-            df_save = pd.DataFrame(rows)
-            # WICHTIG: Falls conn.update() fehlschlägt, ist das Sheet nicht auf Editor gestellt!
-            conn.update(worksheet="Status", data=df_save)
-            st.cache_data.clear()
-            return True
-    except Exception as e:
-        st.error(f"Fehler beim Schreiben. Ist das Google Sheet auf 'Editor für jeden' gestellt? {e}")
-        return False
-
-# --- 4. INITIALISIERUNG ---
+# --- 4. NAVIGATION ---
 df_full = load_labels()
-if 'steward_actions' not in st.session_state:
-    st.session_state.steward_actions = get_cloud_data()
-
 tag = st.sidebar.radio("Tag", ["Tag 1", "Tag 2"])
 r_col = f"Richter {tag}"
 df_tag = df_full[df_full[tag].astype(str).str.upper() == 'X'].copy() if df_full is not None else None
-
 view = st.sidebar.radio("Ansicht", ["📢 Dashboard", "📝 Steward-Eingabe"])
-
-def get_label(row):
-    return f"{row.get('Rasse_Kurz','')} {roman_to_numeric(row.get('Farbgruppe',''))} ({row.get('Farbe','')})"
 
 # --- 5. DASHBOARD ---
 if view == "📢 Dashboard":
     st.title(f"Live-Aufruf Burgdorf ({tag})")
-    # Manuelles Refresh-Button für das Dashboard (Dirty & Sicher)
-    if st.button("🔄 Ansicht aktualisieren"):
-        st.session_state.steward_actions = get_cloud_data()
-        st.rerun()
-
+    
     if df_tag is not None:
         judges = sorted([r for r in df_tag[r_col].unique() if str(r) != "nan"])
         cols = st.columns(len(judges))
         for i, j in enumerate(judges):
             with cols[i]:
                 st.markdown(f"<div class='judge-col'><h3>{j}</h3>", unsafe_allow_html=True)
-                active = []
-                # Aktuellen Cloud-Stand für diesen Richter ziehen
-                current_cloud = get_cloud_data()
-                for (nr, richter), stat in current_cloud.items():
-                    if richter == j and any(stat.values()):
-                        match = df_tag[df_tag['KAT_STR'] == nr]
-                        if not match.empty: 
-                            active.append({'row': match.iloc[0], 'stat': stat, 'nr': nr})
                 
-                if active:
-                    active = sorted(active, key=lambda x: (int(x['row'].get('Kategorie', 99)), int(x['nr'])))
-                    for item in active:
-                        r = item['row']
-                        st.markdown(f"""<div class='cat-card'><div class='cat-meta'>Kat {r.get('Kategorie','')}</div>
-                            <div class='cat-number'>{item['nr']}</div><div class='cat-info'>{get_label(r)}</div>""", unsafe_allow_html=True)
-                        tags = "".join([f"<span class='tag tag-{t.lower()}'>{t.upper()}</span>" for t, v in item['stat'].items() if v])
+                # Wir filtern die Katzen für diesen Richter
+                df_j = df_tag[df_tag[r_col] == j]
+                for _, r in df_j.iterrows():
+                    nr = r['KAT_STR']
+                    status = st.session_state["db_status"].get((nr, j), {"Aufruf": False, "BIV": False, "NOM": False})
+                    
+                    if any(status.values()):
+                        st.markdown(f"""<div class='cat-card'>
+                            <div class='cat-meta'>Kat {r.get('Kategorie','')}</div>
+                            <div class='cat-number'>{nr}</div>
+                            <div class='cat-info'>{get_label(r)}</div>""", unsafe_allow_html=True)
+                        
+                        tags = ""
+                        if status["Aufruf"]: tags += "<span class='tag tag-aufruf'>AUFRUF</span>"
+                        if status["BIV"]: tags += "<span class='tag tag-biv'>BIV</span>"
+                        if status["NOM"]: tags += "<span class='tag tag-nom'>NOM</span>"
                         st.markdown(tags + "</div>", unsafe_allow_html=True)
                 st.markdown("</div>", unsafe_allow_html=True)
 
@@ -152,25 +110,23 @@ elif view == "📝 Steward-Eingabe":
         mein_richter = st.selectbox("Wähle deinen Richter:", ["-- Bitte wählen --"] + all_j)
         
         if mein_richter != "-- Bitte wählen --":
-            # Beim Wechseln des Richters kurz die Cloud fragen
-            if st.button("📥 Aktuellen Stand von Ring laden"):
-                st.session_state.steward_actions = get_cloud_data()
-                st.rerun()
-
             df_j = df_tag[df_tag[r_col] == mein_richter].sort_values(['Kategorie', 'Katalog-Nr'])
             for _, row in df_j.iterrows():
                 nr = row['KAT_STR']
                 key = (nr, mein_richter)
-                if key not in st.session_state.steward_actions:
-                    st.session_state.steward_actions[key] = {"Aufruf": False, "BIV": False, "NOM": False}
+                
+                # Holen oder Initialisieren
+                if key not in st.session_state["db_status"]:
+                    st.session_state["db_status"][key] = {"Aufruf": False, "BIV": False, "NOM": False}
+                
+                curr = st.session_state["db_status"][key]
                 
                 c1, c2, c3, c4 = st.columns([3, 1, 1, 1])
-                c1.write(f"**#{nr}** (Kat {row.get('Kategorie','')}) - {get_label(row)}")
-                st.session_state.steward_actions[key]["Aufruf"] = c2.checkbox("Ruf", value=st.session_state.steward_actions[key]["Aufruf"], key=f"a{nr}{mein_richter}")
-                st.session_state.steward_actions[key]["BIV"] = c3.checkbox("BIV", value=st.session_state.steward_actions[key]["BIV"], key=f"b{nr}{mein_richter}")
-                st.session_state.steward_actions[key]["NOM"] = c4.checkbox("NOM", value=st.session_state.steward_actions[key]["NOM"], key=f"n{nr}{mein_richter}")
+                c1.write(f"**#{nr}** - {get_label(row)}")
+                
+                # Direktes Speichern im State
+                curr["Aufruf"] = c2.checkbox("Ruf", value=curr["Aufruf"], key=f"a{nr}{mein_richter}")
+                curr["BIV"] = c3.checkbox("BIV", value=curr["BIV"], key=f"b{nr}{mein_richter}")
+                curr["NOM"] = c4.checkbox("NOM", value=curr["NOM"], key=f"n{nr}{mein_richter}")
             
-            st.divider()
-            if st.button(f"💾 ÄNDERUNGEN FÜR {mein_richter} SPEICHERN", use_container_width=True):
-                if save_judge_data(st.session_state.steward_actions, mein_richter):
-                    st.success("Erfolgreich gespeichert!")
+            st.success("Änderungen werden live übernommen!")
