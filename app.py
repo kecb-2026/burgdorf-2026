@@ -21,12 +21,23 @@ st.markdown("""
     /* Dashboard & Cards */
     .judge-col { border: 3px solid #1a4a9e; padding: 15px; border-radius: 20px; background-color: #ffffff; margin-bottom: 20px; box-shadow: 2px 2px 10px rgba(0,0,0,0.1); }
     .judge-col h3 { font-size: 32px !important; color: white; background-color: #1a4a9e; padding: 10px; border-radius: 10px; text-align: center; }
-    .cat-card { padding: 20px; border-bottom: 2px solid #f0f0f0; margin-bottom: 25px; text-align: center; background-color: #fafafa; border-radius: 20px; }
-    .cat-number { font-size: 110px !important; font-weight: 900 !important; color: #1a4a9e; line-height: 0.8; margin: 10px 0; }
-    .cat-label { font-size: 26px; color: #333; font-weight: bold; margin: 10px 0; }
     
-    /* Tags & Animationen */
-    .tag { font-weight: bold; padding: 10px 20px; border-radius: 10px; font-size: 22px; display: inline-block; margin: 5px; }
+    .cat-card { 
+        padding: 20px; 
+        border: 1px solid #e0e0e0; 
+        margin-bottom: 25px; 
+        text-align: center; 
+        background-color: #ffffff; 
+        border-radius: 20px; 
+        box-shadow: 0px 4px 6px rgba(0,0,0,0.05);
+    }
+    .cat-number { font-size: 110px !important; font-weight: 900 !important; color: #1a4a9e; line-height: 0.8; margin: 10px 0; }
+    .cat-label { font-size: 26px; color: #333; font-weight: bold; margin: 5px 0 15px 0; }
+    
+    /* Tags innerhalb der Karte */
+    .tag-container { margin-top: 10px; display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; }
+    .tag { font-weight: bold; padding: 10px 20px; border-radius: 10px; font-size: 22px; display: inline-block; }
+    
     .tag-aufruf { background-color: #007bff; color: white; }
     @keyframes blinker { 50% { opacity: 0.2; } }
     .tag-biv { background-color: #28a745; color: white; animation: blinker 1.5s linear infinite; }
@@ -131,9 +142,8 @@ elif st.session_state.view == "Admin_Login":
         else: st.error("Falsches Passwort")
     if st.button("Abbrechen"): set_view("Home")
 
-# --- HAUPTPROGRAMM ---
+# --- HAUPTPROGRAMM (NACH AUSWAHL/LOGIN) ---
 else:
-    # Sidebar für alle aktiven Sessions
     st.sidebar.title("KECB 2026")
     tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"])
     
@@ -157,11 +167,20 @@ else:
                             m = df_tag[df_tag['KAT_STR'] == nr]
                             if not m.empty:
                                 row = m.iloc[0]
-                                st.markdown(f"<div class='cat-card'><div class='cat-number'>{nr}</div><div class='cat-label'>{get_full_label(row)}</div>", unsafe_allow_html=True)
-                                if v.get("Aufruf"): st.markdown("<span class='tag tag-aufruf'>AUFRUF</span>", unsafe_allow_html=True)
-                                if v.get("BIV"): st.markdown("<span class='tag tag-biv'>BIV</span>", unsafe_allow_html=True)
-                                if v.get("NOM"): st.markdown("<span class='tag tag-nom'>NOM</span>", unsafe_allow_html=True)
-                                st.markdown("</div>", unsafe_allow_html=True)
+                                
+                                # Karte mit Tags im Inneren
+                                card_html = f"""
+                                <div class='cat-card'>
+                                    <div class='cat-number'>{nr}</div>
+                                    <div class='cat-label'>{get_full_label(row)}</div>
+                                    <div class='tag-container'>
+                                """
+                                if v.get("Aufruf"): card_html += "<span class='tag tag-aufruf'>AUFRUF</span>"
+                                if v.get("BIV"): card_html += "<span class='tag tag-biv'>BIV</span>"
+                                if v.get("NOM"): card_html += "<span class='tag tag-nom'>NOM</span>"
+                                
+                                card_html += "</div></div>"
+                                st.markdown(card_html, unsafe_allow_html=True)
                     st.markdown("</div>", unsafe_allow_html=True)
 
     elif st.session_state.view == "BIS_Grid":
@@ -189,7 +208,7 @@ else:
     elif st.session_state.view == "Steward_Panel":
         st.title("Steward-Steuerung")
         all_j = sorted([r for r in df_tag[r_col].unique() if str(r) != "nan"])
-        mein_richter = st.selectbox("Richter:", ["--"] + all_j)
+        mein_richter = st.selectbox("Richter wählen:", ["--"] + all_j)
         if mein_richter != "--":
             df_j = df_tag[df_tag[r_col] == mein_richter].sort_values(['Katalog-Nr'])
             for _, row in df_j.iterrows():
@@ -203,7 +222,7 @@ else:
 
     elif st.session_state.view == "Admin_Panel":
         st.title("Admin")
-        if st.button("🔴 ALLE DATEN ZURÜCKSETZEN"):
+        if st.button("🔴 ALLE DATEN LÖSCHEN"):
             store.data = {}
             st.success("Erfolgreich gelöscht.")
         st.write("Live Daten:", store.data)
