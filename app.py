@@ -258,34 +258,71 @@ elif st.session_state.view == "Home":
         if st.button("👨‍⚖️ BIS ADMIN / CONTROL"): set_view("BIS_Admin_Control")
         if st.button("⚙️ ADMIN-KONSOLE (RESET)"): set_view("Admin_Panel")
 
-# BIS ADMIN CONTROL
+# --- BIS ADMIN CONTROL (Korrektur mit Richter-Stimmen) ---
 elif st.session_state.view == "BIS_Admin_Control":
     st.title("👨‍⚖️ BIS Control Center")
     df_full = load_labels()
     if df_full is not None:
         sel_cat = st.selectbox("Kategorie verwalten:", sorted(df_full['KATEGORIE'].unique()))
         bis_defs = [("Adult Male", [1,3,5,7,9], "M"), ("Adult Female", [1,3,5,7,9], "W"), ("Neuter Male", [2,4,6,8,10], "M"), ("Neuter Female", [2,4,6,8,10], "W"), ("Junior 8-12 Male", [11], "M"), ("Junior 8-12 Female", [11], "W"), ("Kitten 4-8 Male", [12], "M"), ("Kitten 4-8 Female", [12], "W")]
+        
         for label, klassen, geschl in bis_defs:
             with st.expander(f"KLASSE: {label}", expanded=True):
                 c_ctrl, c_votes = st.columns([1, 1.2])
+                
+                # Präfix für die Stimmen in dieser spezifischen Klasse
+                v_prefix = f"v_{sel_cat}_{label}_"
+                
                 with c_ctrl:
-                    key_reveal = f"reveal_{sel_cat}_{label}"; key_winner_reveal = f"winner_reveal_{sel_cat}_{label}"; key_override = f"override_{sel_cat}_{label}"
+                    st.markdown("**Steuerung**")
+                    key_reveal = f"reveal_{sel_cat}_{label}"
+                    key_winner_reveal = f"winner_reveal_{sel_cat}_{label}"
+                    key_override = f"override_{sel_cat}_{label}"
+                    
                     store.data[key_reveal] = st.checkbox("Nominationen anzeigen", value=store.data.get(key_reveal, False), key=f"cb1_{key_reveal}")
                     store.data[key_winner_reveal] = st.checkbox("BIS Gewinner anzeigen", value=store.data.get(key_winner_reveal, False), key=f"cb2_{key_winner_reveal}")
+                    
                     pool = df_full[(df_full['SELECTION'].astype(str).str.upper() == 'X') & (df_full['KATEGORIE'] == sel_cat) & (df_full['KLASSE_INTERNAL'].isin(klassen)) & (df_full['GESCHLECHT'].astype(str).str.upper() == geschl)]
                     options = ["Automatisch (Stimmen)"] + sorted(pool['KAT_STR'].unique().tolist())
-                    store.data[key_override] = st.selectbox(f"Gewinner:", options, index=options.index(store.data.get(key_override, "Automatisch (Stimmen)")) if store.data.get(key_override) in options else 0, key=f"sb_{key_override}")
                     
-                    final_nr = store.data[key_override] if store.data[key_override] != "Automatisch (Stimmen)" else None
-                    if not final_nr and "votes" in store.data:
-                        v_prefix = f"v_{sel_cat}_{label}_"
+                    store.data[key_override] = st.selectbox(f"Gewinner festlegen:", options, index=options.index(store.data.get(key_override, "Automatisch (Stimmen)")) if store.data.get(key_override) in options else 0, key=f"sb_{key_override}")
+                    
+                    # Ermittlung des aktuellen Gewinners für das Overlay
+                    final_nr = None
+                    if store.data[key_override] != "Automatisch (Stimmen)":
+                        final_nr = store.data[key_override]
+                    elif "votes" in store.data:
                         votes = [v for k, v in store.data["votes"].items() if k.startswith(v_prefix) and v != "Keine Wahl"]
-                        if votes: final_nr = pd.Series(votes).value_counts().index[0]
+                        if votes:
+                            final_nr = pd.Series(votes).value_counts().index[0]
                     
-                    if final_nr and st.button(f"🏆 OVERLAY (#{final_nr})", key=f"btn_ov_{sel_cat}_{label}"):
+                    if final_nr and st.button(f"🏆 PUBLIC OVERLAY STARTEN (#{final_nr})", key=f"btn_ov_{sel_cat}_{label}"):
                         w_match = df_full[df_full['KAT_STR'] == str(final_nr)]
                         if not w_match.empty:
-                            store.active_overlay, store.overlay_start_time = w_match.iloc[0].to_dict(), time.time()
+                            store.active_overlay = w_match.iloc[0].to_dict()
+                            store.overlay_start_time = time.time()
+                            st.success(f"Overlay für #{final_nr} aktiviert!")
+
+                with c_votes:
+                    st.markdown("**Stimmen-Details (Wer hat wen gewählt?)**")
+                    if "votes" in store.data:
+                        # Extrahiere alle Stimmen, die mit dem Klassen-Präfix beginnen
+                        current_votes = {k.replace(v_prefix, ""): v for k, v in store.data["votes"].items() if k.startswith(v_prefix) and v != "Keine Wahl"}
+                        
+                        if current_votes:
+                            # Tabelle erstellen: Richtername | Gewählte Katze
+                            vote_df = pd.DataFrame([{"Richter": r, "Wahl (Kat Nr.)": f"#{v}"} for r, v in current_votes.items()])
+                            st.table(vote_df)
+                            
+                            # Kurze Zusammenfassung
+                            summary = pd.Series(current_votes.values()).value_counts()
+                            st.write("**Zwischenstand:**")
+                            for nr, count in summary.items():
+                                st.write(f"Katze #{nr}: {count} Stimme(n)")
+                        else:
+                            st.info("Noch keine Stimmen abgegeben.")
+                    else:
+                        st.info("Noch keine Wahldaten vorhanden.")
 
 # BIS PUBLIC VIEW
 elif st.session_state.view == "BIS_Public":
