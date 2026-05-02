@@ -10,6 +10,20 @@ st.markdown("""
     <style>
     @keyframes blinker { 50% { opacity: 0.1; } }
     
+    /* Login Container */
+    .login-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 40px;
+        background-color: #f8f9fa;
+        border-radius: 20px;
+        border: 2px solid #1a4a9e;
+        max-width: 400px;
+        margin: 10% auto;
+    }
+
     /* Overlay als zentrierte Box (80% Größe) */
     .winner-overlay {
         position: fixed;
@@ -35,12 +49,12 @@ st.markdown("""
     }
 
     .ov-header {
-        font-size: 35px !important; font-weight: 500; color: #333;
+        font-size: 24px !important; font-weight: 500; color: #333;
+        text-transform: uppercase;
         border-bottom: 2px solid #ccc; width: 80%;
         padding-bottom: 15px; margin-bottom: 30px;
     }
     
-    /* Optimierte Schriftgröße für den Namen, um Umbrüche zu vermeiden */
     .ov-cat-name {
         font-size: 45px !important; 
         font-weight: 900;
@@ -57,16 +71,16 @@ st.markdown("""
     }
     
     h1 {
-    text-transform: uppercase !important;
-    font-size: 26px !important;
-    margin-bottom: 20px !important;
-}
+        text-transform: uppercase !important;
+        font-size: 26px !important;
+        margin-bottom: 20px !important;
+    }
 
     @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
 
     .stButton button { width: 100%; height: 50px; font-size: 13px !important; font-weight: bold !important; border-radius: 12px !important; margin-bottom: 5px; border: 2px solid #1a4a9e !important; }
-    .judge-header-box { background-color: #1a4a9e; color: white; padding: 8px; border-radius: 10px; text-align: center; font-size: 15px !important; font-weight: bold; margin-bottom: 10px; border: 2px solid #0d2a5e; height: 60px; display: flex; align-items: center; justify-content: center; }
-    .class-label-box { background-color: #e9ecef; color: #1a4a9e; padding: 5px; border-radius: 10px; text-align: center; font-size: 14px !important; font-weight: 800; border: 2px solid #1a4a9e; display: flex; align-items: center; justify-content: center; height: 80px; width: 100%; line-height: 1.1; }
+    .judge-header-box { background-color: #1a4a9e; color: white; padding: 8px; border-radius: 10px; text-align: center; font-size: 12px !important; text-transform: uppercase; font-weight: bold; margin-bottom: 10px; border: 2px solid #0d2a5e; height: 60px; display: flex; align-items: center; justify-content: center; }
+    .class-label-box { background-color: #e9ecef; color: #1a4a9e; padding: 5px; border-radius: 10px; text-align: center; font-size: 11px !important; text-transform: uppercase; font-weight: 800; border: 2px solid #1a4a9e; display: flex; align-items: center; justify-content: center; height: 80px; width: 100%; line-height: 1.1; }
     .cat-card, .placeholder-box { padding: 5px; border: 2px solid #1a4a9e; text-align: center; background-color: #ffffff; border-radius: 14px; margin-bottom: 5px; min-height: 80px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
     .placeholder-box { border: 1px solid #d1d1d1; background-color: #f2f2f2 !important; color: #999999; }
     .winner-card { border: 3px solid #ff4d4d !important; background-color: #ffcccc !important; color: #b21f2d !important; }
@@ -94,10 +108,21 @@ def get_store():
 
 store = get_store()
 
+# --- 3. SESSION STATE INITIALISIERUNG ---
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+if "user_role" not in st.session_state:
+    st.session_state.user_role = "Public"
 if "view" not in st.session_state:
-    st.session_state.view = "Home"
+    st.session_state.view = "Dashboard"
 
-# --- 3. HILFSFUNKTIONEN ---
+def logout():
+    st.session_state.authenticated = False
+    st.session_state.user_role = "Public"
+    st.session_state.view = "Dashboard"
+    st.rerun()
+
+# --- 4. HILFSFUNKTIONEN ---
 def render_overlay_html(row):
     kat_nr = str(row.get('KATALOG-NR', '')).replace('.0', '')
     rasse = row.get('RASSE', '')
@@ -148,10 +173,61 @@ def set_view(name):
     st.session_state.view = name
     st.rerun()
 
-# --- 4. VIEWS ---
+# --- 5. NAVIGATION & ZUGRIFFSKONTROLLE ---
+access_map = {
+    "Public": ["Dashboard", "BIS_Public", "Login"],
+    "Richter": ["Judge_Voting", "Dashboard", "BIS_Public"],
+    "Steward": ["Steward_Panel", "Dashboard", "BIS_Public"],
+    "Admin": ["Home", "Dashboard", "BIS_Public", "Judge_Voting", "Steward_Panel", "BIS_Admin_Control", "Admin_Panel"]
+}
+
+available_views = access_map.get(st.session_state.user_role, ["Dashboard"])
+st.sidebar.image("https://kecb.ch/wp-content/uploads/2020/01/Logo-Link-weiss-279x300-1.gif", width=100)
+st.sidebar.markdown(f"**Rolle: {st.session_state.user_role}**")
+
+# Navigations-Radio
+st.session_state.view = st.sidebar.radio("Menü:", available_views, index=available_views.index(st.session_state.view) if st.session_state.view in available_views else 0)
+
+if st.session_state.authenticated:
+    if st.sidebar.button("Abmelden"):
+        logout()
+elif st.session_state.view != "Login":
+    if st.sidebar.button("🔒 Interner Login"):
+        set_view("Login")
+
+# --- 6. VIEWS ---
+
+# LOGIN VIEW
+if st.session_state.view == "Login":
+    st.markdown("<div class='login-container'>", unsafe_allow_html=True)
+    st.image("https://kecb.ch/wp-content/uploads/2020/01/Logo-Link-weiss-279x300-1.gif", width=120)
+    st.markdown("<h2 style='text-align:center; color:#1a4a9e; text-transform: uppercase; font-size: 20px;'>Interner Bereich</h2>", unsafe_allow_html=True)
+    
+    role_input = st.selectbox("Rolle wählen:", ["Admin", "Steward", "Richter"])
+    password = st.text_input("Passwort:", type="password")
+    
+    if st.button("Anmelden"):
+        if role_input == "Admin" and password == "admin2026":
+            st.session_state.user_role = "Admin"
+            st.session_state.authenticated = True
+            set_view("Home")
+        elif role_input == "Steward" and password == "steward2026":
+            st.session_state.user_role = "Steward"
+            st.session_state.authenticated = True
+            set_view("Steward_Panel")
+        elif role_input == "Richter" and password == "judge2026":
+            st.session_state.user_role = "Richter"
+            st.session_state.authenticated = True
+            set_view("Judge_Voting")
+        else:
+            st.error("Passwort ungültig.")
+    
+    if st.button("Abbrechen"):
+        set_view("Dashboard")
+    st.markdown("</div>", unsafe_allow_html=True)
 
 # HOME
-if st.session_state.view == "Home":
+elif st.session_state.view == "Home":
     st.title("🐾 KECB Burgdorf 2026")
     col1, col2 = st.columns(2)
     with col1:
@@ -159,9 +235,9 @@ if st.session_state.view == "Home":
         if st.button("🏆 BEST IN SHOW (PUBLIC)"): set_view("BIS_Public")
         if st.button("🗳️ RICHTER-VOTING"): set_view("Judge_Voting")
     with col2:
-        if st.button("📝 STEWARD-PULT"): set_view("Steward_Login")
+        if st.button("📝 STEWARD-PULT"): set_view("Steward_Panel")
         if st.button("👨‍⚖️ BIS ADMIN / CONTROL"): set_view("BIS_Admin_Control")
-        if st.button("⚙️ ADMIN-KONSOLE (RESET)"): set_view("Admin_Login")
+        if st.button("⚙️ ADMIN-KONSOLE (RESET)"): set_view("Admin_Panel")
 
 # BIS ADMIN CONTROL
 elif st.session_state.view == "BIS_Admin_Control":
@@ -215,13 +291,11 @@ elif st.session_state.view == "BIS_Admin_Control":
                             summary[kat_nr].append(judge)
                         results_table = [{"Kat": f"#{k}", "Stimmen": len(j), "Richter": ", ".join(j)} for k, j in summary.items()]
                         st.table(pd.DataFrame(results_table).sort_values("Stimmen", ascending=False))
-    if st.button("⬅️ Zurück"): set_view("Home")
 
 # BIS PUBLIC VIEW
 elif st.session_state.view == "BIS_Public":
     if hasattr(store, 'active_overlay') and store.active_overlay is not None:
         elapsed = time.time() - store.overlay_start_time
-        # Timer auf 20 Sekunden
         if elapsed < 20:
             st.markdown(render_overlay_html(store.active_overlay), unsafe_allow_html=True)
             time.sleep(1)
@@ -280,7 +354,6 @@ elif st.session_state.view == "BIS_Public":
                         st.markdown("<div class='placeholder-box'>Wahl läuft...</div>", unsafe_allow_html=True)
                 else: 
                     st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
-    if st.button("⬅️ Zurück"): set_view("Home")
     time.sleep(3)
     st.rerun()
 
@@ -320,8 +393,6 @@ elif st.session_state.view == "Dashboard":
                                             <div class='tag-container'>{tags_html}</div>
                                         </div>
                                     """, unsafe_allow_html=True)
-
-    if st.button("⬅️ Zurück"): set_view("Home")
     time.sleep(3)
     st.rerun()
 
@@ -344,7 +415,6 @@ elif st.session_state.view == "Steward_Panel":
                 store.data[k]["Zum Richten"] = c2.checkbox("Zum Richten", value=store.data[k]["Zum Richten"], key=f"auf{k}")
                 store.data[k]["BIV"] = c3.checkbox("BIV", value=store.data[k]["BIV"], key=f"biv{k}")
                 store.data[k]["NOM"] = c4.checkbox("NOM", value=store.data[k]["NOM"], key=f"nom{k}")
-    if st.button("⬅️ Zurück"): set_view("Home")
 
 # JUDGE VOTING
 elif st.session_state.view == "Judge_Voting":
@@ -369,23 +439,11 @@ elif st.session_state.view == "Judge_Voting":
                         idx = (list(opts.values()).index(curr) + 1) if curr in opts.values() else 0
                         sel = st.radio("Favorit:", ["Keine Wahl"] + list(opts.keys()), index=idx, key=f"r_{v_key}")
                         store.data["votes"][v_key] = opts[sel] if sel != "Keine Wahl" else "Keine Wahl"
-    if st.button("⬅️ Zurück"): set_view("Home")
 
-# LOGINS
-elif st.session_state.view == "Steward_Login":
-    pwd = st.text_input("Passwort (Steward)", type="password")
-    if st.button("Anmelden") and pwd == "steward2026": set_view("Steward_Panel")
-    if st.button("⬅️ Zurück"): set_view("Home")
-
-elif st.session_state.view == "Admin_Login":
-    pwd = st.text_input("Passwort (Admin)", type="password")
-    if st.button("Anmelden") and pwd == "admin2026": set_view("Admin_Panel")
-    if st.button("⬅️ Zurück"): set_view("Home")
-
+# ADMIN PANEL
 elif st.session_state.view == "Admin_Panel":
     st.title("⚙️ Admin-Konsole")
     if st.button("ALLE DATEN ZURÜCKSETZEN"):
         store.data = {}
         store.active_overlay = None
         st.success("Speicher geleert!")
-    if st.button("⬅️ Zurück"): set_view("Home")
