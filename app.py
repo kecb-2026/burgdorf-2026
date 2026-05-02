@@ -388,7 +388,7 @@ elif st.session_state.view == "BIS_Public":
                 border-radius: 14px;
                 margin-bottom: 10px;
                 box-sizing: border-box;
-                /* Reduzierte Mindesthöhe auf 130px */
+                /* Exakt 130px Mindesthöhe für Kompaktheit */
                 min-height: 130px; 
                 height: 100%;
             }
@@ -455,7 +455,8 @@ elif st.session_state.view == "BIS_Public":
         cols = st.columns(col_weights)
         cols[0].empty() 
         for i, j in enumerate(judges): 
-            cols[i+1].markdown(f<div class='judge-header-box'>{j}</div>, unsafe_allow_html=True)
+            # FIX: Anführungszeichen im f-string ergänzt
+            cols[i+1].markdown(f"<div class='judge-header-box'>{j}</div>", unsafe_allow_html=True)
         cols[-1].markdown("<div class='judge-header-box' style='background-color:#b21f2d;'>BIS</div>", unsafe_allow_html=True)
         
         # Grid Zeilen
