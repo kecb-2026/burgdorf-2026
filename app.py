@@ -376,7 +376,6 @@ elif st.session_state.view == "BIS_Admin_Control":
 
 # BIS PUBLIC VIEW
 elif st.session_state.view == "BIS_Public":
-    # CSS für einheitliche Höhen und Layout
     st.markdown("""
         <style>
             .bis-flex-box {
@@ -389,8 +388,8 @@ elif st.session_state.view == "BIS_Public":
                 border-radius: 14px;
                 margin-bottom: 10px;
                 box-sizing: border-box;
-                /* Erzwingt die identische Höhe für alle Boxen */
-                min-height: 150px; 
+                /* Reduzierte Mindesthöhe auf 130px */
+                min-height: 130px; 
                 height: 100%;
             }
 
@@ -403,23 +402,9 @@ elif st.session_state.view == "BIS_Public":
                 text-transform: uppercase;
             }
 
-            .cat-card { 
-                background-color: #ffffff; 
-                border: 2px solid #1a4a9e; 
-            }
-
-            .placeholder-box { 
-                background-color: #f8f9fa !important; 
-                border: 1px solid #d1d1d1; 
-                color: #cccccc; 
-                font-size: 24px;
-            }
-
-            .winner-card { 
-                background-color: #ffcccc !important; 
-                border: 3px solid #ff4d4d !important; 
-                color: #b21f2d !important;
-            }
+            .cat-card { background-color: #ffffff; border: 2px solid #1a4a9e; }
+            .placeholder-box { background-color: #f8f9fa !important; border: 1px solid #d1d1d1; color: #cccccc; font-size: 24px; }
+            .winner-card { background-color: #ffcccc !important; border: 3px solid #ff4d4d !important; color: #b21f2d !important; }
 
             .judge-header-box {
                 background-color: #1a4a9e;
@@ -464,25 +449,23 @@ elif st.session_state.view == "BIS_Public":
         r_col = f"RICHTER {tag}"
         judges = sorted([r for r in df_full[df_full[tag].astype(str).str.upper() == 'X'][r_col].unique() if str(r) != "nan"])
         
-        # Spalten-Verhältnis: Außen schmaler (0.7), Richter (1.0)
         col_weights = [0.7] + [1.0] * len(judges) + [0.7]
         
-        # Header Zeile
+        # Header (Erste Spalte bleibt leer)
         cols = st.columns(col_weights)
+        cols[0].empty() 
         for i, j in enumerate(judges): 
-            cols[i+1].markdown(f"<div class='judge-header-box'>{j}</div>", unsafe_allow_html=True)
+            cols[i+1].markdown(f<div class='judge-header-box'>{j}</div>, unsafe_allow_html=True)
         cols[-1].markdown("<div class='judge-header-box' style='background-color:#b21f2d;'>BIS</div>", unsafe_allow_html=True)
         
+        # Grid Zeilen
         for label, klassen, geschl in bis_defs:
             r_cols = st.columns(col_weights)
-            
-            # 1. Spalte: KLASSE
             r_cols[0].markdown(f"<div class='bis-flex-box class-label-box'>{label}</div>", unsafe_allow_html=True)
             
             show_noms = store.data.get(f"reveal_{sel_cat}_{label}", False)
             winner_revealed = store.data.get(f"winner_reveal_{sel_cat}_{label}", False)
             
-            # 2. Spalten: RICHTER NOMINATIONEN
             for i, j in enumerate(judges):
                 with r_cols[i+1]:
                     if show_noms:
@@ -517,7 +500,6 @@ elif st.session_state.view == "BIS_Public":
                     else:
                         st.markdown("<div class='bis-flex-box placeholder-box'>🔒</div>", unsafe_allow_html=True)
             
-            # 3. Spalte: BIS GEWINNER
             with r_cols[-1]:
                 if winner_revealed:
                     prefix = f"v_{sel_cat}_{label}_"
@@ -540,7 +522,6 @@ elif st.session_state.view == "BIS_Public":
 
     time.sleep(3)
     st.rerun()
-
 
 
 # LIVE DASHBOARD
