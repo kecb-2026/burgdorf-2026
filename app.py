@@ -352,7 +352,6 @@ elif st.session_state.view == "BIS_Public":
         else: store.active_overlay = None; st.rerun()
 
     def get_initials(name):
-        """Erzeugt Initialen aus Vor- und Nachnamen (z.B. Martti Peltonen -> MP)"""
         parts = str(name).split()
         if len(parts) >= 2:
             return (parts[0][0] + parts[-1][0]).upper()
@@ -374,14 +373,19 @@ elif st.session_state.view == "BIS_Public":
         r_col = f"RICHTER {tag}"
         judges = sorted([r for r in df_full[df_full[tag].astype(str).str.upper() == 'X'][r_col].unique() if str(r) != "nan"])
         
+        # --- SPALTEN-LAYOUT ANPASSUNG ---
+        # Wir geben Klasse (links) und BIS (rechts) 0.8, die Richter-Spalten bleiben bei 1.0
+        col_weights = [0.8] + [1.0] * len(judges) + [0.8]
+        
         # Header
-        cols = st.columns([1.2] + [1]*len(judges) + [1.2])
+        cols = st.columns(col_weights)
         for i, j in enumerate(judges): 
             cols[i+1].markdown(f"<div class='judge-header-box'>{j}</div>", unsafe_allow_html=True)
         cols[-1].markdown("<div class='judge-header-box' style='background-color:#b21f2d;'>BIS</div>", unsafe_allow_html=True)
         
         for label, klassen, geschl in bis_defs:
-            r_cols = st.columns([1.2] + [1]*len(judges) + [1.2])
+            r_cols = st.columns(col_weights)
+            # Linke Spalte: Klasse
             r_cols[0].markdown(f"<div class='class-label-box'>{label}</div>", unsafe_allow_html=True)
             
             show_noms = store.data.get(f"reveal_{sel_cat}_{label}", False)
@@ -427,7 +431,7 @@ elif st.session_state.view == "BIS_Public":
                     else: 
                         st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
             
-            # BIS GEWINNER SPALTE
+            # Rechte Spalte: BIS GEWINNER
             with r_cols[-1]:
                 if winner_revealed:
                     prefix = f"v_{sel_cat}_{label}_"
@@ -452,6 +456,7 @@ elif st.session_state.view == "BIS_Public":
 
     time.sleep(3)
     st.rerun()
+
 
 
 # LIVE DASHBOARD
