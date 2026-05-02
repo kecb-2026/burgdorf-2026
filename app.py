@@ -8,10 +8,8 @@ st.set_page_config(layout="wide", page_title="KECB Burgdorf 2026", page_icon="�
 
 st.markdown("""
     <style>
-    /* Animation für blinkende Tags */
     @keyframes blinker { 50% { opacity: 0.1; } }
     
-    /* Vollflächiges Gewinner-Overlay */
     .winner-overlay {
         position: fixed;
         top: 0; left: 0; width: 100vw; height: 100vh;
@@ -37,7 +35,6 @@ st.markdown("""
     }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-    /* Buttons & Standard-Styles */
     .stButton button { width: 100%; height: 50px; font-size: 13px !important; font-weight: bold !important; border-radius: 12px !important; margin-bottom: 5px; border: 2px solid #1a4a9e !important; }
     .judge-header-box { background-color: #1a4a9e; color: white; padding: 8px; border-radius: 10px; text-align: center; font-size: 15px !important; font-weight: bold; margin-bottom: 10px; border: 2px solid #0d2a5e; height: 60px; display: flex; align-items: center; justify-content: center; }
     .class-label-box { background-color: #e9ecef; color: #1a4a9e; padding: 5px; border-radius: 10px; text-align: center; font-size: 14px !important; font-weight: 800; border: 2px solid #1a4a9e; display: flex; align-items: center; justify-content: center; height: 80px; width: 100%; line-height: 1.1; }
@@ -48,6 +45,7 @@ st.markdown("""
     .cat-details { font-size: 14px !important; color: #333; font-weight: bold; margin-top: 2px; line-height: 1.1; }
     .tag-container { margin-top: 4px; display: flex; justify-content: center; flex-wrap: wrap; gap: 3px; }
     .tag { font-weight: bold; padding: 2px 6px; border-radius: 4px; font-size: 10px; text-transform: uppercase; }
+    .tag-zumrichten { background-color: #007bff; color: white; }
     .tag-biv { background-color: #28a745; color: white; animation: blinker 1.5s linear infinite; }
     .tag-nom { background-color: #ffc107; color: black; animation: blinker 1s linear infinite; }
     </style>
@@ -190,7 +188,6 @@ elif st.session_state.view == "BIS_Admin_Control":
 
 # BIS PUBLIC VIEW
 elif st.session_state.view == "BIS_Public":
-    # --- OVERLAY LOGIK (NUR HIER AKTIV) ---
     if hasattr(store, 'active_overlay') and store.active_overlay is not None:
         elapsed = time.time() - store.overlay_start_time
         if elapsed < 30:
@@ -259,26 +256,42 @@ elif st.session_state.view == "BIS_Public":
 elif st.session_state.view == "Dashboard":
     st.title("📢 Live-Aufruf & Status")
     tag_input = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"])
-    tag = tag_input.upper()
+    tag = tag_input.upper() # WICHTIG: Definiert den Tag für die Filterung
     df_full = load_labels()
+    
     if df_full is not None:
         r_col = f"RICHTER {tag}"
+        # Liste aller Richter am gewählten Tag (identisch zum Steward-Pult)
         df_tag = df_full[df_full[tag].astype(str).str.upper() == 'X'].copy()
         judges = sorted([r for r in df_tag[r_col].unique() if str(r) != "nan"])
-        cols = st.columns(len(judges) if judges else 1)
-        for i, j in enumerate(judges):
-            with cols[i]:
-                st.markdown(f"<div class='judge-header-box'>{j}</div>", unsafe_allow_html=True)
-                for k, v in store.data.items():
-                    if "|" in k:
-                        kat_nr, r_name = k.split("|")
-                        if r_name == j and any(v.values()):
-                            m = df_tag[df_tag['KAT_STR'] == kat_nr]
-                            if not m.empty:
-                                row = m.iloc[0]
-                                tags_html = "".join([f"<span class='tag tag-{t.replace(' ', '').lower()}'>{t.upper()}</span>" for t, active in v.items() if active])
-                                st.markdown(f"<div class='cat-card'><div class='cat-number'>{kat_nr}</div><div class='cat-details'>{get_full_label(row)}</div><div class='tag-container'>{tags_html}</div></div>", unsafe_allow_html=True)
+        
+        if judges:
+            cols = st.columns(len(judges))
+            for i, j in enumerate(judges):
+                with cols[i]:
+                    st.markdown(f"<div class='judge-header-box'>{j}</div>", unsafe_allow_html=True)
+                    # Suche nach Daten für diesen Richter im globalen Speicher
+                    for k, v in store.data.items():
+                        if "|" in k:
+                            kat_nr, r_name = k.split("|")
+                            if r_name == j and any(v.values()):
+                                m = df_tag[df_tag['KAT_STR'] == kat_nr]
+                                if not m.empty:
+                                    row = m.iloc[0]
+                                    tags_html = "".join([f"<span class='tag tag-{t.replace(' ', '').lower()}'>{t.upper()}</span>" for t, active in v.items() if active])
+                                    st.markdown(f"""
+                                        <div class='cat-card'>
+                                            <div class='cat-number'>{kat_nr}</div>
+                                            <div class='cat-details'>{get_full_label(row)}</div>
+                                            <div class='tag-container'>{tags_html}</div>
+                                        </div>
+                                    """, unsafe_allow_html=True)
+        else:
+            st.info(f"Keine Richterdaten für {tag} gefunden.")
+
     if st.button("⬅️ Zurück"): set_view("Home")
+    time.sleep(3)
+    st.rerun()
 
 # STEWARD PANEL
 elif st.session_state.view == "Steward_Panel":
