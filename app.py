@@ -55,6 +55,13 @@ st.markdown("""
     .ov-owner {
         font-size: 30px !important; font-style: italic; color: #444;
     }
+    
+    h1 {
+    text-transform: uppercase !important;
+    font-size: 26px !important;
+    margin-bottom: 20px !important;
+}
+
     @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
 
     .stButton button { width: 100%; height: 50px; font-size: 13px !important; font-weight: bold !important; border-radius: 12px !important; margin-bottom: 5px; border: 2px solid #1a4a9e !important; }
