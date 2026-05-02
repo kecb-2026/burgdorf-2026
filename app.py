@@ -40,7 +40,7 @@ st.markdown("""
         padding-bottom: 15px; margin-bottom: 30px;
     }
     
-    /* Optimierte Schriftgröße für den Namen */
+    /* Optimierte Schriftgröße für den Namen, um Umbrüche zu vermeiden */
     .ov-cat-name {
         font-size: 55px !important; 
         font-weight: 900;
@@ -214,7 +214,8 @@ elif st.session_state.view == "BIS_Admin_Control":
 elif st.session_state.view == "BIS_Public":
     if hasattr(store, 'active_overlay') and store.active_overlay is not None:
         elapsed = time.time() - store.overlay_start_time
-        if elapsed < 10:
+        # Timer auf 20 Sekunden
+        if elapsed < 20:
             st.markdown(render_overlay_html(store.active_overlay), unsafe_allow_html=True)
             time.sleep(1)
             st.rerun() 
