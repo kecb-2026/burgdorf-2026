@@ -33,22 +33,6 @@ st.markdown("""
         height: 100%;
     }
 
-    .bis-flex-container {
-        display: flex;
-        flex-direction: column;
-        justify-content: center; /* Zentriert Inhalt vertikal */
-        align-items: center;     /* Zentriert Inhalt horizontal */
-        
-        /* FESTE MINDESTHÖHE: Dieser Wert erzwingt die Einheitlichkeit */
-        min-height: 160px; 
-        height: 100%;
-        
-        padding: 15px;
-        margin-bottom: 10px;
-        border-radius: 14px;
-        box-sizing: border-box;
-        text-align: center;
-    }
 
     /* Die spezifischen Boxen nutzen nun alle den Flex-Container */
     .class-label-box { background-color: #e9ecef; border: 2px solid #1a4a9e; color: #1a4a9e; font-weight: 800; }
