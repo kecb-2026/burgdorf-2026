@@ -392,7 +392,7 @@ elif st.session_state.view == "BIS_Public":
         judges = sorted([r for r in df_full[df_full[tag].astype(str).str.upper() == 'X'][r_col].unique() if str(r) != "nan"])
         
         # Header
-        cols = st.columns([1.2] + [1]*len(judges) + [1.2])
+        cols = st.columns([0.8] + [1.2]*len(judges) + [0.8])
         for i, j in enumerate(judges): 
             cols[i+1].markdown(f"<div class='judge-header-box'>{j}</div>", unsafe_allow_html=True)
         cols[-1].markdown("<div class='judge-header-box' style='background-color:#b21f2d;'>BIS</div>", unsafe_allow_html=True)
