@@ -7,50 +7,64 @@ st.set_page_config(layout="wide", page_title="KECB Burgdorf 2026", page_icon="�
 
 st.markdown("""
     <style>
+    /* Allgemeine Buttons */
     .stButton button { 
-        width: 100%; height: 60px; font-size: 13px !important; 
+        width: 100%; height: 50px; font-size: 13px !important; 
         font-weight: bold !important; border-radius: 12px !important;
         margin-bottom: 5px; border: 2px solid #1a4a9e !important;
     }
+    
+    /* Dashboard & Cards Layout */
     .judge-col { 
-        border: 2px solid #1a4a9e; padding: 10px; border-radius: 15px; 
-        background-color: #f8f9fa; margin-bottom: 10px; 
-        box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
-        min-height: auto; 
+        border: 2px solid #1a4a9e; padding: 8px; border-radius: 12px; 
+        background-color: #f8f9fa; margin-bottom: 8px; 
+        box-shadow: 1px 1px 5px rgba(0,0,0,0.05);
     }
     .judge-col h3 { 
-        font-size: 16px !important; color: white; background-color: #1a4a9e; 
-        padding: 10px; border-radius: 10px; text-align: center; margin-bottom: 15px;
+        font-size: 15px !important; color: white; background-color: #1a4a9e; 
+        padding: 6px; border-radius: 8px; text-align: center; margin-bottom: 10px;
     }
     .judge-header-box {
-        background-color: #1a4a9e; color: white; padding: 12px; border-radius: 12px;
-        text-align: center; font-size: 16px !important; font-weight: bold;
-        margin-bottom: 15px; border: 2px solid #0d2a5e; box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+        background-color: #1a4a9e; color: white; padding: 8px; border-radius: 10px;
+        text-align: center; font-size: 15px !important; font-weight: bold;
+        margin-bottom: 10px; border: 2px solid #0d2a5e;
     }
+    
+    /* Klassen-Box: Weniger breit und kompakt */
     .class-label-box {
-        background-color: #e9ecef; color: #1a4a9e; padding: 10px; border-radius: 12px;
-        text-align: center; font-size: 16px !important; font-weight: 800;
+        background-color: #e9ecef; color: #1a4a9e; padding: 5px; border-radius: 10px;
+        text-align: center; font-size: 14px !important; font-weight: 800;
         border: 2px solid #1a4a9e; display: flex; align-items: center; justify-content: center;
-        height: 105px; width: 100%;
+        height: 80px; width: 100%; line-height: 1.1;
     }
+    
+    /* Cat Cards: Kompakter, Rasse größer */
     .cat-card, .placeholder-box { 
-        padding: 10px; border: 2px solid #1a4a9e; text-align: center; 
-        background-color: #ffffff; border-radius: 18px; 
-        box-shadow: 0px 4px 6px rgba(0,0,0,0.1); margin-bottom: 10px;
-        min-height: 105px; display: flex; flex-direction: column;
-        justify-content: center; align-items: center;
+        padding: 5px; border: 2px solid #1a4a9e; text-align: center; 
+        background-color: #ffffff; border-radius: 14px; 
+        margin-bottom: 5px; min-height: 80px;
+        display: flex; flex-direction: column; justify-content: center; align-items: center;
     }
     .placeholder-box {
-        border: 2px dashed #d1d1d1; background-color: #fcfcfc; color: #bbbbbb; box-shadow: none;
+        border: 1px dashed #d1d1d1; background-color: #fcfcfc; color: #bbbbbb;
     }
+    
+    /* Gewinner Card: Hellrot unterlegt */
     .winner-card {
-        border: 4px solid #b21f2d !important; background-color: #dc3545 !important; color: white !important;
+        border: 3px solid #ff4d4d !important; 
+        background-color: #ffcccc !important; 
+        color: #b21f2d !important;
     }
-    .winner-card .cat-number, .winner-card .cat-details { color: white !important; }
-    .cat-number { font-size: 32px !important; font-weight: 900 !important; color: #1a4a9e; line-height: 1.0; margin: 0; }
-    .cat-details { font-size: 12px; color: #333; font-weight: bold; margin-top: 4px; }
-    .tag-container { margin-top: 8px; display: flex; justify-content: center; flex-wrap: wrap; gap: 4px; }
-    .tag { font-weight: bold; padding: 3px 8px; border-radius: 5px; font-size: 10px; }
+    .winner-card .cat-number { color: #b21f2d !important; }
+    .winner-card .cat-details { color: #b21f2d !important; font-weight: 900 !important; }
+
+    /* Textelemente in Cards */
+    .cat-number { font-size: 28px !important; font-weight: 900 !important; color: #1a4a9e; line-height: 1.0; }
+    .cat-details { font-size: 14px !important; color: #333; font-weight: bold; margin-top: 2px; line-height: 1.1; }
+    
+    /* Tags */
+    .tag-container { margin-top: 4px; display: flex; justify-content: center; flex-wrap: wrap; gap: 3px; }
+    .tag { font-weight: bold; padding: 2px 6px; border-radius: 4px; font-size: 9px; }
     .tag-zumrichten { background-color: #007bff; color: white; }
     @keyframes blinker { 50% { opacity: 0.3; } }
     .tag-biv { background-color: #28a745; color: white; animation: blinker 1.5s linear infinite; }
@@ -186,23 +200,26 @@ elif st.session_state.view == "BIS_Admin_Control":
                             results_table.append({"Katze": f"#{kat_nr}", "Stimmen": len(judges_list), "Gewählt von": ", ".join(judges_list), "Details": info})
                         df_res = pd.DataFrame(results_table).sort_values("Stimmen", ascending=False)
                         st.table(df_res)
-        else: st.info("Noch keine Voting-Daten vorhanden.")
     if st.button("⬅️ Zurück zum Menü"): set_view("Home")
 
 elif st.session_state.view == "BIS_Public":
-    st.title("🏆 Best in Show - Public Screen")
+    st.title("🏆 Best in Show")
     df_full = load_labels()
     if df_full is not None:
         tag_input = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"])
         tag = tag_input.upper(); sel_cat = st.selectbox("Kategorie wählen:", sorted(df_full['KATEGORIE'].unique()))
         bis_defs = [("Adult Male", [1,3,5,7,9], "M"), ("Adult Female", [1,3,5,7,9], "W"), ("Neuter Male", [2,4,6,8,10], "M"), ("Neuter Female", [2,4,6,8,10], "W"), ("Junior 8-12 Male", [11], "M"), ("Junior 8-12 Female", [11], "W"), ("Kitten 4-8 Male", [12], "M"), ("Kitten 4-8 Female", [12], "W")]
         r_col = f"RICHTER {tag}"; judges = sorted([r for r in df_full[df_full[tag].astype(str).str.upper() == 'X'][r_col].unique() if str(r) != "nan"])
-        h_cols = st.columns([1.5] + [1] * len(judges) + [1.2])
+        
+        # Spalten-Setup: Klasse schmaler, Richter gleichmäßig, BIS rechts
+        col_ratios = [1] + [1] * len(judges) + [1.2]
+        h_cols = st.columns(col_ratios)
         for i, j in enumerate(judges): h_cols[i+1].markdown(f"<div class='judge-header-box'>{j}</div>", unsafe_allow_html=True)
-        h_cols[-1].markdown(f"<div class='judge-header-box' style='background-color:#dc3545; color:white;'>WINNER</div>", unsafe_allow_html=True)
+        h_cols[-1].markdown(f"<div class='judge-header-box' style='background-color:#b21f2d;'>BIS</div>", unsafe_allow_html=True)
+        
         for label, klassen, geschl in bis_defs:
             if store.data.get(f"reveal_{sel_cat}_{label}", False):
-                row_cols = st.columns([1.5] + [1] * len(judges) + [1.2])
+                row_cols = st.columns(col_ratios)
                 row_cols[0].markdown(f"<div class='class-label-box'>{label}</div>", unsafe_allow_html=True)
                 for i, j in enumerate(judges):
                     with row_cols[i+1]:
@@ -220,12 +237,11 @@ elif st.session_state.view == "BIS_Public":
                             if votes:
                                 counts = pd.Series(votes).value_counts()
                                 if len(counts) > 0 and (len(counts) == 1 or counts.iloc[0] > counts.iloc[1]): winner_nr = counts.index[0]
-                                else: st.markdown("<div class='placeholder-box' style='border: 2px solid #dc3545; color: #dc3545;'><b>TIE</b><br>Manual Pick</div>", unsafe_allow_html=True)
+                                else: st.markdown("<div class='placeholder-box' style='border: 2px solid #b21f2d; color: #b21f2d;'><b>TIE</b></div>", unsafe_allow_html=True)
                         if winner_nr:
                             m_winner = df_full[df_full['KAT_STR'] == str(winner_nr)]
-                            if not m_winner.empty: st.markdown(f"<div class='cat-card winner-card'><div class='cat-number'>{winner_nr}</div><div class='cat-details'><b>🏆 WINNER</b><br>{get_full_label(m_winner.iloc[0])}</div></div>", unsafe_allow_html=True)
+                            if not m_winner.empty: st.markdown(f"<div class='cat-card winner-card'><div class='cat-number'>{winner_nr}</div><div class='cat-details'>🏆 BIS<br>{get_full_label(m_winner.iloc[0])}</div></div>", unsafe_allow_html=True)
                     else: st.markdown("<div class='placeholder-box' style='background-color:#eee;'>🔒</div>", unsafe_allow_html=True)
-                st.divider()
     if st.button("⬅️ Zurück zum Menü"): set_view("Home")
 
 elif st.session_state.view == "Steward_Panel":
@@ -272,7 +288,6 @@ elif st.session_state.view == "Judge_Voting":
                         if curr in opts.values(): idx = list(opts.values()).index(curr) + 1
                         sel = st.radio("Favorit:", ["Keine Wahl"] + list(opts.keys()), index=idx, key=f"r_{v_key}")
                         store.data["votes"][v_key] = opts[sel] if sel != "Keine Wahl" else "Keine Wahl"
-                    else: st.info("Keine Nominierten.")
     if st.button("⬅️ Zurück zum Menü"): set_view("Home")
 
 elif st.session_state.view == "Steward_Login":
