@@ -9,9 +9,7 @@ st.set_page_config(layout="wide", page_title="KECB Burgdorf 2026", page_icon="�
 st.markdown("""
     <style>
     /* Animation für blinkende Tags */
-    @keyframes blinker {
-        50% { opacity: 0.1; }
-    }
+    @keyframes blinker { 50% { opacity: 0.1; } }
     
     /* Vollflächiges Gewinner-Overlay */
     .winner-overlay {
@@ -39,65 +37,19 @@ st.markdown("""
     }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-    /* Allgemeine Buttons */
-    .stButton button { 
-        width: 100%; height: 50px; font-size: 13px !important; 
-        font-weight: bold !important; border-radius: 12px !important;
-        margin-bottom: 5px; border: 2px solid #1a4a9e !important;
-    }
-    
-    /* Header-Boxen (Richter & BIS) */
-    .judge-header-box {
-        background-color: #1a4a9e; color: white; padding: 8px; border-radius: 10px;
-        text-align: center; font-size: 15px !important; font-weight: bold;
-        margin-bottom: 10px; border: 2px solid #0d2a5e;
-        height: 60px; display: flex; align-items: center; justify-content: center;
-    }
-    
-    /* Klassen-Label (Links im BIS) */
-    .class-label-box {
-        background-color: #e9ecef; color: #1a4a9e; padding: 5px; border-radius: 10px;
-        text-align: center; font-size: 14px !important; font-weight: 800;
-        border: 2px solid #1a4a9e; display: flex; align-items: center; justify-content: center;
-        height: 80px; width: 100%; line-height: 1.1;
-    }
-    
-    /* Katzen-Karten & Platzhalter */
-    .cat-card, .placeholder-box { 
-        padding: 5px; border: 2px solid #1a4a9e; text-align: center; 
-        background-color: #ffffff; border-radius: 14px; 
-        margin-bottom: 5px; min-height: 80px;
-        display: flex; flex-direction: column; justify-content: center; align-items: center;
-    }
-    
-    .placeholder-box {
-        border: 1px solid #d1d1d1; background-color: #f2f2f2 !important; color: #999999;
-    }
-    
-    .winner-card {
-        border: 3px solid #ff4d4d !important; 
-        background-color: #ffcccc !important; 
-        color: #b21f2d !important;
-    }
-    
+    /* Buttons & Standard-Styles */
+    .stButton button { width: 100%; height: 50px; font-size: 13px !important; font-weight: bold !important; border-radius: 12px !important; margin-bottom: 5px; border: 2px solid #1a4a9e !important; }
+    .judge-header-box { background-color: #1a4a9e; color: white; padding: 8px; border-radius: 10px; text-align: center; font-size: 15px !important; font-weight: bold; margin-bottom: 10px; border: 2px solid #0d2a5e; height: 60px; display: flex; align-items: center; justify-content: center; }
+    .class-label-box { background-color: #e9ecef; color: #1a4a9e; padding: 5px; border-radius: 10px; text-align: center; font-size: 14px !important; font-weight: 800; border: 2px solid #1a4a9e; display: flex; align-items: center; justify-content: center; height: 80px; width: 100%; line-height: 1.1; }
+    .cat-card, .placeholder-box { padding: 5px; border: 2px solid #1a4a9e; text-align: center; background-color: #ffffff; border-radius: 14px; margin-bottom: 5px; min-height: 80px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+    .placeholder-box { border: 1px solid #d1d1d1; background-color: #f2f2f2 !important; color: #999999; }
+    .winner-card { border: 3px solid #ff4d4d !important; background-color: #ffcccc !important; color: #b21f2d !important; }
     .cat-number { font-size: 28px !important; font-weight: 900 !important; color: #1a4a9e; line-height: 1.0; }
     .cat-details { font-size: 14px !important; color: #333; font-weight: bold; margin-top: 2px; line-height: 1.1; }
-    
-    /* Tags & Animationen */
     .tag-container { margin-top: 4px; display: flex; justify-content: center; flex-wrap: wrap; gap: 3px; }
     .tag { font-weight: bold; padding: 2px 6px; border-radius: 4px; font-size: 10px; text-transform: uppercase; }
-    
-    .tag-zumrichten { background-color: #007bff; color: white; }
-    
-    /* Blinkende Tags (Dashboard) */
-    .tag-biv { 
-        background-color: #28a745; color: white; 
-        animation: blinker 1.5s linear infinite; 
-    }
-    .tag-nom { 
-        background-color: #ffc107; color: black; 
-        animation: blinker 1s linear infinite; 
-    }
+    .tag-biv { background-color: #28a745; color: white; animation: blinker 1.5s linear infinite; }
+    .tag-nom { background-color: #ffc107; color: black; animation: blinker 1s linear infinite; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -105,6 +57,8 @@ st.markdown("""
 class GlobalStore:
     def __init__(self):
         self.data = {} 
+        self.active_overlay = None
+        self.overlay_start_time = 0
 
 @st.cache_resource
 def get_store():
@@ -116,28 +70,24 @@ if "view" not in st.session_state:
     st.session_state.view = "Home"
 
 # --- 3. HILFSFUNKTIONEN ---
-def show_big_winner_slide(row):
+def render_overlay_html(row):
     kat_nr = str(row.get('KATALOG-NR', '')).replace('.0', '')
     rasse = row.get('RASSE', '')
     farbe = row.get('FARBE', '')
     name_gross = str(row.get('NAME', '')).upper()
     besitzer = f"{row.get('BESITZER VORNAME', '')} {row.get('BESITZER NACHNAME', '')}"
-
-    placeholder = st.empty()
-    with placeholder.container():
-        st.markdown(f"""
-            <div class="winner-overlay">
-                <div class="ov-header">{kat_nr}. {rasse} {farbe}</div>
-                <div class="ov-cat-name">{name_gross}</div>
-                <div class="ov-owner">{besitzer}</div>
-                <div style="margin-top: 80px;">
-                    <img src="https://upload.wikimedia.org/wikipedia/de/thumb/f/f4/FIFe_logo.svg/500px-FIFe_logo.svg.png" width="130">
-                    <div style="font-weight: bold; font-size: 28px; color: #1a4a9e; margin-top: 15px;">KECB BURGDORF 2026</div>
-                </div>
+    
+    return f"""
+        <div class="winner-overlay">
+            <div class="ov-header">{kat_nr}. {rasse} {farbe}</div>
+            <div class="ov-cat-name">{name_gross}</div>
+            <div class="ov-owner">{besitzer}</div>
+            <div style="margin-top: 80px;">
+                <img src="https://upload.wikimedia.org/wikipedia/de/thumb/f/f4/FIFe_logo.svg/500px-FIFe_logo.svg.png" width="130">
+                <div style="font-weight: bold; font-size: 28px; color: #1a4a9e; margin-top: 15px;">KECB BURGDORF 2026</div>
             </div>
-        """, unsafe_allow_html=True)
-        time.sleep(30)
-    placeholder.empty()
+        </div>
+    """
 
 def roman_to_numeric(text):
     roman_map = {'IX': '9', 'VIII': '8', 'VII': '7', 'VI': '6', 'IV': '4', 'V': '5', 'III': '3', 'II': '2', 'I': '1'}
@@ -147,7 +97,7 @@ def roman_to_numeric(text):
         res = re.sub(rf'\b{rom}\b', num, res)
     return res
 
-@st.cache_data(ttl=10)
+@st.cache_data(ttl=1)
 def load_labels():
     try:
         df = pd.read_excel("LABELS.xlsx", engine='openpyxl', header=0)
@@ -184,31 +134,6 @@ if st.session_state.view == "Home":
         if st.button("👨‍⚖️ BIS ADMIN / CONTROL"): set_view("BIS_Admin_Control")
         if st.button("⚙️ ADMIN-KONSOLE (RESET)"): set_view("Admin_Login")
 
-# LIVE DASHBOARD
-elif st.session_state.view == "Dashboard":
-    st.title("📢 Live-Aufruf & Status")
-    tag_input = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"])
-    tag = tag_input.upper()
-    df_full = load_labels()
-    if df_full is not None:
-        r_col = f"RICHTER {tag}"
-        df_tag = df_full[df_full[tag].astype(str).str.upper() == 'X'].copy()
-        judges = sorted([r for r in df_tag[r_col].unique() if str(r) != "nan"])
-        cols = st.columns(len(judges) if judges else 1)
-        for i, j in enumerate(judges):
-            with cols[i]:
-                st.markdown(f"<div class='judge-header-box'>{j}</div>", unsafe_allow_html=True)
-                for k, v in store.data.items():
-                    if "|" in k:
-                        kat_nr, r_name = k.split("|")
-                        if r_name == j and any(v.values()):
-                            m = df_tag[df_tag['KAT_STR'] == kat_nr]
-                            if not m.empty:
-                                row = m.iloc[0]
-                                tags_html = "".join([f"<span class='tag tag-{t.replace(' ', '').lower()}'>{t.upper()}</span>" for t, active in v.items() if active])
-                                st.markdown(f"<div class='cat-card'><div class='cat-number'>{kat_nr}</div><div class='cat-details'>{get_full_label(row)}</div><div class='tag-container'>{tags_html}</div></div>", unsafe_allow_html=True)
-    if st.button("⬅️ Zurück"): set_view("Home")
-
 # BIS ADMIN CONTROL
 elif st.session_state.view == "BIS_Admin_Control":
     st.title("👨‍⚖️ BIS Control Center")
@@ -232,7 +157,6 @@ elif st.session_state.view == "BIS_Admin_Control":
                     idx = options.index(current_override) if current_override in options else 0
                     store.data[key_override] = st.selectbox(f"Gewinner festlegen:", options, index=idx, key=f"sb_{key_override}")
                     
-                    # Button für das große Overlay
                     manual_winner = store.data.get(key_override, "Automatisch (Stimmen)")
                     final_nr = None
                     if manual_winner != "Automatisch (Stimmen)":
@@ -245,8 +169,11 @@ elif st.session_state.view == "BIS_Admin_Control":
                     
                     if final_nr:
                         w_match = df_full[df_full['KAT_STR'] == str(final_nr)]
-                        if not w_match.empty and st.button(f"🏆 OVERLAY STARTEN (#{final_nr})", key=f"btn_ov_{sel_cat}_{label}"):
-                            show_big_winner_slide(w_match.iloc[0])
+                        if not w_match.empty:
+                            if st.button(f"🏆 PUBLIC OVERLAY STARTEN (#{final_nr})", key=f"btn_ov_{sel_cat}_{label}"):
+                                store.active_overlay = w_match.iloc[0].to_dict()
+                                store.overlay_start_time = time.time()
+                                st.success(f"Overlay für #{final_nr} wird auf dem Monitor angezeigt!")
                 
                 with c_votes:
                     st.markdown("**Stimmen-Details**")
@@ -259,12 +186,21 @@ elif st.session_state.view == "BIS_Admin_Control":
                             summary[kat_nr].append(judge)
                         results_table = [{"Kat": f"#{k}", "Stimmen": len(j), "Richter": ", ".join(j)} for k, j in summary.items()]
                         st.table(pd.DataFrame(results_table).sort_values("Stimmen", ascending=False))
-                    else:
-                        st.info("Keine Stimmen abgegeben.")
     if st.button("⬅️ Zurück"): set_view("Home")
 
 # BIS PUBLIC VIEW
 elif st.session_state.view == "BIS_Public":
+    # --- OVERLAY LOGIK (NUR HIER AKTIV) ---
+    if hasattr(store, 'active_overlay') and store.active_overlay is not None:
+        elapsed = time.time() - store.overlay_start_time
+        if elapsed < 30:
+            st.markdown(render_overlay_html(store.active_overlay), unsafe_allow_html=True)
+            time.sleep(2)
+            st.rerun() 
+        else:
+            store.active_overlay = None 
+            st.rerun()
+
     st.title("🏆 Best in Show")
     df_full = load_labels()
     if df_full is not None:
@@ -316,6 +252,33 @@ elif st.session_state.view == "BIS_Public":
                 else: 
                     st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
     if st.button("⬅️ Zurück"): set_view("Home")
+    time.sleep(3)
+    st.rerun()
+
+# LIVE DASHBOARD
+elif st.session_state.view == "Dashboard":
+    st.title("📢 Live-Aufruf & Status")
+    tag_input = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"])
+    tag = tag_input.upper()
+    df_full = load_labels()
+    if df_full is not None:
+        r_col = f"RICHTER {tag}"
+        df_tag = df_full[df_full[tag].astype(str).str.upper() == 'X'].copy()
+        judges = sorted([r for r in df_tag[r_col].unique() if str(r) != "nan"])
+        cols = st.columns(len(judges) if judges else 1)
+        for i, j in enumerate(judges):
+            with cols[i]:
+                st.markdown(f"<div class='judge-header-box'>{j}</div>", unsafe_allow_html=True)
+                for k, v in store.data.items():
+                    if "|" in k:
+                        kat_nr, r_name = k.split("|")
+                        if r_name == j and any(v.values()):
+                            m = df_tag[df_tag['KAT_STR'] == kat_nr]
+                            if not m.empty:
+                                row = m.iloc[0]
+                                tags_html = "".join([f"<span class='tag tag-{t.replace(' ', '').lower()}'>{t.upper()}</span>" for t, active in v.items() if active])
+                                st.markdown(f"<div class='cat-card'><div class='cat-number'>{kat_nr}</div><div class='cat-details'>{get_full_label(row)}</div><div class='tag-container'>{tags_html}</div></div>", unsafe_allow_html=True)
+    if st.button("⬅️ Zurück"): set_view("Home")
 
 # STEWARD PANEL
 elif st.session_state.view == "Steward_Panel":
@@ -363,7 +326,7 @@ elif st.session_state.view == "Judge_Voting":
                         store.data["votes"][v_key] = opts[sel] if sel != "Keine Wahl" else "Keine Wahl"
     if st.button("⬅️ Zurück"): set_view("Home")
 
-# LOGINS & ADMIN PANEL
+# LOGINS
 elif st.session_state.view == "Steward_Login":
     pwd = st.text_input("Passwort (Steward)", type="password")
     if st.button("Anmelden") and pwd == "steward2026": set_view("Steward_Panel")
@@ -378,5 +341,6 @@ elif st.session_state.view == "Admin_Panel":
     st.title("⚙️ Admin-Konsole")
     if st.button("ALLE DATEN ZURÜCKSETZEN"):
         store.data = {}
+        store.active_overlay = None
         st.success("Speicher geleert!")
     if st.button("⬅️ Zurück"): set_view("Home")
