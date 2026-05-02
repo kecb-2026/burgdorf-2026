@@ -517,10 +517,10 @@ elif st.session_state.view == "Steward_Panel":
 
 # JUDGE VOTING
 elif st.session_state.view == "Judge_Voting":
-    display_header_with_logo("🗳️ Richter Abstimmung")
+    display_header_with_logo("🗳️ Richter Abstimmung/Judges Votes")
     df_full = load_labels()
     if df_full is not None:
-        tag = st.sidebar.radio("Tag:", ["Tag/Day 1", "Tag/Day 2"]).upper()
+        tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"]).upper()
         r_col = f"RICHTER {tag}"; all_judges = sorted([r for r in df_full[r_col].unique() if str(r) != "nan"])
         c1, c2 = st.columns(2)
         active_j = c1.selectbox("Identität/Identity:", ["--"] + all_judges)
