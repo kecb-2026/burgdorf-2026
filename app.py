@@ -33,47 +33,30 @@ st.markdown("""
         height: 100%;
     }
 
-    .class-label-box, .cat-card, .placeholder-box {
+    .bis-flex-container {
         display: flex;
         flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        padding: 10px;
-        border-radius: 14px;
-        margin-bottom: 5px;
-        /* Verhindert das Einknicken der Boxen */
-        min-height: 110px; 
+        justify-content: center; /* Zentriert Inhalt vertikal */
+        align-items: center;     /* Zentriert Inhalt horizontal */
+        
+        /* FESTE MINDESTHÖHE: Dieser Wert erzwingt die Einheitlichkeit */
+        min-height: 160px; 
         height: 100%;
+        
+        padding: 15px;
+        margin-bottom: 10px;
+        border-radius: 14px;
         box-sizing: border-box;
         text-align: center;
     }
 
-    .class-label-box { 
-        background-color: #e9ecef; 
-        color: #1a4a9e; 
-        font-size: 11px !important; 
-        text-transform: uppercase; 
-        font-weight: 800; 
-        border: 2px solid #1a4a9e; 
-        line-height: 1.2;
-    }
+    /* Die spezifischen Boxen nutzen nun alle den Flex-Container */
+    .class-label-box { background-color: #e9ecef; border: 2px solid #1a4a9e; color: #1a4a9e; font-weight: 800; }
+    .cat-card { background-color: #ffffff; border: 2px solid #1a4a9e; }
+    .placeholder-box { background-color: #f8f9fa !important; border: 1px solid #d1d1d1; color: #cccccc; }
+    .winner-card { background-color: #ffcccc !important; border: 3px solid #ff4d4d !important; }
 
-    .cat-card { 
-        border: 2px solid #1a4a9e; 
-        background-color: #ffffff; 
-    }
 
-    .placeholder-box { 
-        border: 1px solid #d1d1d1; 
-        background-color: #f2f2f2 !important; 
-        color: #999999; 
-    }
-
-    .winner-card { 
-        border: 3px solid #ff4d4d !important; 
-        background-color: #ffcccc !important; 
-        color: #b21f2d !important; 
-    }
 
     /* Overlay als zentrierte Box (80% Größe) */
     .winner-overlay {
