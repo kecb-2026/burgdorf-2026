@@ -24,13 +24,16 @@ st.markdown("""
         font-size: 15px !important; color: white; background-color: #1a4a9e; 
         padding: 6px; border-radius: 8px; text-align: center; margin-bottom: 10px;
     }
+    
+    /* Header-Boxen: Alle exakt gleich groß */
     .judge-header-box {
         background-color: #1a4a9e; color: white; padding: 8px; border-radius: 10px;
         text-align: center; font-size: 15px !important; font-weight: bold;
         margin-bottom: 10px; border: 2px solid #0d2a5e;
+        height: 60px; display: flex; align-items: center; justify-content: center;
     }
     
-    /* Klassen-Box: Weniger breit und kompakt */
+    /* Klassen-Box: Kompakt */
     .class-label-box {
         background-color: #e9ecef; color: #1a4a9e; padding: 5px; border-radius: 10px;
         text-align: center; font-size: 14px !important; font-weight: 800;
@@ -38,15 +41,17 @@ st.markdown("""
         height: 80px; width: 100%; line-height: 1.1;
     }
     
-    /* Cat Cards: Kompakter, Rasse größer */
+    /* Cat Cards */
     .cat-card, .placeholder-box { 
         padding: 5px; border: 2px solid #1a4a9e; text-align: center; 
         background-color: #ffffff; border-radius: 14px; 
         margin-bottom: 5px; min-height: 80px;
         display: flex; flex-direction: column; justify-content: center; align-items: center;
     }
+    
+    /* Leere Boxen: Grau unterlegt */
     .placeholder-box {
-        border: 1px dashed #d1d1d1; background-color: #fcfcfc; color: #bbbbbb;
+        border: 1px solid #d1d1d1; background-color: #f2f2f2 !important; color: #999999;
     }
     
     /* Gewinner Card: Hellrot unterlegt */
@@ -58,11 +63,10 @@ st.markdown("""
     .winner-card .cat-number { color: #b21f2d !important; }
     .winner-card .cat-details { color: #b21f2d !important; font-weight: 900 !important; }
 
-    /* Textelemente in Cards */
+    /* Textelemente */
     .cat-number { font-size: 28px !important; font-weight: 900 !important; color: #1a4a9e; line-height: 1.0; }
     .cat-details { font-size: 14px !important; color: #333; font-weight: bold; margin-top: 2px; line-height: 1.1; }
     
-    /* Tags */
     .tag-container { margin-top: 4px; display: flex; justify-content: center; flex-wrap: wrap; gap: 3px; }
     .tag { font-weight: bold; padding: 2px 6px; border-radius: 4px; font-size: 9px; }
     .tag-zumrichten { background-color: #007bff; color: white; }
@@ -211,8 +215,8 @@ elif st.session_state.view == "BIS_Public":
         bis_defs = [("Adult Male", [1,3,5,7,9], "M"), ("Adult Female", [1,3,5,7,9], "W"), ("Neuter Male", [2,4,6,8,10], "M"), ("Neuter Female", [2,4,6,8,10], "W"), ("Junior 8-12 Male", [11], "M"), ("Junior 8-12 Female", [11], "W"), ("Kitten 4-8 Male", [12], "M"), ("Kitten 4-8 Female", [12], "W")]
         r_col = f"RICHTER {tag}"; judges = sorted([r for r in df_full[df_full[tag].astype(str).str.upper() == 'X'][r_col].unique() if str(r) != "nan"])
         
-        # Spalten-Setup: Klasse schmaler, Richter gleichmäßig, BIS rechts
-        col_ratios = [1] + [1] * len(judges) + [1.2]
+        # Spalten-Setup
+        col_ratios = [1] + [1] * len(judges) + [1]
         h_cols = st.columns(col_ratios)
         for i, j in enumerate(judges): h_cols[i+1].markdown(f"<div class='judge-header-box'>{j}</div>", unsafe_allow_html=True)
         h_cols[-1].markdown(f"<div class='judge-header-box' style='background-color:#b21f2d;'>BIS</div>", unsafe_allow_html=True)
@@ -241,7 +245,7 @@ elif st.session_state.view == "BIS_Public":
                         if winner_nr:
                             m_winner = df_full[df_full['KAT_STR'] == str(winner_nr)]
                             if not m_winner.empty: st.markdown(f"<div class='cat-card winner-card'><div class='cat-number'>{winner_nr}</div><div class='cat-details'>🏆 BIS<br>{get_full_label(m_winner.iloc[0])}</div></div>", unsafe_allow_html=True)
-                    else: st.markdown("<div class='placeholder-box' style='background-color:#eee;'>🔒</div>", unsafe_allow_html=True)
+                    else: st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
     if st.button("⬅️ Zurück zum Menü"): set_view("Home")
 
 elif st.session_state.view == "Steward_Panel":
@@ -257,7 +261,6 @@ elif st.session_state.view == "Steward_Panel":
             for _, row in df_j.iterrows():
                 nr = row['KAT_STR']; k = f"{nr}|{mein_richter}"
                 if k not in store.data: store.data[k] = {"Zum Richten": False, "BIV": False, "NOM": False}
-                elif "Zum Richten" not in store.data[k]: store.data[k]["Zum Richten"] = store.data[k].pop("Aufruf", False)
                 c1, c2, c3, c4 = st.columns([3, 1.2, 1, 1])
                 c1.write(f"**#{nr}** {get_full_label(row)}")
                 store.data[k]["Zum Richten"] = c2.checkbox("Zum Richten", value=store.data[k]["Zum Richten"], key=f"auf{k}")
