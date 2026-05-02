@@ -520,11 +520,11 @@ elif st.session_state.view == "Judge_Voting":
     display_header_with_logo("🗳️ Richter Abstimmung")
     df_full = load_labels()
     if df_full is not None:
-        tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"]).upper()
+        tag = st.sidebar.radio("Tag:", ["Tag/Day 1", "Tag/Day 2"]).upper()
         r_col = f"RICHTER {tag}"; all_judges = sorted([r for r in df_full[r_col].unique() if str(r) != "nan"])
         c1, c2 = st.columns(2)
-        active_j = c1.selectbox("Identität:", ["--"] + all_judges)
-        active_cat = c2.selectbox("Kategorie:", sorted(df_full['KATEGORIE'].unique()))
+        active_j = c1.selectbox("Identität/Identity:", ["--"] + all_judges)
+        active_cat = c2.selectbox("Kategorie/Category:", sorted(df_full['KATEGORIE'].unique()))
         if active_j != "--":
             if "votes" not in store.data: store.data["votes"] = {}
             bis_defs = [("Adult Male", [1,3,5,7,9], "M"), ("Adult Female", [1,3,5,7,9], "W"), ("Neuter Male", [2,4,6,8,10], "M"), ("Neuter Female", [2,4,6,8,10], "W"), ("Junior 8-12 Male", [11], "M"), ("Junior 8-12 Female", [11], "W"), ("Kitten 4-8 Male", [12], "M"), ("Kitten 4-8 Female", [12], "W")]
