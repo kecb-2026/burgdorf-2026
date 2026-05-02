@@ -62,7 +62,7 @@ st.markdown("""
     
     .tag-zumrichten { background-color: #007bff; color: white; }
     
-    /* Blinkende Tags */
+    /* Blinkende Tags (Dashboard) */
     .tag-biv { 
         background-color: #28a745; color: white; 
         animation: blinker 1.5s linear infinite; 
@@ -155,6 +155,7 @@ elif st.session_state.view == "Dashboard":
                             m = df_tag[df_tag['KAT_STR'] == kat_nr]
                             if not m.empty:
                                 row = m.iloc[0]
+                                # HTML für blinkende Tags generieren
                                 tags_html = "".join([f"<span class='tag tag-{t.replace(' ', '').lower()}'>{t.upper()}</span>" for t, active in v.items() if active])
                                 st.markdown(f"<div class='cat-card'><div class='cat-number'>{kat_nr}</div><div class='cat-details'>{get_full_label(row)}</div><div class='tag-container'>{tags_html}</div></div>", unsafe_allow_html=True)
     if st.button("⬅️ Zurück"): set_view("Home")
@@ -209,17 +210,17 @@ elif st.session_state.view == "BIS_Public":
         
         col_ratios = [1.2] + [1] * len(judges) + [1.2]
         h_cols = st.columns(col_ratios)
-        h_cols[0].write("") # Leer über Klassen-Labels
+        h_cols[0].write("") 
         for i, j in enumerate(judges): 
-            h_cols[i+1].markdown(f<div class='judge-header-box'>{j}</div>, unsafe_allow_html=True)
-        h_cols[-1].markdown(f<div class='judge-header-box' style='background-color:#b21f2d;'>BEST IN SHOW</div>, unsafe_allow_html=True)
+            h_cols[i+1].markdown(f"<div class='judge-header-box'>{j}</div>", unsafe_allow_html=True)
+        h_cols[-1].markdown(f"<div class='judge-header-box' style='background-color:#b21f2d;'>BEST IN SHOW</div>", unsafe_allow_html=True)
         
-        # Grid wird IMMER angezeigt
+        # Das Grid wird immer gerendert
         for label, klassen, geschl in bis_defs:
             row_cols = st.columns(col_ratios)
             row_cols[0].markdown(f"<div class='class-label-box'>{label}</div>", unsafe_allow_html=True)
             
-            # 1. Spalten für Richter (Nominationen)
+            # Nom-Spalten
             show_noms = store.data.get(f"reveal_{sel_cat}_{label}", False)
             for i, j in enumerate(judges):
                 with row_cols[i+1]:
@@ -232,7 +233,7 @@ elif st.session_state.view == "BIS_Public":
                     else:
                         st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
             
-            # 2. Spalte für BIS Gewinner
+            # BIS-Spalte
             with row_cols[-1]:
                 if store.data.get(f"winner_reveal_{sel_cat}_{label}", False):
                     manual_winner = store.data.get(f"override_{sel_cat}_{label}", "Automatisch (Stimmen)")
@@ -244,8 +245,7 @@ elif st.session_state.view == "BIS_Public":
                         votes = [v for k, v in store.data["votes"].items() if k.startswith(prefix) and v != "Keine Wahl"]
                         if votes:
                             counts = pd.Series(votes).value_counts()
-                            if len(counts) > 0 and (len(counts) == 1 or counts.iloc[0] > counts.iloc[1]): 
-                                winner_nr = counts.index[0]
+                            if len(counts) > 0 and (len(counts) == 1 or counts.iloc[0] > counts.iloc[1]): winner_nr = counts.index[0]
                     
                     if winner_nr:
                         m_winner = df_full[df_full['KAT_STR'] == str(winner_nr)]
@@ -274,6 +274,7 @@ elif st.session_state.view == "Steward_Panel":
                 if k not in store.data: store.data[k] = {"Zum Richten": False, "BIV": False, "NOM": False}
                 c1, c2, c3, c4 = st.columns([3, 1.2, 1, 1])
                 c1.write(f"**#{nr}** {get_full_label(row)}")
+                # "Z.R." wieder als "Zum Richten" ausgeschrieben
                 store.data[k]["Zum Richten"] = c2.checkbox("Zum Richten", value=store.data[k]["Zum Richten"], key=f"auf{k}")
                 store.data[k]["BIV"] = c3.checkbox("BIV", value=store.data[k]["BIV"], key=f"biv{k}")
                 store.data[k]["NOM"] = c4.checkbox("NOM", value=store.data[k]["NOM"], key=f"nom{k}")
