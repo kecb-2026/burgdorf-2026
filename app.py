@@ -376,6 +376,67 @@ elif st.session_state.view == "BIS_Admin_Control":
 
 # BIS PUBLIC VIEW
 elif st.session_state.view == "BIS_Public":
+    # CSS für einheitliche Höhen und Layout
+    st.markdown("""
+        <style>
+            .bis-flex-box {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                text-align: center;
+                padding: 12px;
+                border-radius: 14px;
+                margin-bottom: 10px;
+                box-sizing: border-box;
+                /* Erzwingt die identische Höhe für alle Boxen */
+                min-height: 150px; 
+                height: 100%;
+            }
+
+            .class-label-box { 
+                background-color: #e9ecef; 
+                border: 2px solid #1a4a9e; 
+                color: #1a4a9e; 
+                font-weight: 800; 
+                font-size: 11px; 
+                text-transform: uppercase;
+            }
+
+            .cat-card { 
+                background-color: #ffffff; 
+                border: 2px solid #1a4a9e; 
+            }
+
+            .placeholder-box { 
+                background-color: #f8f9fa !important; 
+                border: 1px solid #d1d1d1; 
+                color: #cccccc; 
+                font-size: 24px;
+            }
+
+            .winner-card { 
+                background-color: #ffcccc !important; 
+                border: 3px solid #ff4d4d !important; 
+                color: #b21f2d !important;
+            }
+
+            .judge-header-box {
+                background-color: #1a4a9e;
+                color: white;
+                padding: 10px;
+                border-radius: 10px;
+                text-align: center;
+                font-weight: bold;
+                min-height: 60px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 12px;
+            }
+        </style>
+    """, unsafe_allow_html=True)
+
     if hasattr(store, 'active_overlay') and store.active_overlay:
         if time.time() - store.overlay_start_time < 20:
             st.markdown(render_overlay_html(store.active_overlay), unsafe_allow_html=True)
@@ -384,11 +445,11 @@ elif st.session_state.view == "BIS_Public":
 
     def get_initials(name):
         parts = str(name).split()
-        if len(parts) >= 2: return (parts[0][0] + parts[-1][0]).upper()
-        return str(name)[:2].upper()
+        return (parts[0][0] + parts[-1][0]).upper() if len(parts) >= 2 else str(name)[:2].upper()
 
     display_header_with_logo("🏆 Best in Show")
     df_full = load_labels()
+    
     if df_full is not None:
         tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"]).upper()
         sel_cat = st.selectbox("Kategorie:", sorted(df_full['KATEGORIE'].unique()))
@@ -403,8 +464,8 @@ elif st.session_state.view == "BIS_Public":
         r_col = f"RICHTER {tag}"
         judges = sorted([r for r in df_full[df_full[tag].astype(str).str.upper() == 'X'][r_col].unique() if str(r) != "nan"])
         
-        # Schmalere Außen-Spalten (0.8) für mehr Platz in der Mitte
-        col_weights = [0.8] + [1.0] * len(judges) + [0.8]
+        # Spalten-Verhältnis: Außen schmaler (0.7), Richter (1.0)
+        col_weights = [0.7] + [1.0] * len(judges) + [0.7]
         
         # Header Zeile
         cols = st.columns(col_weights)
@@ -415,14 +476,13 @@ elif st.session_state.view == "BIS_Public":
         for label, klassen, geschl in bis_defs:
             r_cols = st.columns(col_weights)
             
-            # 1. KLASSEN BOX (links)
-            with r_cols[0]:
-                st.markdown(f"<div class='class-label-box'>{label}</div>", unsafe_allow_html=True)
+            # 1. Spalte: KLASSE
+            r_cols[0].markdown(f"<div class='bis-flex-box class-label-box'>{label}</div>", unsafe_allow_html=True)
             
             show_noms = store.data.get(f"reveal_{sel_cat}_{label}", False)
             winner_revealed = store.data.get(f"winner_reveal_{sel_cat}_{label}", False)
             
-            # 2. RICHTER NOMINATIONEN (mitte)
+            # 2. Spalten: RICHTER NOMINATIONEN
             for i, j in enumerate(judges):
                 with r_cols[i+1]:
                     if show_noms:
@@ -439,26 +499,25 @@ elif st.session_state.view == "BIS_Public":
                             circles_html = ""
                             if winner_revealed:
                                 prefix = f"v_{sel_cat}_{label}_"
-                                all_votes = store.data.get("votes", {})
-                                voters = [v_key.replace(prefix, "") for v_key, v_val in all_votes.items() 
-                                          if v_key.startswith(prefix) and str(v_val) == str(kat_nr)]
+                                voters = [k.replace(prefix, "") for k, v in store.data.get("votes", {}).items() 
+                                          if k.startswith(prefix) and str(v) == str(kat_nr)]
                                 if voters:
                                     circles = "".join([f"<div class='judge-circle' title='{v}'>{get_initials(v)}</div>" for v in voters])
                                     circles_html = f"<div class='judge-initials-container'>{circles}</div>"
 
                             st.markdown(f"""
-                                <div class='cat-card'>
+                                <div class='bis-flex-box cat-card'>
                                     <div class='cat-number'>{kat_nr}</div>
                                     <div class='cat-details'>{get_full_label(m.iloc[0])}</div>
                                     {circles_html}
                                 </div>
                             """, unsafe_allow_html=True)
-                        else: 
-                            st.markdown("<div class='placeholder-box'>–</div>", unsafe_allow_html=True)
-                    else: 
-                        st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
+                        else:
+                            st.markdown("<div class='bis-flex-box placeholder-box'>–</div>", unsafe_allow_html=True)
+                    else:
+                        st.markdown("<div class='bis-flex-box placeholder-box'>🔒</div>", unsafe_allow_html=True)
             
-            # 3. BIS GEWINNER BOX (rechts)
+            # 3. Spalte: BIS GEWINNER
             with r_cols[-1]:
                 if winner_revealed:
                     prefix = f"v_{sel_cat}_{label}_"
@@ -469,15 +528,15 @@ elif st.session_state.view == "BIS_Public":
                     
                     if winner_nr and winner_nr != "Automatisch (Stimmen)":
                         m_w = df_full[df_full['KAT_STR'] == str(winner_nr)]
-                        if not m_w.empty: 
+                        if not m_w.empty:
                             st.markdown(f"""
-                                <div class='cat-card winner-card'>
+                                <div class='bis-flex-box cat-card winner-card'>
                                     <div class='cat-number'>{winner_nr}</div>
                                     <div class='cat-details'>{get_full_label(m_w.iloc[0])}</div>
                                 </div>
                             """, unsafe_allow_html=True)
-                else: 
-                    st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
+                else:
+                    st.markdown("<div class='bis-flex-box placeholder-box'>🔒</div>", unsafe_allow_html=True)
 
     time.sleep(3)
     st.rerun()
