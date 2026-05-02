@@ -359,7 +359,13 @@ elif st.session_state.view == "BIS_Public":
                         if vts: winner_nr = pd.Series(vts).value_counts().index[0]
                     if winner_nr and winner_nr != "Automatisch (Stimmen)":
                         m_w = df_full[df_full['KAT_STR'] == str(winner_nr)]
-                        if not m_w.empty: st.markdown(f"<div class='cat-card winner-card'><div class='cat-number'>{winner_nr}</div><div class='cat-details'>🏆 BIS<br>{get_full_label(m_w.iloc[0])}</div></div>", unsafe_allow_html=True)
+                        
+                        
+                        if not m_w.empty: 
+    # Pokal und BIS-Text wurden hier entfernt
+    st.markdown(f"<div class='cat-card winner-card'><div class='cat-number'>{winner_nr}</div><div class='cat-details'>{get_full_label(m_w.iloc[0])}</div></div>", unsafe_allow_html=True)
+
+                
                 else: st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
     time.sleep(3); st.rerun()
 
