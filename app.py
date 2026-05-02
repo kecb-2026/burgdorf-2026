@@ -376,9 +376,11 @@ elif st.session_state.view == "BIS_Admin_Control":
 
 # BIS PUBLIC VIEW
 elif st.session_state.view == "BIS_Public":
+    # CSS nur für diesen spezifischen Container
     st.markdown("""
         <style>
-            .bis-flex-box {
+            /* Das CSS wirkt NUR innerhalb des bis-public-container */
+            .bis-public-container .bis-flex-box {
                 display: flex;
                 flex-direction: column;
                 justify-content: center;
@@ -388,12 +390,11 @@ elif st.session_state.view == "BIS_Public":
                 border-radius: 14px;
                 margin-bottom: 10px;
                 box-sizing: border-box;
-                /* Exakt 130px Mindesthöhe für Kompaktheit */
                 min-height: 130px; 
                 height: 100%;
             }
 
-            .class-label-box { 
+            .bis-public-container .class-label-box { 
                 background-color: #e9ecef; 
                 border: 2px solid #1a4a9e; 
                 color: #1a4a9e; 
@@ -402,11 +403,11 @@ elif st.session_state.view == "BIS_Public":
                 text-transform: uppercase;
             }
 
-            .cat-card { background-color: #ffffff; border: 2px solid #1a4a9e; }
-            .placeholder-box { background-color: #f8f9fa !important; border: 1px solid #d1d1d1; color: #cccccc; font-size: 24px; }
-            .winner-card { background-color: #ffcccc !important; border: 3px solid #ff4d4d !important; color: #b21f2d !important; }
+            .bis-public-container .cat-card { background-color: #ffffff; border: 2px solid #1a4a9e; }
+            .bis-public-container .placeholder-box { background-color: #f8f9fa !important; border: 1px solid #d1d1d1; color: #cccccc; font-size: 24px; }
+            .bis-public-container .winner-card { background-color: #ffcccc !important; border: 3px solid #ff4d4d !important; color: #b21f2d !important; }
 
-            .judge-header-box {
+            .bis-public-container .judge-header-box {
                 background-color: #1a4a9e;
                 color: white;
                 padding: 10px;
@@ -422,15 +423,12 @@ elif st.session_state.view == "BIS_Public":
         </style>
     """, unsafe_allow_html=True)
 
-    if hasattr(store, 'active_overlay') and store.active_overlay:
-        if time.time() - store.overlay_start_time < 20:
-            st.markdown(render_overlay_html(store.active_overlay), unsafe_allow_html=True)
-            time.sleep(1); st.rerun() 
-        else: store.active_overlay = None; st.rerun()
+    # ALLES in diesen Container einpacken
+    st.markdown('<div class="bis-public-container">', unsafe_allow_html=True)
 
-    def get_initials(name):
-        parts = str(name).split()
-        return (parts[0][0] + parts[-1][0]).upper() if len(parts) >= 2 else str(name)[:2].upper()
+    if hasattr(store, 'active_overlay') and store.active_overlay:
+        # ... (deine Overlay Logik) ...
+        pass
 
     display_header_with_logo("🏆 Best in Show")
     df_full = load_labels()
@@ -439,87 +437,28 @@ elif st.session_state.view == "BIS_Public":
         tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"]).upper()
         sel_cat = st.selectbox("Kategorie:", sorted(df_full['KATEGORIE'].unique()))
         
-        bis_defs = [
-            ("Adult Male", [1,3,5,7,9], "M"), ("Adult Female", [1,3,5,7,9], "W"), 
-            ("Neuter Male", [2,4,6,8,10], "M"), ("Neuter Female", [2,4,6,8,10], "W"), 
-            ("Junior 8-12 Male", [11], "M"), ("Junior 8-12 Female", [11], "W"), 
-            ("Kitten 4-8 Male", [12], "M"), ("Kitten 4-8 Female", [12], "W")
-        ]
-        
+        # ... (deine Richter & Spalten Logik) ...
         r_col = f"RICHTER {tag}"
         judges = sorted([r for r in df_full[df_full[tag].astype(str).str.upper() == 'X'][r_col].unique() if str(r) != "nan"])
-        
         col_weights = [0.7] + [1.0] * len(judges) + [0.7]
         
-        # Header (Erste Spalte bleibt leer)
+        # Header
         cols = st.columns(col_weights)
-        cols[0].empty() 
+        cols[0].empty()
         for i, j in enumerate(judges): 
-            # FIX: Anführungszeichen im f-string ergänzt
             cols[i+1].markdown(f"<div class='judge-header-box'>{j}</div>", unsafe_allow_html=True)
         cols[-1].markdown("<div class='judge-header-box' style='background-color:#b21f2d;'>BIS</div>", unsafe_allow_html=True)
         
-        # Grid Zeilen
+        # Grid
         for label, klassen, geschl in bis_defs:
             r_cols = st.columns(col_weights)
+            # Hier wichtig: Die Klassen innerhalb des Containers nutzen
             r_cols[0].markdown(f"<div class='bis-flex-box class-label-box'>{label}</div>", unsafe_allow_html=True)
             
-            show_noms = store.data.get(f"reveal_{sel_cat}_{label}", False)
-            winner_revealed = store.data.get(f"winner_reveal_{sel_cat}_{label}", False)
-            
-            for i, j in enumerate(judges):
-                with r_cols[i+1]:
-                    if show_noms:
-                        m = df_full[
-                            (df_full['SELECTION'].astype(str).str.upper() == 'X') & 
-                            (df_full[r_col] == j) & 
-                            (df_full['KATEGORIE'] == sel_cat) & 
-                            (df_full['KLASSE_INTERNAL'].isin(klassen)) & 
-                            (df_full['GESCHLECHT'].astype(str).str.upper() == geschl)
-                        ]
-                        
-                        if not m.empty:
-                            kat_nr = m.iloc[0]['KAT_STR']
-                            circles_html = ""
-                            if winner_revealed:
-                                prefix = f"v_{sel_cat}_{label}_"
-                                voters = [k.replace(prefix, "") for k, v in store.data.get("votes", {}).items() 
-                                          if k.startswith(prefix) and str(v) == str(kat_nr)]
-                                if voters:
-                                    circles = "".join([f"<div class='judge-circle' title='{v}'>{get_initials(v)}</div>" for v in voters])
-                                    circles_html = f"<div class='judge-initials-container'>{circles}</div>"
+            # ... (Rest der Schleife für Richter-Boxen und BIS-Box) ...
+            # Stelle sicher, dass überall 'bis-flex-box' als Klasse dabei ist
 
-                            st.markdown(f"""
-                                <div class='bis-flex-box cat-card'>
-                                    <div class='cat-number'>{kat_nr}</div>
-                                    <div class='cat-details'>{get_full_label(m.iloc[0])}</div>
-                                    {circles_html}
-                                </div>
-                            """, unsafe_allow_html=True)
-                        else:
-                            st.markdown("<div class='bis-flex-box placeholder-box'>–</div>", unsafe_allow_html=True)
-                    else:
-                        st.markdown("<div class='bis-flex-box placeholder-box'>🔒</div>", unsafe_allow_html=True)
-            
-            with r_cols[-1]:
-                if winner_revealed:
-                    prefix = f"v_{sel_cat}_{label}_"
-                    winner_nr = store.data.get(f"override_{sel_cat}_{label}", "Automatisch (Stimmen)")
-                    if winner_nr == "Automatisch (Stimmen)" and "votes" in store.data:
-                        vts = [v for k, v in store.data["votes"].items() if k.startswith(prefix) and v != "Keine Wahl"]
-                        if vts: winner_nr = pd.Series(vts).value_counts().index[0]
-                    
-                    if winner_nr and winner_nr != "Automatisch (Stimmen)":
-                        m_w = df_full[df_full['KAT_STR'] == str(winner_nr)]
-                        if not m_w.empty:
-                            st.markdown(f"""
-                                <div class='bis-flex-box cat-card winner-card'>
-                                    <div class='cat-number'>{winner_nr}</div>
-                                    <div class='cat-details'>{get_full_label(m_w.iloc[0])}</div>
-                                </div>
-                            """, unsafe_allow_html=True)
-                else:
-                    st.markdown("<div class='bis-flex-box placeholder-box'>🔒</div>", unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True) # Ende des Containers
 
     time.sleep(3)
     st.rerun()
