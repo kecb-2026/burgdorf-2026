@@ -7,6 +7,11 @@ st.set_page_config(layout="wide", page_title="KECB Burgdorf 2026", page_icon="�
 
 st.markdown("""
     <style>
+    /* Animation für blinkende Tags */
+    @keyframes blinker {
+        50% { opacity: 0.1; }
+    }
+    
     /* Allgemeine Buttons */
     .stButton button { 
         width: 100%; height: 50px; font-size: 13px !important; 
@@ -14,19 +19,12 @@ st.markdown("""
         margin-bottom: 5px; border: 2px solid #1a4a9e !important;
     }
     
-    /* Header-Boxen (Richter & BIS): Alle exakt gleich groß */
+    /* Header-Boxen (Richter & BIS) */
     .judge-header-box {
         background-color: #1a4a9e; color: white; padding: 8px; border-radius: 10px;
         text-align: center; font-size: 15px !important; font-weight: bold;
         margin-bottom: 10px; border: 2px solid #0d2a5e;
         height: 60px; display: flex; align-items: center; justify-content: center;
-    }
-    
-    /* Dashboard Richter-Spalten */
-    .judge-col { 
-        border: 2px solid #1a4a9e; padding: 8px; border-radius: 12px; 
-        background-color: #f8f9fa; margin-bottom: 8px; 
-        box-shadow: 1px 1px 5px rgba(0,0,0,0.05);
     }
     
     /* Klassen-Label (Links im BIS) */
@@ -37,7 +35,7 @@ st.markdown("""
         height: 80px; width: 100%; line-height: 1.1;
     }
     
-    /* Katzen-Karten */
+    /* Katzen-Karten & Platzhalter */
     .cat-card, .placeholder-box { 
         padding: 5px; border: 2px solid #1a4a9e; text-align: center; 
         background-color: #ffffff; border-radius: 14px; 
@@ -45,12 +43,10 @@ st.markdown("""
         display: flex; flex-direction: column; justify-content: center; align-items: center;
     }
     
-    /* Leere Boxen: Grau unterlegt */
     .placeholder-box {
         border: 1px solid #d1d1d1; background-color: #f2f2f2 !important; color: #999999;
     }
     
-    /* Gewinner Card: Rot hervorgehoben */
     .winner-card {
         border: 3px solid #ff4d4d !important; 
         background-color: #ffcccc !important; 
@@ -60,12 +56,21 @@ st.markdown("""
     .cat-number { font-size: 28px !important; font-weight: 900 !important; color: #1a4a9e; line-height: 1.0; }
     .cat-details { font-size: 14px !important; color: #333; font-weight: bold; margin-top: 2px; line-height: 1.1; }
     
-    /* Tags für Dashboard */
+    /* Tags & Animationen */
     .tag-container { margin-top: 4px; display: flex; justify-content: center; flex-wrap: wrap; gap: 3px; }
-    .tag { font-weight: bold; padding: 2px 6px; border-radius: 4px; font-size: 9px; }
+    .tag { font-weight: bold; padding: 2px 6px; border-radius: 4px; font-size: 10px; text-transform: uppercase; }
+    
     .tag-zumrichten { background-color: #007bff; color: white; }
-    .tag-biv { background-color: #28a745; color: white; }
-    .tag-nom { background-color: #ffc107; color: black; }
+    
+    /* Blinkende Tags */
+    .tag-biv { 
+        background-color: #28a745; color: white; 
+        animation: blinker 1.5s linear infinite; 
+    }
+    .tag-nom { 
+        background-color: #ffc107; color: black; 
+        animation: blinker 1s linear infinite; 
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -154,7 +159,7 @@ elif st.session_state.view == "Dashboard":
                                 st.markdown(f"<div class='cat-card'><div class='cat-number'>{kat_nr}</div><div class='cat-details'>{get_full_label(row)}</div><div class='tag-container'>{tags_html}</div></div>", unsafe_allow_html=True)
     if st.button("⬅️ Zurück"): set_view("Home")
 
-# BIS ADMIN CONTROL (Kombinierte Ansicht)
+# BIS ADMIN CONTROL
 elif st.session_state.view == "BIS_Admin_Control":
     st.title("👨‍⚖️ BIS Control Center")
     df_full = load_labels()
@@ -250,7 +255,7 @@ elif st.session_state.view == "Steward_Panel":
                 if k not in store.data: store.data[k] = {"Zum Richten": False, "BIV": False, "NOM": False}
                 c1, c2, c3, c4 = st.columns([3, 1.2, 1, 1])
                 c1.write(f"**#{nr}** {get_full_label(row)}")
-                store.data[k]["Zum Richten"] = c2.checkbox("Z.R.", value=store.data[k]["Zum Richten"], key=f"auf{k}")
+                store.data[k]["Zum Richten"] = c2.checkbox("Zum Richten", value=store.data[k]["Zum Richten"], key=f"auf{k}")
                 store.data[k]["BIV"] = c3.checkbox("BIV", value=store.data[k]["BIV"], key=f"biv{k}")
                 store.data[k]["NOM"] = c4.checkbox("NOM", value=store.data[k]["NOM"], key=f"nom{k}")
     if st.button("⬅️ Zurück"): set_view("Home")
