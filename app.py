@@ -6,6 +6,9 @@ import time
 # --- 1. SETUP & STYLING ---
 st.set_page_config(layout="wide", page_title="KECB Burgdorf 2026", page_icon="🐾")
 
+# Zentrale Logo URL
+LOGO_URL = "https://kecb.ch/wp-content/uploads/2020/01/Logo-Link-weiss-279x300-1.gif"
+
 st.markdown("""
     <style>
     @keyframes blinker { 50% { opacity: 0.1; } }
@@ -48,7 +51,7 @@ st.markdown("""
         z-index: 9999998;
     }
 
-    /* TITEL ANPASSUNGEN: UPPERCASE & KLEINER */
+    /* TITEL ANPASSUNGEN */
     .ov-header {
         font-size: 24px !important; font-weight: 500; color: #333;
         text-transform: uppercase;
@@ -67,10 +70,13 @@ st.markdown("""
         font-size: 30px !important; font-style: italic; color: #444;
     }
     
-    h1 {
+    /* NEU: Klasse für die Hauptüberschriften neben dem Logo */
+    .header-text {
         text-transform: uppercase !important;
         font-size: 26px !important;
-        margin-bottom: 20px !important;
+        font-weight: bold;
+        color: #1a4a9e;
+        margin: 0 !important;
     }
 
     @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
@@ -126,7 +132,6 @@ if "user_role" not in st.session_state:
 if "view" not in st.session_state:
     st.session_state.view = "Dashboard"
 
-# URL Parameter Logik[span_2](start_span)[span_2](end_span)
 q_params = st.query_params
 if "view" in q_params:
     v_param = q_params["view"].lower()
@@ -143,6 +148,18 @@ def logout():
     st.rerun()
 
 # --- 4. HILFSFUNKTIONEN ---
+
+# NEU: Funktion für rechtsbündiges Logo neben der Überschrift
+def display_header_with_logo(text):
+    """Zeigt die Überschrift links und das Logo rechtsbündig an"""
+    col_text, col_logo = st.columns([5, 1]) 
+    with col_text:
+        st.markdown(f"<p class='header-text'>{text}</p>", unsafe_allow_html=True)
+    with col_logo:
+        st.markdown("<div style='display: flex; justify-content: flex-end;'>", unsafe_allow_html=True)
+        st.image(LOGO_URL, width=65)
+        st.markdown("</div>", unsafe_allow_html=True)
+
 def render_overlay_html(row):
     kat_nr = str(row.get('KATALOG-NR', '')).replace('.0', '')
     rasse = row.get('RASSE', '')
@@ -157,7 +174,7 @@ def render_overlay_html(row):
             <div class="ov-cat-name">{name_gross}</div>
             <div class="ov-owner">{besitzer}</div>
             <div style="margin-top: 50px;">
-                <img src="https://kecb.ch/wp-content/uploads/2020/01/Logo-Link-weiss-279x300-1.gif" width="100">
+                <img src="{LOGO_URL}" width="100">
                 <div style="font-weight: bold; font-size: 22px; color: #1a4a9e; margin-top: 10px;">KECB BURGDORF 2026</div>
             </div>
         </div>
@@ -193,8 +210,6 @@ def set_view(name):
     st.session_state.view = name
     st.rerun()
 
-
-
 # --- 5. NAVIGATION & ZUGRIFF ---
 access_map = {
     "Public": ["Dashboard", "BIS_Public", "Login"],
@@ -204,7 +219,7 @@ access_map = {
 }
 
 available_views = access_map.get(st.session_state.user_role, ["Dashboard"])
-st.sidebar.image("https://kecb.ch/wp-content/uploads/2020/01/Logo-Link-weiss-279x300-1.gif", width=100)
+st.sidebar.image(LOGO_URL, width=100)
 
 st.session_state.view = st.sidebar.radio("Menü:", available_views, 
     index=available_views.index(st.session_state.view) if st.session_state.view in available_views else 0)
@@ -219,10 +234,9 @@ elif st.session_state.view != "Login":
 # LOGIN VIEW
 if st.session_state.view == "Login":
     st.markdown("<div class='login-container'>", unsafe_allow_html=True)
-    st.image("https://kecb.ch/wp-content/uploads/2020/01/Logo-Link-weiss-279x300-1.gif", width=120)
+    st.image(LOGO_URL, width=120)
     st.markdown("<h2 style='text-align:center; color:#1a4a9e; text-transform: uppercase; font-size: 20px;'>Interner Bereich</h2>", unsafe_allow_html=True)
     
-    # Vorauswahl durch URL[span_3](start_span)[span_3](end_span)
     role_map = {"admin": "Admin", "steward": "Steward", "richter": "Richter", "bis-admin": "Admin"}
     target = st.session_state.get("target_role", "Richter")
     role_list = ["Admin", "Steward", "Richter"]
@@ -249,7 +263,7 @@ if st.session_state.view == "Login":
 
 # HOME (ADMIN NUR)
 elif st.session_state.view == "Home":
-    st.title("🐾 KECB Burgdorf 2026")
+    display_header_with_logo("🐾 KECB Burgdorf 2026")
     col1, col2 = st.columns(2)
     with col1:
         if st.button("📢 LIVE-DASHBOARD"): set_view("Dashboard")
@@ -260,9 +274,9 @@ elif st.session_state.view == "Home":
         if st.button("👨‍⚖️ BIS ADMIN / CONTROL"): set_view("BIS_Admin_Control")
         if st.button("⚙️ ADMIN-KONSOLE (RESET)"): set_view("Admin_Panel")
 
-# --- BIS ADMIN CONTROL (Korrektur mit Richter-Stimmen) ---
+# BIS ADMIN CONTROL
 elif st.session_state.view == "BIS_Admin_Control":
-    st.title("👨‍⚖️ BIS Control Center")
+    display_header_with_logo("👨‍⚖️ BIS Control Center")
     df_full = load_labels()
     if df_full is not None:
         sel_cat = st.selectbox("Kategorie verwalten:", sorted(df_full['KATEGORIE'].unique()))
@@ -271,33 +285,21 @@ elif st.session_state.view == "BIS_Admin_Control":
         for label, klassen, geschl in bis_defs:
             with st.expander(f"KLASSE: {label}", expanded=True):
                 c_ctrl, c_votes = st.columns([1, 1.2])
-                
-                # Präfix für die Stimmen in dieser spezifischen Klasse
                 v_prefix = f"v_{sel_cat}_{label}_"
-                
                 with c_ctrl:
                     st.markdown("**Steuerung**")
-                    key_reveal = f"reveal_{sel_cat}_{label}"
-                    key_winner_reveal = f"winner_reveal_{sel_cat}_{label}"
-                    key_override = f"override_{sel_cat}_{label}"
-                    
+                    key_reveal = f"reveal_{sel_cat}_{label}"; key_winner_reveal = f"winner_reveal_{sel_cat}_{label}"; key_override = f"override_{sel_cat}_{label}"
                     store.data[key_reveal] = st.checkbox("Nominationen anzeigen", value=store.data.get(key_reveal, False), key=f"cb1_{key_reveal}")
                     store.data[key_winner_reveal] = st.checkbox("BIS Gewinner anzeigen", value=store.data.get(key_winner_reveal, False), key=f"cb2_{key_winner_reveal}")
-                    
                     pool = df_full[(df_full['SELECTION'].astype(str).str.upper() == 'X') & (df_full['KATEGORIE'] == sel_cat) & (df_full['KLASSE_INTERNAL'].isin(klassen)) & (df_full['GESCHLECHT'].astype(str).str.upper() == geschl)]
                     options = ["Automatisch (Stimmen)"] + sorted(pool['KAT_STR'].unique().tolist())
-                    
                     store.data[key_override] = st.selectbox(f"Gewinner festlegen:", options, index=options.index(store.data.get(key_override, "Automatisch (Stimmen)")) if store.data.get(key_override) in options else 0, key=f"sb_{key_override}")
                     
-                    # Ermittlung des aktuellen Gewinners für das Overlay
                     final_nr = None
-                    if store.data[key_override] != "Automatisch (Stimmen)":
-                        final_nr = store.data[key_override]
+                    if store.data[key_override] != "Automatisch (Stimmen)": final_nr = store.data[key_override]
                     elif "votes" in store.data:
-                        votes = [v for k, v in store.data["votes"].items() if k.startswith(v_prefix) and v != "Keine Wahl"]
-                        if votes:
-                            final_nr = pd.Series(votes).value_counts().index[0]
-                    
+                        vts = [v for k, v in store.data["votes"].items() if k.startswith(v_prefix) and v != "Keine Wahl"]
+                        if vts: final_nr = pd.Series(vts).value_counts().index[0]
                     if final_nr and st.button(f"🏆 PUBLIC OVERLAY STARTEN (#{final_nr})", key=f"btn_ov_{sel_cat}_{label}"):
                         w_match = df_full[df_full['KAT_STR'] == str(final_nr)]
                         if not w_match.empty:
@@ -306,25 +308,15 @@ elif st.session_state.view == "BIS_Admin_Control":
                             st.success(f"Overlay für #{final_nr} aktiviert!")
 
                 with c_votes:
-                    st.markdown("**Stimmen-Details (Wer hat wen gewählt?)**")
+                    st.markdown("**Stimmen-Details**")
                     if "votes" in store.data:
-                        # Extrahiere alle Stimmen, die mit dem Klassen-Präfix beginnen
                         current_votes = {k.replace(v_prefix, ""): v for k, v in store.data["votes"].items() if k.startswith(v_prefix) and v != "Keine Wahl"}
-                        
                         if current_votes:
-                            # Tabelle erstellen: Richtername | Gewählte Katze
                             vote_df = pd.DataFrame([{"Richter": r, "Wahl (Kat Nr.)": f"#{v}"} for r, v in current_votes.items()])
                             st.table(vote_df)
-                            
-                            # Kurze Zusammenfassung
                             summary = pd.Series(current_votes.values()).value_counts()
                             st.write("**Zwischenstand:**")
-                            for nr, count in summary.items():
-                                st.write(f"Katze #{nr}: {count} Stimme(n)")
-                        else:
-                            st.info("Noch keine Stimmen abgegeben.")
-                    else:
-                        st.info("Noch keine Wahldaten vorhanden.")
+                            for nr, count in summary.items(): st.write(f"Katze #{nr}: {count} Stimme(n)")
 
 # BIS PUBLIC VIEW
 elif st.session_state.view == "BIS_Public":
@@ -334,7 +326,7 @@ elif st.session_state.view == "BIS_Public":
             time.sleep(1); st.rerun() 
         else: store.active_overlay = None; st.rerun()
 
-    st.title("🏆 Best in Show")
+    display_header_with_logo("🏆 Best in Show")
     df_full = load_labels()
     if df_full is not None:
         tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"]).upper()
@@ -360,22 +352,20 @@ elif st.session_state.view == "BIS_Public":
             
             with r_cols[-1]:
                 if store.data.get(f"winner_reveal_{sel_cat}_{label}", False):
-                    # Winner Logik wie in BIS Admin Control
                     prefix = f"v_{sel_cat}_{label}_"
                     winner_nr = store.data.get(f"override_{sel_cat}_{label}", "Automatisch (Stimmen)")
                     if winner_nr == "Automatisch (Stimmen)" and "votes" in store.data:
                         vts = [v for k, v in store.data["votes"].items() if k.startswith(prefix) and v != "Keine Wahl"]
                         if vts: winner_nr = pd.Series(vts).value_counts().index[0]
-                    
                     if winner_nr and winner_nr != "Automatisch (Stimmen)":
                         m_w = df_full[df_full['KAT_STR'] == str(winner_nr)]
                         if not m_w.empty: st.markdown(f"<div class='cat-card winner-card'><div class='cat-number'>{winner_nr}</div><div class='cat-details'>🏆 BIS<br>{get_full_label(m_w.iloc[0])}</div></div>", unsafe_allow_html=True)
                 else: st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
     time.sleep(3); st.rerun()
 
-# LIVE DASHBOARD (KATZENAUFRUF)
+# LIVE DASHBOARD
 elif st.session_state.view == "Dashboard":
-    st.title("📢 Live-Aufruf & Status")
+    display_header_with_logo("📢 Live-Aufruf & Status")
     tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"]).upper()
     df_full = load_labels()
     if df_full is not None:
@@ -397,7 +387,7 @@ elif st.session_state.view == "Dashboard":
 
 # STEWARD PANEL
 elif st.session_state.view == "Steward_Panel":
-    st.title("📝 Steward-Pult")
+    display_header_with_logo("📝 Steward-Pult")
     tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"]).upper()
     df_full = load_labels()
     if df_full is not None:
@@ -417,7 +407,7 @@ elif st.session_state.view == "Steward_Panel":
 
 # JUDGE VOTING
 elif st.session_state.view == "Judge_Voting":
-    st.title("🗳️ Richter Abstimmung")
+    display_header_with_logo("🗳️ Richter Abstimmung")
     df_full = load_labels()
     if df_full is not None:
         tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"]).upper()
@@ -440,7 +430,7 @@ elif st.session_state.view == "Judge_Voting":
 
 # ADMIN PANEL
 elif st.session_state.view == "Admin_Panel":
-    st.title("⚙️ Admin-Konsole")
+    display_header_with_logo("⚙️ Admin-Konsole")
     if st.button("ALLE DATEN ZURÜCKSETZEN"):
         store.data = {}
         store.active_overlay = None
