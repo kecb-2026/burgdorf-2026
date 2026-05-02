@@ -193,6 +193,20 @@ def set_view(name):
     st.session_state.view = name
     st.rerun()
 
+def display_header_with_logo(text):
+    """Zeigt die Überschrift links und das Logo rechtsbündig an"""
+    # Spaltenverteilung: Viel Platz für Text, wenig Platz für das Logo rechts
+    col_text, col_logo = st.columns([5, 1]) 
+    
+    with col_text:
+        st.markdown(f"<p class='header-text' style='text-align: left;'>{text}</p>", unsafe_allow_html=True)
+    
+    with col_logo:
+        # 'container' sorgt dafür, dass das Bild innerhalb der Spalte rechts ausgerichtet wird
+        st.markdown("<div style='display: flex; justify-content: flex-end;'>", unsafe_allow_html=True)
+        st.image(LOGO_URL, width=65)
+        st.markdown("</div>", unsafe_allow_html=True)
+
 # --- 5. NAVIGATION & ZUGRIFF ---
 access_map = {
     "Public": ["Dashboard", "BIS_Public", "Login"],
