@@ -374,9 +374,11 @@ elif st.session_state.view == "BIS_Admin_Control":
                             st.write("**Zwischenstand:**")
                             for nr, count in summary.items(): st.write(f"Katze #{nr}: {count} Stimme(n)")
 
-# BIS PUBLIC VIEW
+# ==========================================
+# BIS PUBLIC VIEW - FINAL VERSION
+# ==========================================
 elif st.session_state.view == "BIS_Public":
-    # 1. Spezifisches CSS (wirkt nur innerhalb von .bis-public-container)
+    # 1. CSS: Exklusiv für den bis-public-container
     st.markdown("""
         <style>
             .bis-public-container .bis-flex-box {
@@ -419,10 +421,14 @@ elif st.session_state.view == "BIS_Public":
                 justify-content: center;
                 font-size: 12px;
             }
+            
+            /* Verhindert, dass Elemente aus anderen Ansichten hier stören */
+            .bis-public-container .cat-number { font-size: 22px; font-weight: 900; color: #1a4a9e; }
+            .bis-public-container .cat-details { font-size: 10px; margin-top: 4px; line-height: 1.1; }
         </style>
     """, unsafe_allow_html=True)
 
-    # Hilfsfunktionen & Header
+    # 2. Hilfsfunktionen & Daten laden
     def get_initials(name):
         parts = str(name).split()
         return (parts[0][0] + parts[-1][0]).upper() if len(parts) >= 2 else str(name)[:2].upper()
@@ -431,7 +437,7 @@ elif st.session_state.view == "BIS_Public":
     df_full = load_labels()
     
     if df_full is not None:
-        # Definitionen (nach oben verschoben, um NameError zu vermeiden)
+        # Konfiguration
         bis_defs = [
             ("Adult Male", [1,3,5,7,9], "M"), ("Adult Female", [1,3,5,7,9], "W"), 
             ("Neuter Male", [2,4,6,8,10], "M"), ("Neuter Female", [2,4,6,8,10], "W"), 
@@ -446,17 +452,17 @@ elif st.session_state.view == "BIS_Public":
         judges = sorted([r for r in df_full[df_full[tag].astype(str).str.upper() == 'X'][r_col].unique() if str(r) != "nan"])
         col_weights = [0.7] + [1.0] * len(judges) + [0.7]
         
-        # Start des geschützten Containers
+        # 3. Das Grid rendern
         st.markdown('<div class="bis-public-container">', unsafe_allow_html=True)
 
-        # Header-Zeile (Links oben leer lassen)
+        # Header
         cols = st.columns(col_weights)
         cols[0].empty() 
         for i, j in enumerate(judges): 
             cols[i+1].markdown(f"<div class='judge-header-box'>{j}</div>", unsafe_allow_html=True)
         cols[-1].markdown("<div class='judge-header-box' style='background-color:#b21f2d;'>BIS</div>", unsafe_allow_html=True)
         
-        # Grid-Zeilen
+        # Zeilen
         for label, klassen, geschl in bis_defs:
             r_cols = st.columns(col_weights)
             r_cols[0].markdown(f"<div class='bis-flex-box class-label-box'>{label}</div>", unsafe_allow_html=True)
@@ -464,6 +470,7 @@ elif st.session_state.view == "BIS_Public":
             show_noms = store.data.get(f"reveal_{sel_cat}_{label}", False)
             winner_revealed = store.data.get(f"winner_reveal_{sel_cat}_{label}", False)
             
+            # Nominationen
             for i, j in enumerate(judges):
                 with r_cols[i+1]:
                     if show_noms:
@@ -498,6 +505,7 @@ elif st.session_state.view == "BIS_Public":
                     else:
                         st.markdown("<div class='bis-flex-box placeholder-box'>🔒</div>", unsafe_allow_html=True)
             
+            # Gewinner-Spalte
             with r_cols[-1]:
                 if winner_revealed:
                     prefix = f"v_{sel_cat}_{label}_"
@@ -518,7 +526,7 @@ elif st.session_state.view == "BIS_Public":
                 else:
                     st.markdown("<div class='bis-flex-box placeholder-box'>🔒</div>", unsafe_allow_html=True)
 
-        st.markdown('</div>', unsafe_allow_html=True) # Ende des Containers
+        st.markdown('</div>', unsafe_allow_html=True)
 
     time.sleep(3)
     st.rerun()
