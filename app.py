@@ -340,26 +340,43 @@ elif st.session_state.view == "BIS_Public":
         for label, klassen, geschl in bis_defs:
             r_cols = st.columns([1.2] + [1]*len(judges) + [1.2])
             r_cols[0].markdown(f"<div class='class-label-box'>{label}</div>", unsafe_allow_html=True)
+            
             show_noms = store.data.get(f"reveal_{sel_cat}_{label}", False)
+            winner_revealed = store.data.get(f"winner_reveal_{sel_cat}_{label}", False)
+            
             for i, j in enumerate(judges):
                 with r_cols[i+1]:
                     if show_noms:
                         m = df_full[(df_full['SELECTION'].astype(str).str.upper() == 'X') & (df_full[r_col] == j) & (df_full['KATEGORIE'] == sel_cat) & (df_full['KLASSE_INTERNAL'].isin(klassen)) & (df_full['GESCHLECHT'].astype(str).str.upper() == geschl)]
                         if not m.empty: 
+                            kat_nr = m.iloc[0]['KAT_STR']
+                            voter_text = ""
+                            
+                            # Stimmen erst anzeigen, wenn Resultat freigegeben wurde
+                            if winner_revealed:
+                                prefix = f"v_{sel_cat}_{label}_"
+                                all_votes = store.data.get("votes", {})
+                                voters_for_this_cat = [
+                                    v_key.replace(prefix, "") 
+                                    for v_key, v_val in all_votes.items() 
+                                    if v_key.startswith(prefix) and str(v_val) == str(kat_nr)
+                                ]
+                                voter_text = ", ".join(voters_for_this_cat)
+
                             st.markdown(f"""
                                 <div class='cat-card'>
-                                    <div class='cat-number'>{m.iloc[0]['KAT_STR']}</div>
+                                    <div class='cat-number'>{kat_nr}</div>
                                     <div class='cat-details'>{get_full_label(m.iloc[0])}</div>
-                                    <div style='font-size: 9px; color: #1a4a9e; margin-top: 5px; font-weight: bold; border-top: 1px dotted #ccc; padding-top: 3px;'>
-                                        NOM: {j}
-                                    </div>
+                                    {f'''<div style='font-size: 9px; color: #1a4a9e; margin-top: 8px; font-weight: bold; border-top: 1px solid #eee; padding-top: 4px; line-height: 1.1;'>
+                                        Stimmen:<br>{voter_text}
+                                    </div>''' if voter_text else ""}
                                 </div>
                             """, unsafe_allow_html=True)
                         else: st.markdown("<div class='placeholder-box'>–</div>", unsafe_allow_html=True)
                     else: st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
             
             with r_cols[-1]:
-                if store.data.get(f"winner_reveal_{sel_cat}_{label}", False):
+                if winner_revealed:
                     prefix = f"v_{sel_cat}_{label}_"
                     winner_nr = store.data.get(f"override_{sel_cat}_{label}", "Automatisch (Stimmen)")
                     if winner_nr == "Automatisch (Stimmen)" and "votes" in store.data:
