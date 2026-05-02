@@ -24,9 +24,9 @@ st.markdown("""
         box-shadow: 0px 0px 100px rgba(0,0,0,0.5);
         border: 15px solid #1a4a9e;
         animation: fadeIn 0.5s ease-out;
+        padding: 40px;
     }
     
-    /* Hintergrund-Dimmer für den Rest des Bildschirms */
     .overlay-backdrop {
         position: fixed;
         top: 0; left: 0; width: 100vw; height: 100vh;
@@ -35,17 +35,25 @@ st.markdown("""
     }
 
     .ov-header {
-        font-size: 40px !important; font-weight: 500; color: #333;
-        border-bottom: 2px solid #ccc; width: 70%;
+        font-size: 35px !important; font-weight: 500; color: #333;
+        border-bottom: 2px solid #ccc; width: 80%;
         padding-bottom: 15px; margin-bottom: 30px;
     }
+    
+    /* Optimierte Schriftgröße für den Namen */
     .ov-cat-name {
-        font-size: 70px !important; font-weight: 900;
-        text-transform: uppercase; color: #000;
-        margin-bottom: 20px; line-height: 1.1;
+        font-size: 55px !important; 
+        font-weight: 900;
+        text-transform: uppercase; 
+        color: #000;
+        margin-bottom: 20px; 
+        line-height: 1.1;
+        width: 90%;
+        word-wrap: break-word;
     }
+    
     .ov-owner {
-        font-size: 35px !important; font-style: italic; color: #444;
+        font-size: 30px !important; font-style: italic; color: #444;
     }
     @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
 
@@ -57,9 +65,11 @@ st.markdown("""
     .winner-card { border: 3px solid #ff4d4d !important; background-color: #ffcccc !important; color: #b21f2d !important; }
     .cat-number { font-size: 28px !important; font-weight: 900 !important; color: #1a4a9e; line-height: 1.0; }
     .cat-details { font-size: 14px !important; color: #333; font-weight: bold; margin-top: 2px; line-height: 1.1; }
+    
     .tag-container { margin-top: 4px; display: flex; justify-content: center; flex-wrap: wrap; gap: 3px; }
-    .tag { font-weight: bold; padding: 2px 6px; border-radius: 4px; font-size: 10px; text-transform: uppercase; }
-    .tag-biv { background-color: #28a745; color: white; animation: blinker 1.5s linear infinite; }
+    .tag { font-weight: bold; padding: 4px 8px; border-radius: 6px; font-size: 11px; text-transform: uppercase; color: white; }
+    .tag-zumrichten { background-color: #007bff; }
+    .tag-biv { background-color: #28a745; animation: blinker 1.5s linear infinite; }
     .tag-nom { background-color: #ffc107; color: black; animation: blinker 1s linear infinite; }
     </style>
     """, unsafe_allow_html=True)
@@ -204,9 +214,9 @@ elif st.session_state.view == "BIS_Admin_Control":
 elif st.session_state.view == "BIS_Public":
     if hasattr(store, 'active_overlay') and store.active_overlay is not None:
         elapsed = time.time() - store.overlay_start_time
-        if elapsed < 30:
+        if elapsed < 10:
             st.markdown(render_overlay_html(store.active_overlay), unsafe_allow_html=True)
-            time.sleep(2)
+            time.sleep(1)
             st.rerun() 
         else:
             store.active_overlay = None 
@@ -290,8 +300,18 @@ elif st.session_state.view == "Dashboard":
                                 m = df_tag[df_tag['KAT_STR'] == kat_nr]
                                 if not m.empty:
                                     row = m.iloc[0]
-                                    tags_html = "".join([f"<span class='tag tag-{t.replace(' ', '').lower()}'>{t.upper()}</span>" for t, active in v.items() if active])
-                                    st.markdown(f"<div class='cat-card'><div class='cat-number'>{kat_nr}</div><div class='cat-details'>{get_full_label(row)}</div><div class='tag-container'>{tags_html}</div></div>", unsafe_allow_html=True)
+                                    tags_html = ""
+                                    if v.get("Zum Richten"): tags_html += "<span class='tag tag-zumrichten'>ZUM RICHTEN</span> "
+                                    if v.get("BIV"): tags_html += "<span class='tag tag-biv'>BIV</span> "
+                                    if v.get("NOM"): tags_html += "<span class='tag tag-nom'>NOM</span>"
+                                    
+                                    st.markdown(f"""
+                                        <div class='cat-card'>
+                                            <div class='cat-number'>{kat_nr}</div>
+                                            <div class='cat-details'>{get_full_label(row)}</div>
+                                            <div class='tag-container'>{tags_html}</div>
+                                        </div>
+                                    """, unsafe_allow_html=True)
 
     if st.button("⬅️ Zurück"): set_view("Home")
     time.sleep(3)
