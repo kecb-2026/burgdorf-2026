@@ -105,7 +105,7 @@ def render_overlay_html(row):
             <div class="ov-cat-name">{name_gross}</div>
             <div class="ov-owner">{besitzer}</div>
             <div style="margin-top: 50px;">
-                <img src="https://upload.wikimedia.org/wikipedia/de/thumb/f/f4/FIFe_logo.svg/500px-FIFe_logo.svg.png" width="100">
+                <img src="https://kecb.ch/wp-content/uploads/2020/01/Logo-Link-gelb-279x300-1.gif" width="100">
                 <div style="font-weight: bold; font-size: 22px; color: #1a4a9e; margin-top: 10px;">KECB BURGDORF 2026</div>
             </div>
         </div>
