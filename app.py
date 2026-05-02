@@ -7,41 +7,65 @@ st.set_page_config(layout="wide", page_title="KECB Burgdorf 2026", page_icon="�
 
 st.markdown("""
     <style>
+    /* Allgemeine Buttons */
     .stButton button { 
         width: 100%; height: 50px; font-size: 13px !important; 
         font-weight: bold !important; border-radius: 12px !important;
         margin-bottom: 5px; border: 2px solid #1a4a9e !important;
     }
+    
+    /* Header-Boxen (Richter & BIS): Alle exakt gleich groß */
     .judge-header-box {
         background-color: #1a4a9e; color: white; padding: 8px; border-radius: 10px;
         text-align: center; font-size: 15px !important; font-weight: bold;
         margin-bottom: 10px; border: 2px solid #0d2a5e;
         height: 60px; display: flex; align-items: center; justify-content: center;
     }
+    
+    /* Dashboard Richter-Spalten */
+    .judge-col { 
+        border: 2px solid #1a4a9e; padding: 8px; border-radius: 12px; 
+        background-color: #f8f9fa; margin-bottom: 8px; 
+        box-shadow: 1px 1px 5px rgba(0,0,0,0.05);
+    }
+    
+    /* Klassen-Label (Links im BIS) */
     .class-label-box {
         background-color: #e9ecef; color: #1a4a9e; padding: 5px; border-radius: 10px;
         text-align: center; font-size: 14px !important; font-weight: 800;
         border: 2px solid #1a4a9e; display: flex; align-items: center; justify-content: center;
         height: 80px; width: 100%; line-height: 1.1;
     }
+    
+    /* Katzen-Karten */
     .cat-card, .placeholder-box { 
         padding: 5px; border: 2px solid #1a4a9e; text-align: center; 
         background-color: #ffffff; border-radius: 14px; 
         margin-bottom: 5px; min-height: 80px;
         display: flex; flex-direction: column; justify-content: center; align-items: center;
     }
+    
+    /* Leere Boxen: Grau unterlegt */
     .placeholder-box {
         border: 1px solid #d1d1d1; background-color: #f2f2f2 !important; color: #999999;
     }
+    
+    /* Gewinner Card: Rot hervorgehoben */
     .winner-card {
-        border: 3px solid #ff4d4d !important; background-color: #ffcccc !important; color: #b21f2d !important;
+        border: 3px solid #ff4d4d !important; 
+        background-color: #ffcccc !important; 
+        color: #b21f2d !important;
     }
+    
     .cat-number { font-size: 28px !important; font-weight: 900 !important; color: #1a4a9e; line-height: 1.0; }
     .cat-details { font-size: 14px !important; color: #333; font-weight: bold; margin-top: 2px; line-height: 1.1; }
     
-    /* Styling für die Admin-Voting-Tabelle */
-    .vote-table { font-size: 12px; width: 100%; border-collapse: collapse; }
-    .vote-table td, .vote-table th { border: 1px solid #dee2e6; padding: 4px; }
+    /* Tags für Dashboard */
+    .tag-container { margin-top: 4px; display: flex; justify-content: center; flex-wrap: wrap; gap: 3px; }
+    .tag { font-weight: bold; padding: 2px 6px; border-radius: 4px; font-size: 9px; }
+    .tag-zumrichten { background-color: #007bff; color: white; }
+    .tag-biv { background-color: #28a745; color: white; }
+    .tag-nom { background-color: #ffc107; color: black; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -92,6 +116,7 @@ def set_view(name):
 
 # --- 4. VIEWS ---
 
+# HOME
 if st.session_state.view == "Home":
     st.title("🐾 KECB Burgdorf 2026")
     col1, col2 = st.columns(2)
@@ -104,6 +129,7 @@ if st.session_state.view == "Home":
         if st.button("👨‍⚖️ BIS ADMIN / CONTROL"): set_view("BIS_Admin_Control")
         if st.button("⚙️ ADMIN-KONSOLE (RESET)"): set_view("Admin_Login")
 
+# LIVE DASHBOARD
 elif st.session_state.view == "Dashboard":
     st.title("📢 Live-Aufruf & Status")
     tag_input = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"])
@@ -116,7 +142,7 @@ elif st.session_state.view == "Dashboard":
         cols = st.columns(len(judges) if judges else 1)
         for i, j in enumerate(judges):
             with cols[i]:
-                st.markdown(f"<div class='judge-col'><h3>{j}</h3>", unsafe_allow_html=True)
+                st.markdown(f"<div class='judge-header-box'>{j}</div>", unsafe_allow_html=True)
                 for k, v in store.data.items():
                     if "|" in k:
                         kat_nr, r_name = k.split("|")
@@ -124,16 +150,11 @@ elif st.session_state.view == "Dashboard":
                             m = df_tag[df_tag['KAT_STR'] == kat_nr]
                             if not m.empty:
                                 row = m.iloc[0]
-                                tags_html = ""
-                                for t, active in v.items():
-                                    if active:
-                                        display_name = "ZUM RICHTEN" if t == "Zum Richten" else t
-                                        tag_class = "zumrichten" if t == "Zum Richten" else t.lower()
-                                        tags_html += f"<span class='tag tag-{tag_class}'>{display_name}</span>"
+                                tags_html = "".join([f"<span class='tag tag-{t.replace(' ', '').lower()}'>{t.upper()}</span>" for t, active in v.items() if active])
                                 st.markdown(f"<div class='cat-card'><div class='cat-number'>{kat_nr}</div><div class='cat-details'>{get_full_label(row)}</div><div class='tag-container'>{tags_html}</div></div>", unsafe_allow_html=True)
-                st.markdown("</div>", unsafe_allow_html=True)
-    if st.button("⬅️ Zurück zum Menü"): set_view("Home")
+    if st.button("⬅️ Zurück"): set_view("Home")
 
+# BIS ADMIN CONTROL (Kombinierte Ansicht)
 elif st.session_state.view == "BIS_Admin_Control":
     st.title("👨‍⚖️ BIS Control Center")
     df_full = load_labels()
@@ -143,46 +164,35 @@ elif st.session_state.view == "BIS_Admin_Control":
         
         for label, klassen, geschl in bis_defs:
             with st.expander(f"KLASSE: {label}", expanded=True):
-                # Layout: Links Controls, Rechts Voting-Daten
                 c_ctrl, c_votes = st.columns([1, 1.2])
-                
                 with c_ctrl:
-                    st.markdown("**Steuerung & Auswahl**")
+                    st.markdown("**Steuerung**")
                     key_reveal = f"reveal_{sel_cat}_{label}"; key_winner_reveal = f"winner_reveal_{sel_cat}_{label}"; key_override = f"override_{sel_cat}_{label}"
+                    store.data[key_reveal] = st.checkbox("Sichtbarkeit Klasse", value=store.data.get(key_reveal, False), key=f"cb1_{key_reveal}")
+                    store.data[key_winner_reveal] = st.checkbox("Sichtbarkeit Gewinner", value=store.data.get(key_winner_reveal, False), key=f"cb2_{key_winner_reveal}")
                     
-                    store.data[key_reveal] = st.checkbox("Sichtbarkeit Klasse (Public)", value=store.data.get(key_reveal, False), key=f"cb1_{key_reveal}")
-                    store.data[key_winner_reveal] = st.checkbox("Sichtbarkeit Gewinner (Public)", value=store.data.get(key_winner_reveal, False), key=f"cb2_{key_winner_reveal}")
-                    
-                    m = df_full[(df_full['SELECTION'].astype(str).str.upper() == 'X') & (df_full['KATEGORIE'] == sel_cat) & (df_full['KLASSE_INTERNAL'].isin(klassen)) & (df_full['GESCHLECHT'].astype(str).str.upper() == geschl)]
-                    options = ["Automatisch (Stimmen)"] + sorted(m['KAT_STR'].unique().tolist())
+                    pool = df_full[(df_full['SELECTION'].astype(str).str.upper() == 'X') & (df_full['KATEGORIE'] == sel_cat) & (df_full['KLASSE_INTERNAL'].isin(klassen)) & (df_full['GESCHLECHT'].astype(str).str.upper() == geschl)]
+                    options = ["Automatisch (Stimmen)"] + sorted(pool['KAT_STR'].unique().tolist())
                     current_override = store.data.get(key_override, "Automatisch (Stimmen)")
                     idx = options.index(current_override) if current_override in options else 0
                     store.data[key_override] = st.selectbox(f"Gewinner festlegen:", options, index=idx, key=f"sb_{key_override}")
-
+                
                 with c_votes:
-                    st.markdown("**Detaillierte Stimmen**")
+                    st.markdown("**Stimmen-Details**")
                     prefix = f"v_{sel_cat}_{label}_"
                     votes_in_class = {k.replace(prefix, ""): v for k, v in store.data.get("votes", {}).items() if k.startswith(prefix) and v != "Keine Wahl"}
-                    
                     if votes_in_class:
                         summary = {}
                         for judge, kat_nr in votes_in_class.items():
                             if kat_nr not in summary: summary[kat_nr] = []
                             summary[kat_nr].append(judge)
-                        
-                        results_table = []
-                        for kat_nr, judges_list in summary.items():
-                            m_info = df_full[df_full['KAT_STR'] == str(kat_nr)]
-                            info = get_full_label(m_info.iloc[0]) if not m_info.empty else ""
-                            results_table.append({"Kat": f"#{kat_nr}", "Stimmen": len(judges_list), "Richter": ", ".join(judges_list)})
-                        
-                        df_res = pd.DataFrame(results_table).sort_values("Stimmen", ascending=False)
-                        st.table(df_res)
+                        results_table = [{"Kat": f"#{k}", "Stimmen": len(j), "Richter": ", ".join(j)} for k, j in summary.items()]
+                        st.table(pd.DataFrame(results_table).sort_values("Stimmen", ascending=False))
                     else:
-                        st.info("Noch keine Stimmen abgegeben.")
+                        st.info("Keine Stimmen abgegeben.")
+    if st.button("⬅️ Zurück"): set_view("Home")
 
-    if st.button("⬅️ Zurück zum Menü"): set_view("Home")
-
+# BIS PUBLIC VIEW
 elif st.session_state.view == "BIS_Public":
     st.title("🏆 Best in Show")
     df_full = load_labels()
@@ -194,8 +204,9 @@ elif st.session_state.view == "BIS_Public":
         
         col_ratios = [1] + [1] * len(judges) + [1]
         h_cols = st.columns(col_ratios)
-        for i, j in enumerate(judges): h_cols[i+1].markdown(f<div class='judge-header-box'>{j}</div>, unsafe_allow_html=True)
-        h_cols[-1].markdown(f<div class='judge-header-box' style='background-color:#b21f2d;'>BIS</div>, unsafe_allow_html=True)
+        for i, j in enumerate(judges): 
+            h_cols[i+1].markdown(f"<div class='judge-header-box'>{j}</div>", unsafe_allow_html=True)
+        h_cols[-1].markdown(f"<div class='judge-header-box' style='background-color:#b21f2d;'>BIS</div>", unsafe_allow_html=True)
         
         for label, klassen, geschl in bis_defs:
             if store.data.get(f"reveal_{sel_cat}_{label}", False):
@@ -217,13 +228,13 @@ elif st.session_state.view == "BIS_Public":
                             if votes:
                                 counts = pd.Series(votes).value_counts()
                                 if len(counts) > 0 and (len(counts) == 1 or counts.iloc[0] > counts.iloc[1]): winner_nr = counts.index[0]
-                                else: st.markdown("<div class='placeholder-box' style='border: 2px solid #b21f2d; color: #b21f2d;'><b>TIE</b></div>", unsafe_allow_html=True)
                         if winner_nr:
                             m_winner = df_full[df_full['KAT_STR'] == str(winner_nr)]
                             if not m_winner.empty: st.markdown(f"<div class='cat-card winner-card'><div class='cat-number'>{winner_nr}</div><div class='cat-details'>🏆 BIS<br>{get_full_label(m_winner.iloc[0])}</div></div>", unsafe_allow_html=True)
                     else: st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
-    if st.button("⬅️ Zurück zum Menü"): set_view("Home")
+    if st.button("⬅️ Zurück"): set_view("Home")
 
+# STEWARD PANEL
 elif st.session_state.view == "Steward_Panel":
     st.title("📝 Steward-Pult")
     tag_input = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"])
@@ -239,11 +250,12 @@ elif st.session_state.view == "Steward_Panel":
                 if k not in store.data: store.data[k] = {"Zum Richten": False, "BIV": False, "NOM": False}
                 c1, c2, c3, c4 = st.columns([3, 1.2, 1, 1])
                 c1.write(f"**#{nr}** {get_full_label(row)}")
-                store.data[k]["Zum Richten"] = c2.checkbox("Zum Richten", value=store.data[k]["Zum Richten"], key=f"auf{k}")
+                store.data[k]["Zum Richten"] = c2.checkbox("Z.R.", value=store.data[k]["Zum Richten"], key=f"auf{k}")
                 store.data[k]["BIV"] = c3.checkbox("BIV", value=store.data[k]["BIV"], key=f"biv{k}")
                 store.data[k]["NOM"] = c4.checkbox("NOM", value=store.data[k]["NOM"], key=f"nom{k}")
-    if st.button("⬅️ Zurück zum Menü"): set_view("Home")
+    if st.button("⬅️ Zurück"): set_view("Home")
 
+# JUDGE VOTING
 elif st.session_state.view == "Judge_Voting":
     st.title("🗳️ Richter Abstimmung")
     df_full = load_labels()
@@ -263,27 +275,25 @@ elif st.session_state.view == "Judge_Voting":
                         opts = {f"#{r['KAT_STR']} - {get_full_label(r)}": r['KAT_STR'] for _, r in pool.iterrows()}
                         v_key = f"v_{active_cat}_{label}_{active_j}"
                         curr = store.data["votes"].get(v_key, "Keine Wahl")
-                        idx = 0
-                        if curr in opts.values(): idx = list(opts.values()).index(curr) + 1
+                        idx = (list(opts.values()).index(curr) + 1) if curr in opts.values() else 0
                         sel = st.radio("Favorit:", ["Keine Wahl"] + list(opts.keys()), index=idx, key=f"r_{v_key}")
                         store.data["votes"][v_key] = opts[sel] if sel != "Keine Wahl" else "Keine Wahl"
-    if st.button("⬅️ Zurück zum Menü"): set_view("Home")
+    if st.button("⬅️ Zurück"): set_view("Home")
 
+# LOGINS & ADMIN PANEL
 elif st.session_state.view == "Steward_Login":
-    st.title("🔒 Steward Login")
-    pwd = st.text_input("Passwort", type="password")
+    pwd = st.text_input("Passwort (Steward)", type="password")
     if st.button("Anmelden") and pwd == "steward2026": set_view("Steward_Panel")
-    if st.button("⬅️ Zurück zum Menü"): set_view("Home")
+    if st.button("⬅️ Zurück"): set_view("Home")
 
 elif st.session_state.view == "Admin_Login":
-    st.title("⚙️ Admin Login")
-    pwd = st.text_input("Passwort", type="password")
+    pwd = st.text_input("Passwort (Admin)", type="password")
     if st.button("Anmelden") and pwd == "admin2026": set_view("Admin_Panel")
-    if st.button("⬅️ Zurück zum Menü"): set_view("Home")
+    if st.button("⬅️ Zurück"): set_view("Home")
 
 elif st.session_state.view == "Admin_Panel":
-    st.title("👨‍⚖️ Admin-Konsole")
+    st.title("⚙️ Admin-Konsole")
     if st.button("ALLE DATEN ZURÜCKSETZEN"):
         store.data = {}
         st.success("Speicher geleert!")
-    if st.button("⬅️ Zurück zum Menü"): set_view("Home")
+    if st.button("⬅️ Zurück"): set_view("Home")
