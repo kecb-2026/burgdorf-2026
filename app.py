@@ -8,7 +8,7 @@ st.set_page_config(layout="wide", page_title="KECB Burgdorf 2026", page_icon="ðŸ
 
 # Zentrale Logo URL
 LOGO_URL = "logo.GIF"
-st.image(LOGO_URL)
+
 st.markdown("""
     <style>
     @keyframes blinker { 50% { opacity: 0.1; } }
