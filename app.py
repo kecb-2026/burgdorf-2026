@@ -398,7 +398,7 @@ elif st.session_state.view == "BIS_Public":
         cols[-1].markdown("<div class='judge-header-box' style='background-color:#b21f2d;'>BIS</div>", unsafe_allow_html=True)
         
         for label, klassen, geschl in bis_defs:
-            r_cols = st.columns([1.2] + [1]*len(judges) + [1.2])
+            r_cols = st.columns([0.8] + [1.2]*len(judges) + [0.8])
             r_cols[0].markdown(f"<div class='class-label-box'>{label}</div>", unsafe_allow_html=True)
             
             show_noms = store.data.get(f"reveal_{sel_cat}_{label}", False)
