@@ -170,6 +170,7 @@ elif st.session_state.view == "BIS_Admin_Control":
                 store.data[key_reveal] = c1.checkbox("Zeige Klasse", value=store.data.get(key_reveal, False), key=f"cb1_{key_reveal}")
                 store.data[key_winner_reveal] = c2.checkbox("Zeige Gewinner", value=store.data.get(key_winner_reveal, False), key=f"cb2_{key_winner_reveal}")
                 
+                # Filterung der Override-Optionen auf die aktuelle Klasse[span_2](start_span)[span_2](end_span)
                 m = df_full[
                     (df_full['SELECTION'].astype(str).str.upper() == 'X') & 
                     (df_full['KATEGORIE'] == sel_cat) & 
@@ -272,16 +273,29 @@ elif st.session_state.view == "Steward_Panel":
     tag_input = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"])
     df_full = load_labels()
     if df_full is not None:
-        tag = tag_input.upper(); r_col = f"RICHTER {tag}"
+        tag = tag_input.upper()
+        r_col = f"RICHTER {tag}"
         all_j = sorted([r for r in df_full[df_full[tag].astype(str).str.upper() == 'X'][r_col].unique() if str(r) != "nan"])
         mein_richter = st.selectbox("Richter wählen:", ["--"] + all_j)
+        
         if mein_richter != "--":
             df_j = df_full[(df_full[tag].astype(str).str.upper() == 'X') & (df_full[r_col] == mein_richter)].sort_values('KATALOG-NR')
+            
             for _, row in df_j.iterrows():
-                nr = row['KAT_STR']; k = f"{nr}|{mein_richter}"
-                if k not in store.data: store.data[k] = {"Zum Richten": False, "BIV": False, "NOM": False}
+                nr = row['KAT_STR']
+                k = f"{nr}|{mein_richter}"
+                
+                # Sicherstellen, dass der Key mit korrekter Benennung existiert[span_3](start_span)[span_3](end_span)
+                if k not in store.data: 
+                    store.data[k] = {"Zum Richten": False, "BIV": False, "NOM": False}
+                elif "Zum Richten" not in store.data[k]:
+                    # Migration für den Fall, dass noch 'Aufruf' im Speicher liegt[span_4](start_span)[span_4](end_span)
+                    store.data[k]["Zum Richten"] = store.data[k].pop("Aufruf", False)
+
                 c1, c2, c3, c4 = st.columns([3, 1, 1, 1])
                 c1.write(f"**#{nr}** {get_full_label(row)}")
+                
+                # UI-Anzeige 'Ruf' verknüpft mit Variable 'Zum Richten[span_5](start_span)'[span_5](end_span)
                 store.data[k]["Zum Richten"] = c2.checkbox("Ruf", value=store.data[k]["Zum Richten"], key=f"auf{k}")
                 store.data[k]["BIV"] = c3.checkbox("BIV", value=store.data[k]["BIV"], key=f"biv{k}")
                 store.data[k]["NOM"] = c4.checkbox("NOM", value=store.data[k]["NOM"], key=f"nom{k}")
