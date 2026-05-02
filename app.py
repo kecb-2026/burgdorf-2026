@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import re
+import time
 
 # --- 1. SETUP & STYLING ---
 st.set_page_config(layout="wide", page_title="KECB Burgdorf 2026", page_icon="🐾")
@@ -12,6 +13,32 @@ st.markdown("""
         50% { opacity: 0.1; }
     }
     
+    /* Vollflächiges Gewinner-Overlay */
+    .winner-overlay {
+        position: fixed;
+        top: 0; left: 0; width: 100vw; height: 100vh;
+        background-color: white;
+        z-index: 9999999;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        text-align: center;
+        animation: fadeIn 0.8s ease-in-out;
+    }
+    .ov-header {
+        font-size: 55px !important; font-weight: 500; color: #333;
+        border-bottom: 2px solid #ccc; width: 80%;
+        padding-bottom: 25px; margin-bottom: 50px;
+    }
+    .ov-cat-name {
+        font-size: 90px !important; font-weight: 900;
+        text-transform: uppercase; color: #000;
+        margin-bottom: 30px; line-height: 1.1;
+    }
+    .ov-owner {
+        font-size: 45px !important; font-style: italic; color: #444;
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
     /* Allgemeine Buttons */
     .stButton button { 
         width: 100%; height: 50px; font-size: 13px !important; 
@@ -89,6 +116,29 @@ if "view" not in st.session_state:
     st.session_state.view = "Home"
 
 # --- 3. HILFSFUNKTIONEN ---
+def show_big_winner_slide(row):
+    kat_nr = str(row.get('KATALOG-NR', '')).replace('.0', '')
+    rasse = row.get('RASSE', '')
+    farbe = row.get('FARBE', '')
+    name_gross = str(row.get('NAME', '')).upper()
+    besitzer = f"{row.get('BESITZER VORNAME', '')} {row.get('BESITZER NACHNAME', '')}"
+
+    placeholder = st.empty()
+    with placeholder.container():
+        st.markdown(f"""
+            <div class="winner-overlay">
+                <div class="ov-header">{kat_nr}. {rasse} {farbe}</div>
+                <div class="ov-cat-name">{name_gross}</div>
+                <div class="ov-owner">{besitzer}</div>
+                <div style="margin-top: 80px;">
+                    <img src="https://upload.wikimedia.org/wikipedia/de/thumb/f/f4/FIFe_logo.svg/500px-FIFe_logo.svg.png" width="130">
+                    <div style="font-weight: bold; font-size: 28px; color: #1a4a9e; margin-top: 15px;">KECB BURGDORF 2026</div>
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
+        time.sleep(30)
+    placeholder.empty()
+
 def roman_to_numeric(text):
     roman_map = {'IX': '9', 'VIII': '8', 'VII': '7', 'VI': '6', 'IV': '4', 'V': '5', 'III': '3', 'II': '2', 'I': '1'}
     if pd.isna(text) or text == "": return ""
@@ -155,7 +205,6 @@ elif st.session_state.view == "Dashboard":
                             m = df_tag[df_tag['KAT_STR'] == kat_nr]
                             if not m.empty:
                                 row = m.iloc[0]
-                                # HTML für blinkende Tags generieren
                                 tags_html = "".join([f"<span class='tag tag-{t.replace(' ', '').lower()}'>{t.upper()}</span>" for t, active in v.items() if active])
                                 st.markdown(f"<div class='cat-card'><div class='cat-number'>{kat_nr}</div><div class='cat-details'>{get_full_label(row)}</div><div class='tag-container'>{tags_html}</div></div>", unsafe_allow_html=True)
     if st.button("⬅️ Zurück"): set_view("Home")
@@ -182,6 +231,22 @@ elif st.session_state.view == "BIS_Admin_Control":
                     current_override = store.data.get(key_override, "Automatisch (Stimmen)")
                     idx = options.index(current_override) if current_override in options else 0
                     store.data[key_override] = st.selectbox(f"Gewinner festlegen:", options, index=idx, key=f"sb_{key_override}")
+                    
+                    # Button für das große Overlay
+                    manual_winner = store.data.get(key_override, "Automatisch (Stimmen)")
+                    final_nr = None
+                    if manual_winner != "Automatisch (Stimmen)":
+                        final_nr = manual_winner
+                    elif "votes" in store.data:
+                        v_prefix = f"v_{sel_cat}_{label}_"
+                        votes = [v for k, v in store.data["votes"].items() if k.startswith(v_prefix) and v != "Keine Wahl"]
+                        if votes:
+                            final_nr = pd.Series(votes).value_counts().index[0]
+                    
+                    if final_nr:
+                        w_match = df_full[df_full['KAT_STR'] == str(final_nr)]
+                        if not w_match.empty and st.button(f"🏆 OVERLAY STARTEN (#{final_nr})", key=f"btn_ov_{sel_cat}_{label}"):
+                            show_big_winner_slide(w_match.iloc[0])
                 
                 with c_votes:
                     st.markdown("**Stimmen-Details**")
@@ -215,12 +280,9 @@ elif st.session_state.view == "BIS_Public":
             h_cols[i+1].markdown(f"<div class='judge-header-box'>{j}</div>", unsafe_allow_html=True)
         h_cols[-1].markdown(f"<div class='judge-header-box' style='background-color:#b21f2d;'>BEST IN SHOW</div>", unsafe_allow_html=True)
         
-        # Das Grid wird immer gerendert
         for label, klassen, geschl in bis_defs:
             row_cols = st.columns(col_ratios)
             row_cols[0].markdown(f"<div class='class-label-box'>{label}</div>", unsafe_allow_html=True)
-            
-            # Nom-Spalten
             show_noms = store.data.get(f"reveal_{sel_cat}_{label}", False)
             for i, j in enumerate(judges):
                 with row_cols[i+1]:
@@ -233,7 +295,6 @@ elif st.session_state.view == "BIS_Public":
                     else:
                         st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
             
-            # BIS-Spalte
             with row_cols[-1]:
                 if store.data.get(f"winner_reveal_{sel_cat}_{label}", False):
                     manual_winner = store.data.get(f"override_{sel_cat}_{label}", "Automatisch (Stimmen)")
@@ -246,7 +307,6 @@ elif st.session_state.view == "BIS_Public":
                         if votes:
                             counts = pd.Series(votes).value_counts()
                             if len(counts) > 0 and (len(counts) == 1 or counts.iloc[0] > counts.iloc[1]): winner_nr = counts.index[0]
-                    
                     if winner_nr:
                         m_winner = df_full[df_full['KAT_STR'] == str(winner_nr)]
                         if not m_winner.empty: 
@@ -255,7 +315,6 @@ elif st.session_state.view == "BIS_Public":
                         st.markdown("<div class='placeholder-box'>Wahl läuft...</div>", unsafe_allow_html=True)
                 else: 
                     st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
-                    
     if st.button("⬅️ Zurück"): set_view("Home")
 
 # STEWARD PANEL
@@ -274,7 +333,6 @@ elif st.session_state.view == "Steward_Panel":
                 if k not in store.data: store.data[k] = {"Zum Richten": False, "BIV": False, "NOM": False}
                 c1, c2, c3, c4 = st.columns([3, 1.2, 1, 1])
                 c1.write(f"**#{nr}** {get_full_label(row)}")
-                # "Z.R." wieder als "Zum Richten" ausgeschrieben
                 store.data[k]["Zum Richten"] = c2.checkbox("Zum Richten", value=store.data[k]["Zum Richten"], key=f"auf{k}")
                 store.data[k]["BIV"] = c3.checkbox("BIV", value=store.data[k]["BIV"], key=f"biv{k}")
                 store.data[k]["NOM"] = c4.checkbox("NOM", value=store.data[k]["NOM"], key=f"nom{k}")
