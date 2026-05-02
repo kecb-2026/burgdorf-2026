@@ -7,7 +7,7 @@ import time
 st.set_page_config(layout="wide", page_title="KECB Burgdorf 2026", page_icon="🐾")
 
 # Zentrale Logo URL
-
+LOGO_URL = "logo.gif"
 st.image(LOGO_URL)
 st.markdown("""
     <style>
