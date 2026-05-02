@@ -7,72 +7,41 @@ st.set_page_config(layout="wide", page_title="KECB Burgdorf 2026", page_icon="�
 
 st.markdown("""
     <style>
-    /* Allgemeine Buttons */
     .stButton button { 
         width: 100%; height: 50px; font-size: 13px !important; 
         font-weight: bold !important; border-radius: 12px !important;
         margin-bottom: 5px; border: 2px solid #1a4a9e !important;
     }
-    
-    /* Dashboard & Cards Layout */
-    .judge-col { 
-        border: 2px solid #1a4a9e; padding: 8px; border-radius: 12px; 
-        background-color: #f8f9fa; margin-bottom: 8px; 
-        box-shadow: 1px 1px 5px rgba(0,0,0,0.05);
-    }
-    .judge-col h3 { 
-        font-size: 15px !important; color: white; background-color: #1a4a9e; 
-        padding: 6px; border-radius: 8px; text-align: center; margin-bottom: 10px;
-    }
-    
-    /* Header-Boxen: Alle exakt gleich groß */
     .judge-header-box {
         background-color: #1a4a9e; color: white; padding: 8px; border-radius: 10px;
         text-align: center; font-size: 15px !important; font-weight: bold;
         margin-bottom: 10px; border: 2px solid #0d2a5e;
         height: 60px; display: flex; align-items: center; justify-content: center;
     }
-    
-    /* Klassen-Box: Kompakt */
     .class-label-box {
         background-color: #e9ecef; color: #1a4a9e; padding: 5px; border-radius: 10px;
         text-align: center; font-size: 14px !important; font-weight: 800;
         border: 2px solid #1a4a9e; display: flex; align-items: center; justify-content: center;
         height: 80px; width: 100%; line-height: 1.1;
     }
-    
-    /* Cat Cards */
     .cat-card, .placeholder-box { 
         padding: 5px; border: 2px solid #1a4a9e; text-align: center; 
         background-color: #ffffff; border-radius: 14px; 
         margin-bottom: 5px; min-height: 80px;
         display: flex; flex-direction: column; justify-content: center; align-items: center;
     }
-    
-    /* Leere Boxen: Grau unterlegt */
     .placeholder-box {
         border: 1px solid #d1d1d1; background-color: #f2f2f2 !important; color: #999999;
     }
-    
-    /* Gewinner Card: Hellrot unterlegt */
     .winner-card {
-        border: 3px solid #ff4d4d !important; 
-        background-color: #ffcccc !important; 
-        color: #b21f2d !important;
+        border: 3px solid #ff4d4d !important; background-color: #ffcccc !important; color: #b21f2d !important;
     }
-    .winner-card .cat-number { color: #b21f2d !important; }
-    .winner-card .cat-details { color: #b21f2d !important; font-weight: 900 !important; }
-
-    /* Textelemente */
     .cat-number { font-size: 28px !important; font-weight: 900 !important; color: #1a4a9e; line-height: 1.0; }
     .cat-details { font-size: 14px !important; color: #333; font-weight: bold; margin-top: 2px; line-height: 1.1; }
     
-    .tag-container { margin-top: 4px; display: flex; justify-content: center; flex-wrap: wrap; gap: 3px; }
-    .tag { font-weight: bold; padding: 2px 6px; border-radius: 4px; font-size: 9px; }
-    .tag-zumrichten { background-color: #007bff; color: white; }
-    @keyframes blinker { 50% { opacity: 0.3; } }
-    .tag-biv { background-color: #28a745; color: white; animation: blinker 1.5s linear infinite; }
-    .tag-nom { background-color: #ffc107; color: black; animation: blinker 1s linear infinite; }
+    /* Styling für die Admin-Voting-Tabelle */
+    .vote-table { font-size: 12px; width: 100%; border-collapse: collapse; }
+    .vote-table td, .vote-table th { border: 1px solid #dee2e6; padding: 4px; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -166,44 +135,52 @@ elif st.session_state.view == "Dashboard":
     if st.button("⬅️ Zurück zum Menü"): set_view("Home")
 
 elif st.session_state.view == "BIS_Admin_Control":
-    st.title("🏆 BIS Steuerung & Manuelle Wahl")
+    st.title("👨‍⚖️ BIS Control Center")
     df_full = load_labels()
     if df_full is not None:
         sel_cat = st.selectbox("Kategorie verwalten:", sorted(df_full['KATEGORIE'].unique()))
         bis_defs = [("Adult Male", [1,3,5,7,9], "M"), ("Adult Female", [1,3,5,7,9], "W"), ("Neuter Male", [2,4,6,8,10], "M"), ("Neuter Female", [2,4,6,8,10], "W"), ("Junior 8-12 Male", [11], "M"), ("Junior 8-12 Female", [11], "W"), ("Kitten 4-8 Male", [12], "M"), ("Kitten 4-8 Female", [12], "W")]
         
-        st.subheader("1. Sichtbarkeit & Manuelle Auswahl")
         for label, klassen, geschl in bis_defs:
-            with st.expander(f"Klasse: {label}"):
-                c1, c2, c3 = st.columns([1, 1, 2])
-                key_reveal = f"reveal_{sel_cat}_{label}"; key_winner_reveal = f"winner_reveal_{sel_cat}_{label}"; key_override = f"override_{sel_cat}_{label}"
-                store.data[key_reveal] = c1.checkbox("Zeige Klasse", value=store.data.get(key_reveal, False), key=f"cb1_{key_reveal}")
-                store.data[key_winner_reveal] = c2.checkbox("Zeige Gewinner", value=store.data.get(key_winner_reveal, False), key=f"cb2_{key_winner_reveal}")
-                m = df_full[(df_full['SELECTION'].astype(str).str.upper() == 'X') & (df_full['KATEGORIE'] == sel_cat) & (df_full['KLASSE_INTERNAL'].isin(klassen)) & (df_full['GESCHLECHT'].astype(str).str.upper() == geschl)]
-                options = ["Automatisch (Stimmen)"] + sorted(m['KAT_STR'].unique().tolist())
-                current_override = store.data.get(key_override, "Automatisch (Stimmen)")
-                idx = options.index(current_override) if current_override in options else 0
-                store.data[key_override] = c3.selectbox(f"Gewinner {label}:", options, index=idx, key=f"sb_{key_override}")
+            with st.expander(f"KLASSE: {label}", expanded=True):
+                # Layout: Links Controls, Rechts Voting-Daten
+                c_ctrl, c_votes = st.columns([1, 1.2])
+                
+                with c_ctrl:
+                    st.markdown("**Steuerung & Auswahl**")
+                    key_reveal = f"reveal_{sel_cat}_{label}"; key_winner_reveal = f"winner_reveal_{sel_cat}_{label}"; key_override = f"override_{sel_cat}_{label}"
+                    
+                    store.data[key_reveal] = st.checkbox("Sichtbarkeit Klasse (Public)", value=store.data.get(key_reveal, False), key=f"cb1_{key_reveal}")
+                    store.data[key_winner_reveal] = st.checkbox("Sichtbarkeit Gewinner (Public)", value=store.data.get(key_winner_reveal, False), key=f"cb2_{key_winner_reveal}")
+                    
+                    m = df_full[(df_full['SELECTION'].astype(str).str.upper() == 'X') & (df_full['KATEGORIE'] == sel_cat) & (df_full['KLASSE_INTERNAL'].isin(klassen)) & (df_full['GESCHLECHT'].astype(str).str.upper() == geschl)]
+                    options = ["Automatisch (Stimmen)"] + sorted(m['KAT_STR'].unique().tolist())
+                    current_override = store.data.get(key_override, "Automatisch (Stimmen)")
+                    idx = options.index(current_override) if current_override in options else 0
+                    store.data[key_override] = st.selectbox(f"Gewinner festlegen:", options, index=idx, key=f"sb_{key_override}")
 
-        st.divider()
-        st.subheader("2. Detaillierte Wahlergebnisse")
-        if "votes" in store.data:
-            for label, klassen, geschl in bis_defs:
-                prefix = f"v_{sel_cat}_{label}_"
-                votes_in_class = {k.replace(prefix, ""): v for k, v in store.data["votes"].items() if k.startswith(prefix) and v != "Keine Wahl"}
-                if votes_in_class:
-                    with st.expander(f"Stimmen-Details: {label}"):
+                with c_votes:
+                    st.markdown("**Detaillierte Stimmen**")
+                    prefix = f"v_{sel_cat}_{label}_"
+                    votes_in_class = {k.replace(prefix, ""): v for k, v in store.data.get("votes", {}).items() if k.startswith(prefix) and v != "Keine Wahl"}
+                    
+                    if votes_in_class:
                         summary = {}
                         for judge, kat_nr in votes_in_class.items():
                             if kat_nr not in summary: summary[kat_nr] = []
                             summary[kat_nr].append(judge)
+                        
                         results_table = []
                         for kat_nr, judges_list in summary.items():
                             m_info = df_full[df_full['KAT_STR'] == str(kat_nr)]
-                            info = get_full_label(m_info.iloc[0]) if not m_info.empty else "Unbekannt"
-                            results_table.append({"Katze": f"#{kat_nr}", "Stimmen": len(judges_list), "Gewählt von": ", ".join(judges_list), "Details": info})
+                            info = get_full_label(m_info.iloc[0]) if not m_info.empty else ""
+                            results_table.append({"Kat": f"#{kat_nr}", "Stimmen": len(judges_list), "Richter": ", ".join(judges_list)})
+                        
                         df_res = pd.DataFrame(results_table).sort_values("Stimmen", ascending=False)
                         st.table(df_res)
+                    else:
+                        st.info("Noch keine Stimmen abgegeben.")
+
     if st.button("⬅️ Zurück zum Menü"): set_view("Home")
 
 elif st.session_state.view == "BIS_Public":
@@ -215,11 +192,10 @@ elif st.session_state.view == "BIS_Public":
         bis_defs = [("Adult Male", [1,3,5,7,9], "M"), ("Adult Female", [1,3,5,7,9], "W"), ("Neuter Male", [2,4,6,8,10], "M"), ("Neuter Female", [2,4,6,8,10], "W"), ("Junior 8-12 Male", [11], "M"), ("Junior 8-12 Female", [11], "W"), ("Kitten 4-8 Male", [12], "M"), ("Kitten 4-8 Female", [12], "W")]
         r_col = f"RICHTER {tag}"; judges = sorted([r for r in df_full[df_full[tag].astype(str).str.upper() == 'X'][r_col].unique() if str(r) != "nan"])
         
-        # Spalten-Setup
         col_ratios = [1] + [1] * len(judges) + [1]
         h_cols = st.columns(col_ratios)
-        for i, j in enumerate(judges): h_cols[i+1].markdown(f"<div class='judge-header-box'>{j}</div>", unsafe_allow_html=True)
-        h_cols[-1].markdown(f"<div class='judge-header-box' style='background-color:#b21f2d;'>BIS</div>", unsafe_allow_html=True)
+        for i, j in enumerate(judges): h_cols[i+1].markdown(f<div class='judge-header-box'>{j}</div>, unsafe_allow_html=True)
+        h_cols[-1].markdown(f<div class='judge-header-box' style='background-color:#b21f2d;'>BIS</div>, unsafe_allow_html=True)
         
         for label, klassen, geschl in bis_defs:
             if store.data.get(f"reveal_{sel_cat}_{label}", False):
