@@ -401,8 +401,7 @@ elif st.session_state.view == "BIS_Public":
 
     def get_initials(name):
         parts = str(name).split()
-        if len(parts) >= 2:
-            return (parts[0][0] + parts[-1][0]).upper()
+        if len(parts) >= 2: return (parts[0][0] + parts[-1][0]).upper()
         return str(name)[:2].upper()
 
     display_header_with_logo("🏆 Best in Show")
@@ -421,11 +420,10 @@ elif st.session_state.view == "BIS_Public":
         r_col = f"RICHTER {tag}"
         judges = sorted([r for r in df_full[df_full[tag].astype(str).str.upper() == 'X'][r_col].unique() if str(r) != "nan"])
         
-        # --- SPALTEN-LAYOUT ANPASSUNG ---
-        # Wir geben Klasse (links) und BIS (rechts) 0.8, die Richter-Spalten bleiben bei 1.0
+        # Schmalere Außen-Spalten (0.8) für mehr Platz in der Mitte
         col_weights = [0.8] + [1.0] * len(judges) + [0.8]
         
-        # Header
+        # Header Zeile
         cols = st.columns(col_weights)
         for i, j in enumerate(judges): 
             cols[i+1].markdown(f"<div class='judge-header-box'>{j}</div>", unsafe_allow_html=True)
@@ -433,12 +431,15 @@ elif st.session_state.view == "BIS_Public":
         
         for label, klassen, geschl in bis_defs:
             r_cols = st.columns(col_weights)
-            # Linke Spalte: Klasse
-            r_cols[0].markdown(f"<div class='class-label-box'>{label}</div>", unsafe_allow_html=True)
+            
+            # 1. KLASSEN BOX (links)
+            with r_cols[0]:
+                st.markdown(f"<div class='class-label-box'>{label}</div>", unsafe_allow_html=True)
             
             show_noms = store.data.get(f"reveal_{sel_cat}_{label}", False)
             winner_revealed = store.data.get(f"winner_reveal_{sel_cat}_{label}", False)
             
+            # 2. RICHTER NOMINATIONEN (mitte)
             for i, j in enumerate(judges):
                 with r_cols[i+1]:
                     if show_noms:
@@ -453,16 +454,11 @@ elif st.session_state.view == "BIS_Public":
                         if not m.empty:
                             kat_nr = m.iloc[0]['KAT_STR']
                             circles_html = ""
-                            
                             if winner_revealed:
                                 prefix = f"v_{sel_cat}_{label}_"
                                 all_votes = store.data.get("votes", {})
-                                voters = [
-                                    v_key.replace(prefix, "") 
-                                    for v_key, v_val in all_votes.items() 
-                                    if v_key.startswith(prefix) and str(v_val) == str(kat_nr)
-                                ]
-                                
+                                voters = [v_key.replace(prefix, "") for v_key, v_val in all_votes.items() 
+                                          if v_key.startswith(prefix) and str(v_val) == str(kat_nr)]
                                 if voters:
                                     circles = "".join([f"<div class='judge-circle' title='{v}'>{get_initials(v)}</div>" for v in voters])
                                     circles_html = f"<div class='judge-initials-container'>{circles}</div>"
@@ -479,16 +475,14 @@ elif st.session_state.view == "BIS_Public":
                     else: 
                         st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
             
-            # Rechte Spalte: BIS GEWINNER
+            # 3. BIS GEWINNER BOX (rechts)
             with r_cols[-1]:
                 if winner_revealed:
                     prefix = f"v_{sel_cat}_{label}_"
                     winner_nr = store.data.get(f"override_{sel_cat}_{label}", "Automatisch (Stimmen)")
-                    
                     if winner_nr == "Automatisch (Stimmen)" and "votes" in store.data:
                         vts = [v for k, v in store.data["votes"].items() if k.startswith(prefix) and v != "Keine Wahl"]
-                        if vts: 
-                            winner_nr = pd.Series(vts).value_counts().index[0]
+                        if vts: winner_nr = pd.Series(vts).value_counts().index[0]
                     
                     if winner_nr and winner_nr != "Automatisch (Stimmen)":
                         m_w = df_full[df_full['KAT_STR'] == str(winner_nr)]
