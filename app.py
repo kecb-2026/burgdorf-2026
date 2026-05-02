@@ -153,6 +153,8 @@ elif st.session_state.view == "BIS_Admin_Control":
     if df_full is not None:
         sel_cat = st.selectbox("Kategorie verwalten:", sorted(df_full['KATEGORIE'].unique()))
         bis_defs = [("Adult Male", [1,3,5,7,9], "M"), ("Adult Female", [1,3,5,7,9], "W"), ("Neuter Male", [2,4,6,8,10], "M"), ("Neuter Female", [2,4,6,8,10], "W"), ("Junior 8-12 Male", [11], "M"), ("Junior 8-12 Female", [11], "W"), ("Kitten 4-8 Male", [12], "M"), ("Kitten 4-8 Female", [12], "W")]
+        
+        st.subheader("1. Sichtbarkeit & Manuelle Auswahl")
         for label, klassen, geschl in bis_defs:
             with st.expander(f"Klasse: {label}"):
                 c1, c2, c3 = st.columns([1, 1, 2])
@@ -164,6 +166,27 @@ elif st.session_state.view == "BIS_Admin_Control":
                 current_override = store.data.get(key_override, "Automatisch (Stimmen)")
                 idx = options.index(current_override) if current_override in options else 0
                 store.data[key_override] = c3.selectbox(f"Gewinner {label}:", options, index=idx, key=f"sb_{key_override}")
+
+        st.divider()
+        st.subheader("2. Detaillierte Wahlergebnisse")
+        if "votes" in store.data:
+            for label, klassen, geschl in bis_defs:
+                prefix = f"v_{sel_cat}_{label}_"
+                votes_in_class = {k.replace(prefix, ""): v for k, v in store.data["votes"].items() if k.startswith(prefix) and v != "Keine Wahl"}
+                if votes_in_class:
+                    with st.expander(f"Stimmen-Details: {label}"):
+                        summary = {}
+                        for judge, kat_nr in votes_in_class.items():
+                            if kat_nr not in summary: summary[kat_nr] = []
+                            summary[kat_nr].append(judge)
+                        results_table = []
+                        for kat_nr, judges_list in summary.items():
+                            m_info = df_full[df_full['KAT_STR'] == str(kat_nr)]
+                            info = get_full_label(m_info.iloc[0]) if not m_info.empty else "Unbekannt"
+                            results_table.append({"Katze": f"#{kat_nr}", "Stimmen": len(judges_list), "Gewählt von": ", ".join(judges_list), "Details": info})
+                        df_res = pd.DataFrame(results_table).sort_values("Stimmen", ascending=False)
+                        st.table(df_res)
+        else: st.info("Noch keine Voting-Daten vorhanden.")
     if st.button("⬅️ Zurück zum Menü"): set_view("Home")
 
 elif st.session_state.view == "BIS_Public":
@@ -189,9 +212,18 @@ elif st.session_state.view == "BIS_Public":
                 with row_cols[-1]:
                     if store.data.get(f"winner_reveal_{sel_cat}_{label}", False):
                         manual_winner = store.data.get(f"override_{sel_cat}_{label}", "Automatisch (Stimmen)")
-                        if manual_winner != "Automatisch (Stimmen)":
-                            m_winner = df_full[df_full['KAT_STR'] == str(manual_winner)]
-                            if not m_winner.empty: st.markdown(f"<div class='cat-card winner-card'><div class='cat-number'>{manual_winner}</div><div class='cat-details'><b>🏆 WINNER</b><br>{get_full_label(m_winner.iloc[0])}</div></div>", unsafe_allow_html=True)
+                        winner_nr = None
+                        if manual_winner != "Automatisch (Stimmen)": winner_nr = manual_winner
+                        elif "votes" in store.data:
+                            prefix = f"v_{sel_cat}_{label}_"
+                            votes = [v for k, v in store.data["votes"].items() if k.startswith(prefix) and v != "Keine Wahl"]
+                            if votes:
+                                counts = pd.Series(votes).value_counts()
+                                if len(counts) > 0 and (len(counts) == 1 or counts.iloc[0] > counts.iloc[1]): winner_nr = counts.index[0]
+                                else: st.markdown("<div class='placeholder-box' style='border: 2px solid #dc3545; color: #dc3545;'><b>TIE</b><br>Manual Pick</div>", unsafe_allow_html=True)
+                        if winner_nr:
+                            m_winner = df_full[df_full['KAT_STR'] == str(winner_nr)]
+                            if not m_winner.empty: st.markdown(f"<div class='cat-card winner-card'><div class='cat-number'>{winner_nr}</div><div class='cat-details'><b>🏆 WINNER</b><br>{get_full_label(m_winner.iloc[0])}</div></div>", unsafe_allow_html=True)
                     else: st.markdown("<div class='placeholder-box' style='background-color:#eee;'>🔒</div>", unsafe_allow_html=True)
                 st.divider()
     if st.button("⬅️ Zurück zum Menü"): set_view("Home")
@@ -236,8 +268,11 @@ elif st.session_state.view == "Judge_Voting":
                         opts = {f"#{r['KAT_STR']} - {get_full_label(r)}": r['KAT_STR'] for _, r in pool.iterrows()}
                         v_key = f"v_{active_cat}_{label}_{active_j}"
                         curr = store.data["votes"].get(v_key, "Keine Wahl")
-                        idx = 0; sel = st.radio("Favorit:", ["Keine Wahl"] + list(opts.keys()), index=idx, key=f"r_{v_key}")
+                        idx = 0
+                        if curr in opts.values(): idx = list(opts.values()).index(curr) + 1
+                        sel = st.radio("Favorit:", ["Keine Wahl"] + list(opts.keys()), index=idx, key=f"r_{v_key}")
                         store.data["votes"][v_key] = opts[sel] if sel != "Keine Wahl" else "Keine Wahl"
+                    else: st.info("Keine Nominierten.")
     if st.button("⬅️ Zurück zum Menü"): set_view("Home")
 
 elif st.session_state.view == "Steward_Login":
