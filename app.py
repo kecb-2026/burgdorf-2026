@@ -149,7 +149,6 @@ def logout():
 
 # --- 4. HILFSFUNKTIONEN ---
 
-# NEU: Funktion für rechtsbündiges Logo neben der Überschrift
 def display_header_with_logo(text):
     """Zeigt die Überschrift links und das Logo rechtsbündig an"""
     col_text, col_logo = st.columns([5, 1]) 
@@ -346,7 +345,16 @@ elif st.session_state.view == "BIS_Public":
                 with r_cols[i+1]:
                     if show_noms:
                         m = df_full[(df_full['SELECTION'].astype(str).str.upper() == 'X') & (df_full[r_col] == j) & (df_full['KATEGORIE'] == sel_cat) & (df_full['KLASSE_INTERNAL'].isin(klassen)) & (df_full['GESCHLECHT'].astype(str).str.upper() == geschl)]
-                        if not m.empty: st.markdown(f"<div class='cat-card'><div class='cat-number'>{m.iloc[0]['KAT_STR']}</div><div class='cat-details'>{get_full_label(m.iloc[0])}</div></div>", unsafe_allow_html=True)
+                        if not m.empty: 
+                            st.markdown(f"""
+                                <div class='cat-card'>
+                                    <div class='cat-number'>{m.iloc[0]['KAT_STR']}</div>
+                                    <div class='cat-details'>{get_full_label(m.iloc[0])}</div>
+                                    <div style='font-size: 9px; color: #1a4a9e; margin-top: 5px; font-weight: bold; border-top: 1px dotted #ccc; padding-top: 3px;'>
+                                        NOM: {j}
+                                    </div>
+                                </div>
+                            """, unsafe_allow_html=True)
                         else: st.markdown("<div class='placeholder-box'>–</div>", unsafe_allow_html=True)
                     else: st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
             
