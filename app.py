@@ -26,6 +26,54 @@ st.markdown("""
         max-width: 400px;
         margin: 5% auto;
     }
+    /* Erzeugt einheitliche Höhen für alle Boxen in einer Zeile */
+    .grid-wrapper {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .class-label-box, .cat-card, .placeholder-box {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 10px;
+        border-radius: 14px;
+        margin-bottom: 5px;
+        /* Verhindert das Einknicken der Boxen */
+        min-height: 110px; 
+        height: 100%;
+        box-sizing: border-box;
+        text-align: center;
+    }
+
+    .class-label-box { 
+        background-color: #e9ecef; 
+        color: #1a4a9e; 
+        font-size: 11px !important; 
+        text-transform: uppercase; 
+        font-weight: 800; 
+        border: 2px solid #1a4a9e; 
+        line-height: 1.2;
+    }
+
+    .cat-card { 
+        border: 2px solid #1a4a9e; 
+        background-color: #ffffff; 
+    }
+
+    .placeholder-box { 
+        border: 1px solid #d1d1d1; 
+        background-color: #f2f2f2 !important; 
+        color: #999999; 
+    }
+
+    .winner-card { 
+        border: 3px solid #ff4d4d !important; 
+        background-color: #ffcccc !important; 
+        color: #b21f2d !important; 
+    }
 
     /* Overlay als zentrierte Box (80% Größe) */
     .winner-overlay {
