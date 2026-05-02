@@ -10,30 +10,44 @@ st.markdown("""
     <style>
     @keyframes blinker { 50% { opacity: 0.1; } }
     
+    /* Overlay als zentrierte Box (80% Größe) */
     .winner-overlay {
         position: fixed;
-        top: 0; left: 0; width: 100vw; height: 100vh;
+        top: 10%; left: 10%; 
+        width: 80vw; height: 80vh;
         background-color: white;
         z-index: 9999999;
         display: flex; flex-direction: column;
         align-items: center; justify-content: center;
         text-align: center;
-        animation: fadeIn 0.8s ease-in-out;
+        border-radius: 40px;
+        box-shadow: 0px 0px 100px rgba(0,0,0,0.5);
+        border: 15px solid #1a4a9e;
+        animation: fadeIn 0.5s ease-out;
     }
+    
+    /* Hintergrund-Dimmer für den Rest des Bildschirms */
+    .overlay-backdrop {
+        position: fixed;
+        top: 0; left: 0; width: 100vw; height: 100vh;
+        background-color: rgba(0,0,0,0.7);
+        z-index: 9999998;
+    }
+
     .ov-header {
-        font-size: 55px !important; font-weight: 500; color: #333;
-        border-bottom: 2px solid #ccc; width: 80%;
-        padding-bottom: 25px; margin-bottom: 50px;
+        font-size: 40px !important; font-weight: 500; color: #333;
+        border-bottom: 2px solid #ccc; width: 70%;
+        padding-bottom: 15px; margin-bottom: 30px;
     }
     .ov-cat-name {
-        font-size: 90px !important; font-weight: 900;
+        font-size: 70px !important; font-weight: 900;
         text-transform: uppercase; color: #000;
-        margin-bottom: 30px; line-height: 1.1;
+        margin-bottom: 20px; line-height: 1.1;
     }
     .ov-owner {
-        font-size: 45px !important; font-style: italic; color: #444;
+        font-size: 35px !important; font-style: italic; color: #444;
     }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
 
     .stButton button { width: 100%; height: 50px; font-size: 13px !important; font-weight: bold !important; border-radius: 12px !important; margin-bottom: 5px; border: 2px solid #1a4a9e !important; }
     .judge-header-box { background-color: #1a4a9e; color: white; padding: 8px; border-radius: 10px; text-align: center; font-size: 15px !important; font-weight: bold; margin-bottom: 10px; border: 2px solid #0d2a5e; height: 60px; display: flex; align-items: center; justify-content: center; }
@@ -45,7 +59,6 @@ st.markdown("""
     .cat-details { font-size: 14px !important; color: #333; font-weight: bold; margin-top: 2px; line-height: 1.1; }
     .tag-container { margin-top: 4px; display: flex; justify-content: center; flex-wrap: wrap; gap: 3px; }
     .tag { font-weight: bold; padding: 2px 6px; border-radius: 4px; font-size: 10px; text-transform: uppercase; }
-    .tag-zumrichten { background-color: #007bff; color: white; }
     .tag-biv { background-color: #28a745; color: white; animation: blinker 1.5s linear infinite; }
     .tag-nom { background-color: #ffc107; color: black; animation: blinker 1s linear infinite; }
     </style>
@@ -76,13 +89,14 @@ def render_overlay_html(row):
     besitzer = f"{row.get('BESITZER VORNAME', '')} {row.get('BESITZER NACHNAME', '')}"
     
     return f"""
+        <div class="overlay-backdrop"></div>
         <div class="winner-overlay">
             <div class="ov-header">{kat_nr}. {rasse} {farbe}</div>
             <div class="ov-cat-name">{name_gross}</div>
             <div class="ov-owner">{besitzer}</div>
-            <div style="margin-top: 80px;">
-                <img src="https://upload.wikimedia.org/wikipedia/de/thumb/f/f4/FIFe_logo.svg/500px-FIFe_logo.svg.png" width="130">
-                <div style="font-weight: bold; font-size: 28px; color: #1a4a9e; margin-top: 15px;">KECB BURGDORF 2026</div>
+            <div style="margin-top: 50px;">
+                <img src="https://upload.wikimedia.org/wikipedia/de/thumb/f/f4/FIFe_logo.svg/500px-FIFe_logo.svg.png" width="100">
+                <div style="font-weight: bold; font-size: 22px; color: #1a4a9e; margin-top: 10px;">KECB BURGDORF 2026</div>
             </div>
         </div>
     """
@@ -171,7 +185,7 @@ elif st.session_state.view == "BIS_Admin_Control":
                             if st.button(f"🏆 PUBLIC OVERLAY STARTEN (#{final_nr})", key=f"btn_ov_{sel_cat}_{label}"):
                                 store.active_overlay = w_match.iloc[0].to_dict()
                                 store.overlay_start_time = time.time()
-                                st.success(f"Overlay für #{final_nr} wird auf dem Monitor angezeigt!")
+                                st.success(f"Overlay aktiviert!")
                 
                 with c_votes:
                     st.markdown("**Stimmen-Details**")
@@ -256,12 +270,11 @@ elif st.session_state.view == "BIS_Public":
 elif st.session_state.view == "Dashboard":
     st.title("📢 Live-Aufruf & Status")
     tag_input = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"])
-    tag = tag_input.upper() # WICHTIG: Definiert den Tag für die Filterung
+    tag = tag_input.upper()
     df_full = load_labels()
     
     if df_full is not None:
         r_col = f"RICHTER {tag}"
-        # Liste aller Richter am gewählten Tag (identisch zum Steward-Pult)
         df_tag = df_full[df_full[tag].astype(str).str.upper() == 'X'].copy()
         judges = sorted([r for r in df_tag[r_col].unique() if str(r) != "nan"])
         
@@ -270,7 +283,6 @@ elif st.session_state.view == "Dashboard":
             for i, j in enumerate(judges):
                 with cols[i]:
                     st.markdown(f"<div class='judge-header-box'>{j}</div>", unsafe_allow_html=True)
-                    # Suche nach Daten für diesen Richter im globalen Speicher
                     for k, v in store.data.items():
                         if "|" in k:
                             kat_nr, r_name = k.split("|")
@@ -279,15 +291,7 @@ elif st.session_state.view == "Dashboard":
                                 if not m.empty:
                                     row = m.iloc[0]
                                     tags_html = "".join([f"<span class='tag tag-{t.replace(' ', '').lower()}'>{t.upper()}</span>" for t, active in v.items() if active])
-                                    st.markdown(f"""
-                                        <div class='cat-card'>
-                                            <div class='cat-number'>{kat_nr}</div>
-                                            <div class='cat-details'>{get_full_label(row)}</div>
-                                            <div class='tag-container'>{tags_html}</div>
-                                        </div>
-                                    """, unsafe_allow_html=True)
-        else:
-            st.info(f"Keine Richterdaten für {tag} gefunden.")
+                                    st.markdown(f"<div class='cat-card'><div class='cat-number'>{kat_nr}</div><div class='cat-details'>{get_full_label(row)}</div><div class='tag-container'>{tags_html}</div></div>", unsafe_allow_html=True)
 
     if st.button("⬅️ Zurück"): set_view("Home")
     time.sleep(3)
