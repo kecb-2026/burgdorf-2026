@@ -172,6 +172,9 @@ if "user_role" not in st.session_state:
     st.session_state.user_role = "Public"
 if "view" not in st.session_state:
     st.session_state.view = "Dashboard"
+# FIX: Persistenz für Kategorie
+if "selected_category" not in st.session_state:
+    st.session_state.selected_category = None
 
 q_params = st.query_params
 if "view" in q_params:
@@ -319,7 +322,14 @@ elif st.session_state.view == "BIS_Admin_Control":
     display_header_with_logo("👨‍⚖️ BIS Control Center")
     df_full = load_labels()
     if df_full is not None:
-        sel_cat = st.selectbox("Kategorie verwalten:", sorted(df_full['KATEGORIE'].unique()))
+        # FIX: Kategorie Persistenz für Admin
+        cat_list = sorted(df_full['KATEGORIE'].unique())
+        if st.session_state.selected_category not in cat_list:
+            st.session_state.selected_category = cat_list[0]
+        idx = cat_list.index(st.session_state.selected_category)
+        sel_cat = st.selectbox("Kategorie verwalten:", cat_list, index=idx)
+        st.session_state.selected_category = sel_cat
+
         bis_defs = [("Adult Male", [1,3,5,7,9], "M"), ("Adult Female", [1,3,5,7,9], "W"), ("Neuter Male", [2,4,6,8,10], "M"), ("Neuter Female", [2,4,6,8,10], "W"), ("Junior 8-12 Male", [11], "M"), ("Junior 8-12 Female", [11], "W"), ("Kitten 4-8 Male", [12], "M"), ("Kitten 4-8 Female", [12], "W")]
         
         for label, klassen, geschl in bis_defs:
@@ -379,8 +389,16 @@ elif st.session_state.view == "BIS_Public":
     df_full = load_labels()
     if df_full is not None:
         tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"]).upper()
-        sel_cat = st.selectbox("Kategorie:", sorted(df_full['KATEGORIE'].unique()))
         
+        # --- FIX: Kategorie Persistenz ---
+        cat_list = sorted(df_full['KATEGORIE'].unique())
+        if st.session_state.selected_category not in cat_list:
+            st.session_state.selected_category = cat_list[0]
+        idx = cat_list.index(st.session_state.selected_category)
+        sel_cat = st.selectbox("Kategorie:", cat_list, index=idx)
+        st.session_state.selected_category = sel_cat
+        # --------------------------------
+
         bis_defs = [
             ("Adult Male", [1,3,5,7,9], "M"), ("Adult Female", [1,3,5,7,9], "W"), 
             ("Neuter Male", [2,4,6,8,10], "M"), ("Neuter Female", [2,4,6,8,10], "W"), 
@@ -469,9 +487,6 @@ elif st.session_state.view == "BIS_Public":
 
     time.sleep(3)
     st.rerun()
-
-
-
 
 # LIVE DASHBOARD
 elif st.session_state.view == "Dashboard":
