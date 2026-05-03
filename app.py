@@ -392,11 +392,11 @@ elif st.session_state.view == "BIS_Admin_Control":
         # BIS PUBLIC VIEW
 elif st.session_state.view == "BIS_Public":
     if hasattr(store, 'active_overlay') and store.active_overlay:
-        if time.time() - store.overlay_start_time < 20:
+        if time.time() - store.overlay_start_time < 10:
             st.markdown(render_overlay_html(store.active_overlay), unsafe_allow_html=True)
+			 st_autorefresh(interval=1000, key="overlay_timer") 
 			
-			
-            st.stop()   # <<< GANZ WICHTIG (verhindert Ghost UI
+            
 			
 			
         else: store.active_overlay = None; st.rerun()
