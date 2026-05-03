@@ -247,6 +247,7 @@ def get_full_label(row):
     return f"{r} {g} ({e})".strip()
 
 def set_view(name):
+    store.active_overlay = None   # <-- WICHTIG
     st.session_state.view = name
     st.rerun()
 
@@ -301,6 +302,9 @@ if st.session_state.view == "Login":
     if st.button("Abbrechen"): set_view("Dashboard")
     st.markdown("</div>", unsafe_allow_html=True)
 
+    if st.session_state.view != "BIS_Public":
+    store.active_overlay = None
+    
 # HOME (ADMIN NUR)
 elif st.session_state.view == "Home":
     display_header_with_logo("🐾 KECB Burgdorf 2026")
