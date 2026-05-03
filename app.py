@@ -374,9 +374,14 @@ elif st.session_state.view == "BIS_Admin_Control":
                         if not w_match.empty:
                             store.active_overlay = w_match.iloc[0].to_dict()
                             store.overlay_start_time = time.time()
-                            store.overlay_end_time = 0 # Reset für die neue Berechnung
-                            st.success(f"Overlay für #{final_nr} aktiviert!")
-
+                            time()
+                            # Reset des lokalen Timers für alle Public-Instanzen
+                            if "local_overlay_end" in st.session_state:
+                                st.session_state.local_overlay_end = 0
+                        st.success(f"Overlay für #{final_nr} wurde gestartet!")
+        
+                            
+                            
                 with c_votes:
                     st.markdown("**Stimmen-Details**")
                     if "votes" in store.data:
@@ -391,32 +396,34 @@ elif st.session_state.view == "BIS_Admin_Control":
 # --- BIS PUBLIC VIEW ---
 elif st.session_state.view == "BIS_Public":
     
-    # 1. LOGIK-CHECK: Läuft gerade ein Overlay?
-    if store.active_overlay:
-        # Lokalen Timer initialisieren, falls noch nicht geschehen
+    # Prüfen, ob im globalen Speicher ein Overlay hinterlegt wurde
+    overlay_data = getattr(store, 'active_overlay', None)
+
+    if overlay_data is not None:
+        # Initialisierung des Timers beim ersten Erkennen des Overlays
         if "local_overlay_end" not in st.session_state or st.session_state.local_overlay_end == 0:
             st.session_state.local_overlay_end = time.time() + 20
         
         remaining = st.session_state.local_overlay_end - time.time()
         
         if remaining > 0:
-            # NUR das Overlay anzeigen, sonst NICHTS
-            st.markdown(render_overlay_html(store.active_overlay), unsafe_allow_html=True)
-            st_autorefresh(interval=1000, key="overlay_refresh_active")
-            st.stop()  # Bricht die Ausführung hier sofort ab
+            # Zeige AUSSCHLIESSLICH das Overlay
+            st.markdown(render_overlay_html(overlay_data), unsafe_allow_html=True)
+            # Schneller Refresh während das Overlay aktiv ist
+            st_autorefresh(interval=1000, key="ov_timer_running")
+            st.stop()
         else:
-            # Zeit abgelaufen: Aufräumen
+            # Zeit abgelaufen -> global und lokal zurücksetzen
             store.active_overlay = None
             st.session_state.local_overlay_end = 0
             st.rerun()
-
-    # 2. NORMALE ANSICHT (Wird NUR ausgeführt, wenn store.active_overlay None ist)
+    
+    # Falls kein Overlay da ist: Normale Ansicht
     else:
-        # WICHTIG: Timer für den nächsten Durchlauf zurücksetzen
+        # Sicherstellen, dass der lokale Timer sauber bleibt
         st.session_state.local_overlay_end = 0
         
         display_header_with_logo("🏆 Best in Show")
-        
         df_full = load_labels()
         if df_full is not None:
             tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"], key="tag_sel_public").upper()
@@ -489,7 +496,7 @@ elif st.session_state.view == "BIS_Public":
                     st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
 
         # Der Refresh für die normale Ansicht (alle 3 Sek)
-        st_autorefresh(interval=3000, key="bis_main_refresh")
+        st_autorefresh(interval=3000, key="normal_view_refresh")
 
 
                             
