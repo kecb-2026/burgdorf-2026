@@ -390,16 +390,23 @@ elif st.session_state.view == "BIS_Admin_Control":
 
 # --- BIS PUBLIC VIEW ---
 elif st.session_state.view == "BIS_Public":
-    # 1. OVERLAY LOGIK (Priorität)
+    # 1. OVERLAY LOGIK (Präzise 20 Sekunden)
     if hasattr(store, 'active_overlay') and store.active_overlay:
-        elapsed = time.time() - store.overlay_start_time
-        if elapsed < 20:
+        # Falls noch keine Endzeit gesetzt wurde, setzen wir sie jetzt auf Startzeit + 20s
+        if not hasattr(store, 'overlay_end_time') or store.overlay_end_time == 0:
+            store.overlay_end_time = store.overlay_start_time + 20
+        
+        remaining = store.overlay_end_time - time.time()
+        
+        if remaining > 0:
             st.markdown(render_overlay_html(store.active_overlay), unsafe_allow_html=True)
-            # Kleiner Refresh-Trigger nur für das Overlay
-            st_autorefresh(interval=1000, key="overlay_refresh")
-            st.stop() # Stoppt hier, damit der Rest der Seite nicht geladen wird
+            # Wir refreshen alle 2 Sekunden, das reicht für das Overlay völlig aus
+            st_autorefresh(interval=2000, key="overlay_running")
+            st.stop() 
         else:
+            # Zeit abgelaufen: Alles zurücksetzen
             store.active_overlay = None
+            store.overlay_end_time = 0
             st.rerun()
 
     # 2. NORMALE ANSICHT (Wird nur erreicht, wenn kein Overlay aktiv ist)
