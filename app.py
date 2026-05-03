@@ -247,6 +247,7 @@ def get_full_label(row):
     return f"{r} {g} ({e})".strip()
 
 def set_view(name):
+    store.active_overlay = None   # FIX: Overlay beim Viewwechsel löschen
     st.session_state.view = name
     st.rerun()
 
@@ -263,6 +264,11 @@ st.sidebar.image(LOGO_URL, width=100)
 
 st.session_state.view = st.sidebar.radio("Menü:", available_views, 
     index=available_views.index(st.session_state.view) if st.session_state.view in available_views else 0)
+	
+# FIX: Overlay reset wenn NICHT BIS View
+
+if st.session_state.view != "BIS_Public":
+    store.active_overlay = None	
 
 if st.session_state.authenticated:
     if st.sidebar.button("Abmelden"): logout()
@@ -365,7 +371,11 @@ elif st.session_state.view == "BIS_Public":
     if hasattr(store, 'active_overlay') and store.active_overlay:
         if time.time() - store.overlay_start_time < 20:
             st.markdown(render_overlay_html(store.active_overlay), unsafe_allow_html=True)
-            time.sleep(1); st.rerun() 
+			
+			
+            st.stop()   # <<< GANZ WICHTIG (verhindert Ghost UI
+			
+			
         else: store.active_overlay = None; st.rerun()
 
     def get_initials(name):
@@ -467,7 +477,8 @@ elif st.session_state.view == "BIS_Public":
                 else: 
                     st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
 
-    time.sleep(3)
+   # time.sleep(3)
+    st.autorefresh(interval=3000, key="bis_refresh")
     st.rerun()
 
 
@@ -493,7 +504,9 @@ elif st.session_state.view == "Dashboard":
                             if not m.empty:
                                 tags = "".join([f"<span class='tag tag-{t.lower().replace(' ', '')}'>{t}</span> " for t, val in v.items() if val])
                                 st.markdown(f"<div class='cat-card'><div class='cat-number'>{k.split('|')[0]}</div><div class='cat-details'>{get_full_label(m.iloc[0])}</div><div class='tag-container'>{tags}</div></div>", unsafe_allow_html=True)
-    time.sleep(3); st.rerun()
+    
+	#time.sleep(3); st.rerun()
+	st.autorefresh(interval=3000, key="dash_refresh")
 
 # STEWARD PANEL
 elif st.session_state.view == "Steward_Panel":
