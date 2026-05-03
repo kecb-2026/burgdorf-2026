@@ -392,47 +392,27 @@ elif st.session_state.view == "BIS_Admin_Control":
                             st.write("**Zwischenstand:**")
                             for nr, count in summary.items(): st.write(f"Katze #{nr}: {count} Stimme(n)")
 
-# --- BIS PUBLIC VIEW ---
+# BIS PUBLIC VIEW
 elif st.session_state.view == "BIS_Public":
-    
-    # 1. INITIALEN FUNKTION (Lokal sicherstellen)
-    def get_initials_local(name):
-        if not name or pd.isna(name): return "??"
+    if hasattr(store, 'active_overlay') and store.active_overlay:
+        if time.time() - store.overlay_start_time < 20:
+            st.markdown(render_overlay_html(store.active_overlay), unsafe_allow_html=True)
+            time.sleep(1); st.rerun() 
+        else: store.active_overlay = None; st.rerun()
+
+    def get_initials(name):
+        """Erzeugt Initialen aus Vor- und Nachnamen (z.B. Martti Peltonen -> MP)"""
         parts = str(name).split()
-        return (parts[0][0] + parts[-1][0]).upper() if len(parts) >= 2 else str(name)[:2].upper()
+        if len(parts) >= 2:
+            return (parts[0][0] + parts[-1][0]).upper()
+        return str(name)[:2].upper()
 
-    # 2. FIX: OVERLAY-LOGIK (Priorität)
-    # Wir prüfen, ob im globalen Speicher ein Overlay aktiv ist
-    overlay_to_show = getattr(store, 'active_overlay', None)
-    start_time = getattr(store, 'overlay_start_time', 0)
-
-    if overlay_to_show:
-        # Berechne wie lange das Overlay schon existiert
-        elapsed = time.time() - start_time
-        
-        # Das Overlay soll 20 Sekunden lang gezeigt werden
-        if elapsed < 20:
-            # Zeige das Overlay-HTML
-            st.markdown(render_overlay_html(overlay_to_show), unsafe_allow_html=True)
-            
-            # Aggressiver Refresh (1 Sek), solange das Overlay da ist, damit es nicht flackert
-            st_autorefresh(interval=1000, key="ov_active_timer")
-            st.stop() # Verhindert, dass die Tabelle darunter gerendert wird
-        else:
-            # Zeit abgelaufen -> Globalen Speicher leeren
-            store.active_overlay = None
-            store.overlay_start_time = 0
-            st.rerun()
-
-    # 3. NORMALE ANSICHT (Wird nur erreicht, wenn kein Overlay aktiv ist)
     display_header_with_logo("🏆 Best in Show")
-    
     df_full = load_labels()
     if df_full is not None:
-        tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"], key="pub_tag").upper()
-        sel_cat = st.selectbox("Kategorie:", sorted(df_full['KATEGORIE'].unique()), key="pub_cat")
+        tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"]).upper()
+        sel_cat = st.selectbox("Kategorie:", sorted(df_full['KATEGORIE'].unique()))
         
-        # --- AB HIER DEINE UNVERÄNDERTE TABELLEN-STRUKTUR ---
         bis_defs = [
             ("Adult Male", [1,3,5,7,9], "M"), ("Adult Female", [1,3,5,7,9], "W"), 
             ("Neuter Male", [2,4,6,8,10], "M"), ("Neuter Female", [2,4,6,8,10], "W"), 
@@ -449,7 +429,6 @@ elif st.session_state.view == "BIS_Public":
             cols[i+1].markdown(f"<div class='judge-header-box'>{j}</div>", unsafe_allow_html=True)
         cols[-1].markdown("<div class='judge-header-box' style='background-color:#b21f2d;'>BIS</div>", unsafe_allow_html=True)
         
-        # Zeilen
         for label, klassen, geschl in bis_defs:
             r_cols = st.columns([0.8] + [1.2]*len(judges) + [0.8])
             r_cols[0].markdown(f"<div class='class-label-box'>{label}</div>", unsafe_allow_html=True)
@@ -460,37 +439,68 @@ elif st.session_state.view == "BIS_Public":
             for i, j in enumerate(judges):
                 with r_cols[i+1]:
                     if show_noms:
-                        m = df_full[(df_full['SELECTION'].astype(str).str.upper() == 'X') & (df_full[r_col] == j) & (df_full['KATEGORIE'] == sel_cat) & (df_full['KLASSE_INTERNAL'].isin(klassen)) & (df_full['GESCHLECHT'].astype(str).str.upper() == geschl)]
+                        m = df_full[
+                            (df_full['SELECTION'].astype(str).str.upper() == 'X') & 
+                            (df_full[r_col] == j) & 
+                            (df_full['KATEGORIE'] == sel_cat) & 
+                            (df_full['KLASSE_INTERNAL'].isin(klassen)) & 
+                            (df_full['GESCHLECHT'].astype(str).str.upper() == geschl)
+                        ]
+                        
                         if not m.empty:
                             kat_nr = m.iloc[0]['KAT_STR']
                             circles_html = ""
+                            
                             if winner_revealed:
                                 prefix = f"v_{sel_cat}_{label}_"
-                                voters = [v_k.replace(prefix, "") for v_k, v_v in store.data.get("votes", {}).items() if v_k.startswith(prefix) and str(v_v) == str(kat_nr)]
+                                all_votes = store.data.get("votes", {})
+                                voters = [
+                                    v_key.replace(prefix, "") 
+                                    for v_key, v_val in all_votes.items() 
+                                    if v_key.startswith(prefix) and str(v_val) == str(kat_nr)
+                                ]
+                                
                                 if voters:
-                                    circles = "".join([f"<div class='judge-circle' title='{v}'>{get_initials_local(v)}</div>" for v in voters])
+                                    circles = "".join([f"<div class='judge-circle' title='{v}'>{get_initials(v)}</div>" for v in voters])
                                     circles_html = f"<div class='judge-initials-container'>{circles}</div>"
-                            st.markdown(f"<div class='cat-card'><div class='cat-number'>{kat_nr}</div><div class='cat-details'>{get_full_label(m.iloc[0])}</div>{circles_html}</div>", unsafe_allow_html=True)
-                        else: st.markdown("<div class='placeholder-box'>–</div>", unsafe_allow_html=True)
-                    else: st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
+
+                            st.markdown(f"""
+                                <div class='cat-card'>
+                                    <div class='cat-number'>{kat_nr}</div>
+                                    <div class='cat-details'>{get_full_label(m.iloc[0])}</div>
+                                    {circles_html}
+                                </div>
+                            """, unsafe_allow_html=True)
+                        else: 
+                            st.markdown("<div class='placeholder-box'>–</div>", unsafe_allow_html=True)
+                    else: 
+                        st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
             
-            # Winner Spalte
+            # BIS GEWINNER SPALTE
             with r_cols[-1]:
                 if winner_revealed:
                     prefix = f"v_{sel_cat}_{label}_"
                     winner_nr = store.data.get(f"override_{sel_cat}_{label}", "Automatisch (Stimmen)")
+                    
                     if winner_nr == "Automatisch (Stimmen)" and "votes" in store.data:
                         vts = [v for k, v in store.data["votes"].items() if k.startswith(prefix) and v != "Keine Wahl"]
-                        if vts: winner_nr = pd.Series(vts).value_counts().index[0]
+                        if vts: 
+                            winner_nr = pd.Series(vts).value_counts().index[0]
                     
                     if winner_nr and winner_nr != "Automatisch (Stimmen)":
                         m_w = df_full[df_full['KAT_STR'] == str(winner_nr)]
-                        if not m_w.empty: st.markdown(f"<div class='cat-card winner-card'><div class='cat-number'>{winner_nr}</div><div class='cat-details'>{get_full_label(m_w.iloc[0])}</div></div>", unsafe_allow_html=True)
-                else: st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
+                        if not m_w.empty: 
+                            st.markdown(f"""
+                                <div class='cat-card winner-card'>
+                                    <div class='cat-number'>{winner_nr}</div>
+                                    <div class='cat-details'>{get_full_label(m_w.iloc[0])}</div>
+                                </div>
+                            """, unsafe_allow_html=True)
+                else: 
+                    st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
 
-        # Der normale Refresh (alle 3 Sek)
-        st_autorefresh(interval=3000, key="bis_table_refresh")
-
+    time.sleep(3)
+    st.rerun()
 
 
 # LIVE DASHBOARD
