@@ -470,7 +470,7 @@ elif st.session_state.view == "BIS_Public":
                             """, unsafe_allow_html=True)
                 else: 
                     st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
-                    st_autorefresh(interval=3000, key="bis_refresh")
+    st_autorefresh(interval=3000, key="bis_refresh_global")
     #time.sleep(3)
     #st.rerun()
 
