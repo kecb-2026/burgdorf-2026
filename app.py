@@ -523,7 +523,7 @@ elif st.session_state.view == "Dashboard":
                             if not m.empty:
                                 tags = "".join([f"<span class='tag tag-{t.lower().replace(' ', '')}'>{t}</span> " for t, val in v.items() if val])
                                 st.markdown(f"<div class='cat-card'><div class='cat-number'>{k.split('|')[0]}</div><div class='cat-details'>{get_full_label(m.iloc[0])}</div><div class='tag-container'>{tags}</div></div>", unsafe_allow_html=True)
-    st_autorefresh(interval=10000, key="dash_refresh")
+    st_autorefresh(interval=5000, key="dash_refresh")
 	#time.sleep(3); st.rerun()
 	
 
