@@ -179,11 +179,18 @@ if "view" not in st.session_state:
 q_params = st.query_params
 if "view" in q_params:
     v_param = q_params["view"].lower()
+    
+    # NEU: Wenn 'auth' in der URL steht, logge den User automatisch wieder ein
+    if q_params.get("auth") == "true":
+        st.session_state.authenticated = True
+        st.session_state.user_role = q_params.get("role", "Public")
+
     if v_param == "katzenaufruf": st.session_state.view = "Dashboard"
     elif v_param == "bis": st.session_state.view = "BIS_Public"
     elif v_param in ["admin", "steward", "richter", "bis-admin"]:
         st.session_state.view = "Login"
         st.session_state.target_role = v_param
+
 
 def logout():
     st.session_state.authenticated = False
@@ -317,18 +324,22 @@ if st.session_state.view == "Login":
     if st.button("Anmelden"):
         if role_input == "Admin" and password == "admin2026":
             st.session_state.user_role, st.session_state.authenticated = "Admin", True
+            st.query_params.update(auth="true", role="Admin") # URL FIX
             set_view("Home")
         elif role_input == "Steward" and password == "steward2026":
             st.session_state.user_role, st.session_state.authenticated = "Steward", True
+            st.query_params.update(auth="true", role="Steward") # URL FIX
             set_view("Steward_Panel")
         elif role_input == "Richter" and password == "judge2026":
             st.session_state.user_role, st.session_state.authenticated = "Richter", True
+            st.query_params.update(auth="true", role="Richter") # URL FIX
             set_view("Judge_Voting")
         else:
             st.error("Passwort ungültig.")
     
     if st.button("Abbrechen"): set_view("Dashboard")
     st.markdown("</div>", unsafe_allow_html=True)
+
 
 # HOME (ADMIN NUR)
 elif st.session_state.view == "Home":
