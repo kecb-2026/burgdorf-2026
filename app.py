@@ -138,8 +138,16 @@ st.markdown("""
         border: 2px solid #1a4a9e; display: flex; align-items: center; justify-content: center; 
         height: 80px; width: 100%; line-height: 1.1; 
     }
+    
+    .class-label-box-bis { 
+        background-color: #e9ecef; color: #1a4a9e; padding: 5px; border-radius: 10px; text-align: center; 
+        font-size: 11px !important; text-transform: uppercase; font-weight: 800; 
+        border: 2px solid #1a4a9e; display: flex; align-items: center; justify-content: center; 
+        height: 150px; width: 100%; line-height: 1.1; 
+    }
 
-    .cat-card, .placeholder-box { padding: 5px; border: 2px solid #1a4a9e; text-align: center; background-color: #ffffff; border-radius: 14px; margin-bottom: 5px; min-height: 80px; display: flex; height:120px; flex-direction: column; justify-content: center; align-items: center; }
+    .cat-card, .placeholder-box { padding: 5px; border: 2px solid #1a4a9e; text-align: center; background-color: #ffffff; border-radius: 14px; margin-bottom: 5px; min-height: 80px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+    .cat-card-bis, .placeholder-box { padding: 5px; border: 2px solid #1a4a9e; text-align: center; background-color: #ffffff; border-radius: 14px; margin-bottom: 5px; min-height: 80px; display: flex; height:120px; flex-direction: column; justify-content: center; align-items: center; }
     .placeholder-box { border: 1px solid #d1d1d1; background-color: #f2f2f2 !important; color: #999999; }
     .winner-card { border: 3px solid #ff4d4d !important; background-color: #ffcccc !important; color: #b21f2d !important; }
     .cat-number { font-size: 28px !important; font-weight: 900 !important; color: #1a4a9e; line-height: 1.0; }
@@ -403,7 +411,7 @@ elif st.session_state.view == "BIS_Public":
         
         for label, klassen, geschl in bis_defs:
             r_cols = st.columns([0.8] + [1.2]*len(judges) + [0.8])
-            r_cols[0].markdown(f"<div class='class-label-box'>{label}</div>", unsafe_allow_html=True)
+            r_cols[0].markdown(f"<div class='class-label-box-bis'>{label}</div>", unsafe_allow_html=True)
             
             show_noms = store.data.get(f"reveal_{sel_cat}_{label}", False)
             winner_revealed = store.data.get(f"winner_reveal_{sel_cat}_{label}", False)
@@ -437,7 +445,7 @@ elif st.session_state.view == "BIS_Public":
                                     circles_html = f"<div class='judge-initials-container'>{circles}</div>"
 
                             st.markdown(f"""
-                                <div class='cat-card'>
+                                <div class='cat-card-bis'>
                                     <div class='cat-number'>{kat_nr}</div>
                                     <div class='cat-details'>{get_full_label(m.iloc[0])}</div>
                                     {circles_html}
