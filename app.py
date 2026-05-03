@@ -390,42 +390,37 @@ elif st.session_state.view == "BIS_Admin_Control":
 
 # --- BIS PUBLIC VIEW ---
 elif st.session_state.view == "BIS_Public":
-    # 1. Prüfen, ob ein Overlay vom Admin gestartet wurde
+    
+    # 1. LOGIK-CHECK: Läuft gerade ein Overlay?
     if store.active_overlay:
-        # Initialisierung des lokalen Timers im Browser-Tab
+        # Lokalen Timer initialisieren, falls noch nicht geschehen
         if "local_overlay_end" not in st.session_state or st.session_state.local_overlay_end == 0:
             st.session_state.local_overlay_end = time.time() + 20
         
         remaining = st.session_state.local_overlay_end - time.time()
         
         if remaining > 0:
-            # Zeige das Overlay
+            # NUR das Overlay anzeigen, sonst NICHTS
             st.markdown(render_overlay_html(store.active_overlay), unsafe_allow_html=True)
-            
-            # Erzwinge den Refresh, um den Timer runterzuzählen
-            # Wir nutzen hier custom_autorefresh, um sicherzugehen
-            st_autorefresh(interval=1000, key="ov_timer_final")
-            st.stop()
+            st_autorefresh(interval=1000, key="overlay_refresh_active")
+            st.stop()  # Bricht die Ausführung hier sofort ab
         else:
-            # Zeit ist abgelaufen
+            # Zeit abgelaufen: Aufräumen
             store.active_overlay = None
             st.session_state.local_overlay_end = 0
             st.rerun()
+
+    # 2. NORMALE ANSICHT (Wird NUR ausgeführt, wenn store.active_overlay None ist)
     else:
-        # Reset des lokalen Timers, wenn kein globales Overlay aktiv ist
+        # WICHTIG: Timer für den nächsten Durchlauf zurücksetzen
         st.session_state.local_overlay_end = 0
-
-    # 2. NORMALE ANSICHT (Wird nur erreicht, wenn kein Overlay aktiv ist)
-    def get_initials(name):
-        parts = str(name).split()
-        return (parts[0][0] + parts[-1][0]).upper() if len(parts) >= 2 else str(name)[:2].upper()
-
-    display_header_with_logo("🏆 Best in Show")
-    df_full = load_labels()
-    
-    if df_full is not None:
-        tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"], key="tag_sel").upper()
-        sel_cat = st.selectbox("Kategorie:", sorted(df_full['KATEGORIE'].unique()), key="cat_sel")
+        
+        display_header_with_logo("🏆 Best in Show")
+        
+        df_full = load_labels()
+        if df_full is not None:
+            tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"], key="tag_sel_public").upper()
+            sel_cat = st.selectbox("Kategorie:", sorted(df_full['KATEGORIE'].unique()), key="cat_sel_public")
         bis_defs = [
             ("Adult Male", [1,3,5,7,9], "M"), ("Adult Female", [1,3,5,7,9], "W"), 
             ("Neuter Male", [2,4,6,8,10], "M"), ("Neuter Female", [2,4,6,8,10], "W"), 
