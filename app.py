@@ -2,7 +2,8 @@ import streamlit as st
 import pandas as pd
 import re
 import time
-import st_autorefresh  # Add this line
+from streamlit_autorefresh import st_autorefresh
+
 
 
 # --- 1. SETUP & STYLING ---
