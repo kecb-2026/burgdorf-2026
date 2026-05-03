@@ -374,7 +374,6 @@ elif st.session_state.view == "BIS_Admin_Control":
                         if not w_match.empty:
                             store.active_overlay = w_match.iloc[0].to_dict()
                             store.overlay_start_time = time.time()
-                            time()
                             # Reset des lokalen Timers für alle Public-Instanzen
                             if "local_overlay_end" in st.session_state:
                                 st.session_state.local_overlay_end = 0
