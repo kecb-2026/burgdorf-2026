@@ -500,8 +500,10 @@ elif st.session_state.view == "BIS_Public":
                 else: 
                     st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
 
-    time.sleep(3)
-    st.rerun()
+       # Nutze Autorefresh statt manuellem sleep/rerun, 
+    # damit die App im Hintergrund auf das Admin-Signal warten kann.
+    st_autorefresh(interval=3000, key="bis_public_refresh")
+
 
 
 
