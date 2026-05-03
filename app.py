@@ -264,8 +264,7 @@ st.sidebar.image(LOGO_URL, width=100)
 
 st.session_state.view = st.sidebar.radio("Menü:", available_views, 
     index=available_views.index(st.session_state.view) if st.session_state.view in available_views else 0)
-if st.session_state.view != "BIS_Public":
-    store.active_overlay = None
+
 if st.session_state.authenticated:
     if st.sidebar.button("Abmelden"): logout()
 elif st.session_state.view != "Login":
