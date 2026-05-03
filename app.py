@@ -395,36 +395,36 @@ elif st.session_state.view == "BIS_Admin_Control":
 # --- BIS PUBLIC VIEW ---
 elif st.session_state.view == "BIS_Public":
     
-    # 1. DEFINITION (Sicherheitshalber hier, falls oben gelöscht)
+    # 1. INITIALEN FUNKTION (Lokal sicherstellen)
     def get_initials_local(name):
         if not name or pd.isna(name): return "??"
         parts = str(name).split()
         return (parts[0][0] + parts[-1][0]).upper() if len(parts) >= 2 else str(name)[:2].upper()
 
-    # 2. OVERLAY-LOGIK (Priorität)
-    # Wir prüfen den globalen Store
+    # 2. FIX: OVERLAY-LOGIK (Priorität)
+    # Wir prüfen, ob im globalen Speicher ein Overlay aktiv ist
     overlay_to_show = getattr(store, 'active_overlay', None)
+    start_time = getattr(store, 'overlay_start_time', 0)
 
     if overlay_to_show:
-        # Timer initialisieren
-        if "local_overlay_end" not in st.session_state or st.session_state.local_overlay_end == 0:
-            st.session_state.local_overlay_end = time.time() + 20
+        # Berechne wie lange das Overlay schon existiert
+        elapsed = time.time() - start_time
         
-        remaining = st.session_state.local_overlay_end - time.time()
-        
-        if remaining > 0:
-            # Zeige NUR das Overlay und stoppe den Rest
+        # Das Overlay soll 20 Sekunden lang gezeigt werden
+        if elapsed < 20:
+            # Zeige das Overlay-HTML
             st.markdown(render_overlay_html(overlay_to_show), unsafe_allow_html=True)
+            
+            # Aggressiver Refresh (1 Sek), solange das Overlay da ist, damit es nicht flackert
             st_autorefresh(interval=1000, key="ov_active_timer")
-            st.stop() 
+            st.stop() # Verhindert, dass die Tabelle darunter gerendert wird
         else:
-            # Zeit abgelaufen -> Aufräumen
+            # Zeit abgelaufen -> Globalen Speicher leeren
             store.active_overlay = None
-            st.session_state.local_overlay_end = 0
+            store.overlay_start_time = 0
             st.rerun()
 
     # 3. NORMALE ANSICHT (Wird nur erreicht, wenn kein Overlay aktiv ist)
-    st.session_state.local_overlay_end = 0 # Reset Timer
     display_header_with_logo("🏆 Best in Show")
     
     df_full = load_labels()
@@ -432,7 +432,7 @@ elif st.session_state.view == "BIS_Public":
         tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"], key="pub_tag").upper()
         sel_cat = st.selectbox("Kategorie:", sorted(df_full['KATEGORIE'].unique()), key="pub_cat")
         
-        # --- TABELLEN-STRUKTUR ---
+        # --- AB HIER DEINE UNVERÄNDERTE TABELLEN-STRUKTUR ---
         bis_defs = [
             ("Adult Male", [1,3,5,7,9], "M"), ("Adult Female", [1,3,5,7,9], "W"), 
             ("Neuter Male", [2,4,6,8,10], "M"), ("Neuter Female", [2,4,6,8,10], "W"), 
@@ -468,7 +468,6 @@ elif st.session_state.view == "BIS_Public":
                                 prefix = f"v_{sel_cat}_{label}_"
                                 voters = [v_k.replace(prefix, "") for v_k, v_v in store.data.get("votes", {}).items() if v_k.startswith(prefix) and str(v_v) == str(kat_nr)]
                                 if voters:
-                                    # Hier nutzen wir die lokale Funktion get_initials_local
                                     circles = "".join([f"<div class='judge-circle' title='{v}'>{get_initials_local(v)}</div>" for v in voters])
                                     circles_html = f"<div class='judge-initials-container'>{circles}</div>"
                             st.markdown(f"<div class='cat-card'><div class='cat-number'>{kat_nr}</div><div class='cat-details'>{get_full_label(m.iloc[0])}</div>{circles_html}</div>", unsafe_allow_html=True)
@@ -491,6 +490,7 @@ elif st.session_state.view == "BIS_Public":
 
         # Der normale Refresh (alle 3 Sek)
         st_autorefresh(interval=3000, key="bis_table_refresh")
+
 
 
 # LIVE DASHBOARD
