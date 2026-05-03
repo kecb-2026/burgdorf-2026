@@ -387,37 +387,26 @@ elif st.session_state.view == "BIS_Admin_Control":
                             st.write("**Zwischenstand:**")
                             for nr, count in summary.items(): st.write(f"Katze #{nr}: {count} Stimme(n)")
 
-
-                            
-# --- BIS PUBLIC VIEW ---
+# BIS PUBLIC VIEW
 elif st.session_state.view == "BIS_Public":
-    # Prüfen, ob ein Overlay aktiv ist
-    if store.active_overlay:
-        elapsed_time = time.time() - store.overlay_start_time
-        if elapsed_time < 20: # Anzeige für 20 Sekunden
+    if hasattr(store, 'active_overlay') and store.active_overlay:
+        if time.time() - store.overlay_start_time < 20:
             st.markdown(render_overlay_html(store.active_overlay), unsafe_allow_html=True)
-            # Wichtig: Ein schneller Refresh während das Overlay aktiv ist
-            st_autorefresh(interval=1000, key="overlay_timer")
-        else:
-            # Zeit abgelaufen: Overlay im Speicher löschen und Seite neu laden
-            store.active_overlay = None
-            st.rerun()
-    
-    # Wenn kein Overlay aktiv ist, zeige die normale BIS-Tabelle
-    else:
-        def get_initials(name):
-            """Erzeugt Initialen aus Vor- und Nachnamen (z.B. Martti Peltonen -> MP)"""
-            parts = str(name).split()
-            if len(parts) >= 2:
-                return (parts[0][0] + parts[-1][0]).upper()
-            return str(name)[:2].upper()
+            time.sleep(1); st.rerun() 
+        else: store.active_overlay = None; st.rerun()
 
-        display_header_with_logo("🏆 Best in Show")
-        df_full = load_labels()
-        
-        if df_full is not None:
-            tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"]).upper()
-            sel_cat = st.selectbox("Kategorie:", sorted(df_full['KATEGORIE'].unique()))
+    def get_initials(name):
+        """Erzeugt Initialen aus Vor- und Nachnamen (z.B. Martti Peltonen -> MP)"""
+        parts = str(name).split()
+        if len(parts) >= 2:
+            return (parts[0][0] + parts[-1][0]).upper()
+        return str(name)[:2].upper()
+
+    display_header_with_logo("🏆 Best in Show")
+    df_full = load_labels()
+    if df_full is not None:
+        tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"]).upper()
+        sel_cat = st.selectbox("Kategorie:", sorted(df_full['KATEGORIE'].unique()))
         
         bis_defs = [
             ("Adult Male", [1,3,5,7,9], "M"), ("Adult Female", [1,3,5,7,9], "W"), 
@@ -505,10 +494,12 @@ elif st.session_state.view == "BIS_Public":
                 else: 
                     st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
 
-       # Nutze Autorefresh statt manuellem sleep/rerun, 
-    # damit die App im Hintergrund auf das Admin-Signal warten kann.
-    st_autorefresh(interval=3000, key="bis_public_refresh")
+    time.sleep(3)
+    st.rerun()
 
+                            
+
+       
 
 
 
