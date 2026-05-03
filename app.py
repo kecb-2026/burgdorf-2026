@@ -396,38 +396,44 @@ elif st.session_state.view == "BIS_Admin_Control":
 # --- BIS PUBLIC VIEW ---
 elif st.session_state.view == "BIS_Public":
     
-    # Prüfen, ob im globalen Speicher ein Overlay hinterlegt wurde
-    overlay_data = getattr(store, 'active_overlay', None)
+    # 1. DEFINITION (Sicherheitshalber hier, falls oben gelöscht)
+    def get_initials_local(name):
+        if not name or pd.isna(name): return "??"
+        parts = str(name).split()
+        return (parts[0][0] + parts[-1][0]).upper() if len(parts) >= 2 else str(name)[:2].upper()
 
-    if overlay_data is not None:
-        # Initialisierung des Timers beim ersten Erkennen des Overlays
+    # 2. OVERLAY-LOGIK (Priorität)
+    # Wir prüfen den globalen Store
+    overlay_to_show = getattr(store, 'active_overlay', None)
+
+    if overlay_to_show:
+        # Timer initialisieren
         if "local_overlay_end" not in st.session_state or st.session_state.local_overlay_end == 0:
             st.session_state.local_overlay_end = time.time() + 20
         
         remaining = st.session_state.local_overlay_end - time.time()
         
         if remaining > 0:
-            # Zeige AUSSCHLIESSLICH das Overlay
-            st.markdown(render_overlay_html(overlay_data), unsafe_allow_html=True)
-            # Schneller Refresh während das Overlay aktiv ist
-            st_autorefresh(interval=1000, key="ov_timer_running")
-            st.stop()
+            # Zeige NUR das Overlay und stoppe den Rest
+            st.markdown(render_overlay_html(overlay_to_show), unsafe_allow_html=True)
+            st_autorefresh(interval=1000, key="ov_active_timer")
+            st.stop() 
         else:
-            # Zeit abgelaufen -> global und lokal zurücksetzen
+            # Zeit abgelaufen -> Aufräumen
             store.active_overlay = None
             st.session_state.local_overlay_end = 0
             st.rerun()
+
+    # 3. NORMALE ANSICHT (Wird nur erreicht, wenn kein Overlay aktiv ist)
+    st.session_state.local_overlay_end = 0 # Reset Timer
+    display_header_with_logo("🏆 Best in Show")
     
-    # Falls kein Overlay da ist: Normale Ansicht
-    else:
-        # Sicherstellen, dass der lokale Timer sauber bleibt
-        st.session_state.local_overlay_end = 0
+    df_full = load_labels()
+    if df_full is not None:
+        tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"], key="pub_tag").upper()
+        sel_cat = st.selectbox("Kategorie:", sorted(df_full['KATEGORIE'].unique()), key="pub_cat")
         
-        display_header_with_logo("🏆 Best in Show")
-        df_full = load_labels()
-        if df_full is not None:
-            tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"], key="tag_sel_public").upper()
-            sel_cat = st.selectbox("Kategorie:", sorted(df_full['KATEGORIE'].unique()), key="cat_sel_public")
+        # --- TABELLEN-STRUKTUR ---
         bis_defs = [
             ("Adult Male", [1,3,5,7,9], "M"), ("Adult Female", [1,3,5,7,9], "W"), 
             ("Neuter Male", [2,4,6,8,10], "M"), ("Neuter Female", [2,4,6,8,10], "W"), 
@@ -438,13 +444,13 @@ elif st.session_state.view == "BIS_Public":
         r_col = f"RICHTER {tag}"
         judges = sorted([r for r in df_full[df_full[tag].astype(str).str.upper() == 'X'][r_col].unique() if str(r) != "nan"])
         
-        # Header Rendering
+        # Header
         cols = st.columns([0.8] + [1.2]*len(judges) + [0.8])
         for i, j in enumerate(judges): 
             cols[i+1].markdown(f"<div class='judge-header-box'>{j}</div>", unsafe_allow_html=True)
         cols[-1].markdown("<div class='judge-header-box' style='background-color:#b21f2d;'>BIS</div>", unsafe_allow_html=True)
         
-        # Zeilen Rendering
+        # Zeilen
         for label, klassen, geschl in bis_defs:
             r_cols = st.columns([0.8] + [1.2]*len(judges) + [0.8])
             r_cols[0].markdown(f"<div class='class-label-box'>{label}</div>", unsafe_allow_html=True)
@@ -455,14 +461,7 @@ elif st.session_state.view == "BIS_Public":
             for i, j in enumerate(judges):
                 with r_cols[i+1]:
                     if show_noms:
-                        m = df_full[
-                            (df_full['SELECTION'].astype(str).str.upper() == 'X') & 
-                            (df_full[r_col] == j) & 
-                            (df_full['KATEGORIE'] == sel_cat) & 
-                            (df_full['KLASSE_INTERNAL'].isin(klassen)) & 
-                            (df_full['GESCHLECHT'].astype(str).str.upper() == geschl)
-                        ]
-                        
+                        m = df_full[(df_full['SELECTION'].astype(str).str.upper() == 'X') & (df_full[r_col] == j) & (df_full['KATEGORIE'] == sel_cat) & (df_full['KLASSE_INTERNAL'].isin(klassen)) & (df_full['GESCHLECHT'].astype(str).str.upper() == geschl)]
                         if not m.empty:
                             kat_nr = m.iloc[0]['KAT_STR']
                             circles_html = ""
@@ -470,16 +469,14 @@ elif st.session_state.view == "BIS_Public":
                                 prefix = f"v_{sel_cat}_{label}_"
                                 voters = [v_k.replace(prefix, "") for v_k, v_v in store.data.get("votes", {}).items() if v_k.startswith(prefix) and str(v_v) == str(kat_nr)]
                                 if voters:
-                                    circles = "".join([f"<div class='judge-circle' title='{v}'>{get_initials(v)}</div>" for v in voters])
+                                    # Hier nutzen wir die lokale Funktion get_initials_local
+                                    circles = "".join([f<div class='judge-circle' title='{v}'>{get_initials_local(v)}</div>" for v in voters])
                                     circles_html = f"<div class='judge-initials-container'>{circles}</div>"
-
                             st.markdown(f"<div class='cat-card'><div class='cat-number'>{kat_nr}</div><div class='cat-details'>{get_full_label(m.iloc[0])}</div>{circles_html}</div>", unsafe_allow_html=True)
-                        else: 
-                            st.markdown("<div class='placeholder-box'>–</div>", unsafe_allow_html=True)
-                    else: 
-                        st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
+                        else: st.markdown("<div class='placeholder-box'>–</div>", unsafe_allow_html=True)
+                    else: st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
             
-            # GEWINNER SPALTE
+            # Winner Spalte
             with r_cols[-1]:
                 if winner_revealed:
                     prefix = f"v_{sel_cat}_{label}_"
@@ -490,20 +487,11 @@ elif st.session_state.view == "BIS_Public":
                     
                     if winner_nr and winner_nr != "Automatisch (Stimmen)":
                         m_w = df_full[df_full['KAT_STR'] == str(winner_nr)]
-                        if not m_w.empty: 
-                            st.markdown(f"<div class='cat-card winner-card'><div class='cat-number'>{winner_nr}</div><div class='cat-details'>{get_full_label(m_w.iloc[0])}</div></div>", unsafe_allow_html=True)
-                else: 
-                    st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
+                        if not m_w.empty: st.markdown(f"<div class='cat-card winner-card'><div class='cat-number'>{winner_nr}</div><div class='cat-details'>{get_full_label(m_w.iloc[0])}</div></div>", unsafe_allow_html=True)
+                else: st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
 
-        # Der Refresh für die normale Ansicht (alle 3 Sek)
-        st_autorefresh(interval=3000, key="normal_view_refresh")
-
-
-                            
-
-       
-
-
+        # Der normale Refresh (alle 3 Sek)
+        st_autorefresh(interval=3000, key="bis_table_refresh")
 
 
 # LIVE DASHBOARD
