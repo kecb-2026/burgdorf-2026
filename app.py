@@ -389,30 +389,35 @@ elif st.session_state.view == "BIS_Admin_Control":
 
 
                             
-        # BIS PUBLIC VIEW
+# --- BIS PUBLIC VIEW ---
 elif st.session_state.view == "BIS_Public":
-    if hasattr(store, 'active_overlay') and store.active_overlay:
-        if time.time() - store.overlay_start_time < 10:
+    # Prüfen, ob ein Overlay aktiv ist
+    if store.active_overlay:
+        elapsed_time = time.time() - store.overlay_start_time
+        if elapsed_time < 20: # Anzeige für 20 Sekunden
             st.markdown(render_overlay_html(store.active_overlay), unsafe_allow_html=True)
-			st_autorefresh(interval=1000, key="overlay_timer") 
-			
-            
-			
-			
-        else: store.active_overlay = None; st.rerun()
+            # Wichtig: Ein schneller Refresh während das Overlay aktiv ist
+            st_autorefresh(interval=1000, key="overlay_timer")
+        else:
+            # Zeit abgelaufen: Overlay im Speicher löschen und Seite neu laden
+            store.active_overlay = None
+            st.rerun()
+    
+    # Wenn kein Overlay aktiv ist, zeige die normale BIS-Tabelle
+    else:
+        def get_initials(name):
+            """Erzeugt Initialen aus Vor- und Nachnamen (z.B. Martti Peltonen -> MP)"""
+            parts = str(name).split()
+            if len(parts) >= 2:
+                return (parts[0][0] + parts[-1][0]).upper()
+            return str(name)[:2].upper()
 
-    def get_initials(name):
-        """Erzeugt Initialen aus Vor- und Nachnamen (z.B. Martti Peltonen -> MP)"""
-        parts = str(name).split()
-        if len(parts) >= 2:
-            return (parts[0][0] + parts[-1][0]).upper()
-        return str(name)[:2].upper()
-
-    display_header_with_logo("🏆 Best in Show")
-    df_full = load_labels()
-    if df_full is not None:
-        tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"]).upper()
-        sel_cat = st.selectbox("Kategorie:", sorted(df_full['KATEGORIE'].unique()))
+        display_header_with_logo("🏆 Best in Show")
+        df_full = load_labels()
+        
+        if df_full is not None:
+            tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"]).upper()
+            sel_cat = st.selectbox("Kategorie:", sorted(df_full['KATEGORIE'].unique()))
         
         bis_defs = [
             ("Adult Male", [1,3,5,7,9], "M"), ("Adult Female", [1,3,5,7,9], "W"), 
