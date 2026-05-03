@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import re
 import time
+from streamlit_autorefresh import st_autorefresh
 
 # --- 1. SETUP & STYLING ---
 st.set_page_config(layout="wide", page_title="KECB Burgdorf 2026", page_icon="🐾")
