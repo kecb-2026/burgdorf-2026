@@ -470,7 +470,7 @@ elif st.session_state.view == "BIS_Public":
                                 voters = [v_k.replace(prefix, "") for v_k, v_v in store.data.get("votes", {}).items() if v_k.startswith(prefix) and str(v_v) == str(kat_nr)]
                                 if voters:
                                     # Hier nutzen wir die lokale Funktion get_initials_local
-                                    circles = "".join([f<div class='judge-circle' title='{v}'>{get_initials_local(v)}</div>" for v in voters])
+                                    circles = "".join([f"<div class='judge-circle' title='{v}'>{get_initials_local(v)}</div>" for v in voters])
                                     circles_html = f"<div class='judge-initials-container'>{circles}</div>"
                             st.markdown(f"<div class='cat-card'><div class='cat-number'>{kat_nr}</div><div class='cat-details'>{get_full_label(m.iloc[0])}</div>{circles_html}</div>", unsafe_allow_html=True)
                         else: st.markdown("<div class='placeholder-box'>–</div>", unsafe_allow_html=True)
