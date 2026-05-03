@@ -487,6 +487,7 @@ elif st.session_state.view == "BIS_Public":
 
     time.sleep(3)
     st.rerun()
+    st.stop()
 
 # LIVE DASHBOARD
 elif st.session_state.view == "Dashboard":
@@ -508,7 +509,9 @@ elif st.session_state.view == "Dashboard":
                             if not m.empty:
                                 tags = "".join([f"<span class='tag tag-{t.lower().replace(' ', '')}'>{t}</span> " for t, val in v.items() if val])
                                 st.markdown(f"<div class='cat-card'><div class='cat-number'>{k.split('|')[0]}</div><div class='cat-details'>{get_full_label(m.iloc[0])}</div><div class='tag-container'>{tags}</div></div>", unsafe_allow_html=True)
-    time.sleep(3); st.rerun()
+    time.sleep(3)
+    st.rerun()
+    st.stop()
 
 # STEWARD PANEL
 elif st.session_state.view == "Steward_Panel":
