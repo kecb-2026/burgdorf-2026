@@ -374,7 +374,7 @@ elif st.session_state.view == "BIS_Admin_Control":
                         if not w_match.empty:
                             store.active_overlay = w_match.iloc[0].to_dict()
                             store.overlay_start_time = time.time()
-                             store.overlay_end_time = 0 # Reset für die neue Berechnung
+                            store.overlay_end_time = 0 # Reset für die neue Berechnung
                             st.success(f"Overlay für #{final_nr} aktiviert!")
 
                 with c_votes:
