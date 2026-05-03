@@ -193,6 +193,26 @@ def logout():
 
 # --- 4. HILFSFUNKTIONEN ---
 
+def custom_autorefresh(interval_ms):
+    """A simple autorefresh using modern Streamlit commands."""
+    import streamlit.components.v1 as components
+    # This creates a tiny invisible piece of Javascript that clicks a button
+    # or triggers a rerun every X milliseconds.
+    components.html(
+        f"""
+        <script>
+            window.parent.postMessage({{
+                type: 'streamlit:set_component_value',
+                value: Date.now()
+            }}, '*');
+        </script>
+        """,
+        height=0,
+    )
+    time.sleep(interval_ms / 1000)
+    st.rerun()
+
+
 def display_header_with_logo(text):
     """Zeigt die Überschrift links und das Logo rechtsbündig an"""
     col_text, col_logo = st.columns([5, 1]) 
