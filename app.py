@@ -274,8 +274,12 @@ elif st.session_state.view != "Login":
 
 # --- 6. VIEWS ---
 
+# Wir nutzen eine Variable, um zu prüfen, ob eine Ansicht bereits gerendert wurde
+view_rendered = False
+
 # LOGIN VIEW
 if st.session_state.view == "Login":
+    view_rendered = True
     st.markdown("<div class='login-container'>", unsafe_allow_html=True)
     st.image(LOGO_URL, width=120)
     st.markdown("<h2 style='text-align:center; color:#1a4a9e; text-transform: uppercase; font-size: 20px;'>Interner Bereich</h2>", unsafe_allow_html=True)
@@ -303,10 +307,10 @@ if st.session_state.view == "Login":
     
     if st.button("Abbrechen"): set_view("Dashboard")
     st.markdown("</div>", unsafe_allow_html=True)
-    st.stop()
 
 # HOME (ADMIN NUR)
 elif st.session_state.view == "Home":
+    view_rendered = True
     display_header_with_logo("🐾 KECB Burgdorf 2026")
     col1, col2 = st.columns(2)
     with col1:
@@ -317,10 +321,10 @@ elif st.session_state.view == "Home":
         if st.button("📝 STEWARD-PULT"): set_view("Steward_Panel")
         if st.button("👨‍⚖️ BIS ADMIN / CONTROL"): set_view("BIS_Admin_Control")
         if st.button("⚙️ ADMIN-KONSOLE (RESET)"): set_view("Admin_Panel")
-    st.stop()
 
 # BIS ADMIN CONTROL
 elif st.session_state.view == "BIS_Admin_Control":
+    view_rendered = True
     display_header_with_logo("👨‍⚖️ BIS Control Center")
     df_full = load_labels()
     if df_full is not None:
@@ -368,15 +372,18 @@ elif st.session_state.view == "BIS_Admin_Control":
                             summary = pd.Series(current_votes.values()).value_counts()
                             st.write("**Zwischenstand:**")
                             for nr, count in summary.items(): st.write(f"Katze #{nr}: {count} Stimme(n)")
-    st.stop()
 
 # BIS PUBLIC VIEW
 elif st.session_state.view == "BIS_Public":
+    view_rendered = True
     if hasattr(store, 'active_overlay') and store.active_overlay:
         if time.time() - store.overlay_start_time < 20:
             st.markdown(render_overlay_html(store.active_overlay), unsafe_allow_html=True)
-            time.sleep(1); st.rerun() 
-        else: store.active_overlay = None; st.rerun()
+            time.sleep(1)
+            st.rerun() 
+        else: 
+            store.active_overlay = None
+            st.rerun()
 
     def get_initials(name):
         parts = str(name).split()
@@ -438,10 +445,10 @@ elif st.session_state.view == "BIS_Public":
                         m_w = df_full[df_full['KAT_STR'] == str(winner_nr)]
                         if not m_w.empty: st.markdown(f"<div class='cat-card winner-card'><div class='cat-number'>{winner_nr}</div><div class='cat-details'>{get_full_label(m_w.iloc[0])}</div></div>", unsafe_allow_html=True)
                 else: st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
-    time.sleep(3); st.rerun(); st.stop()
 
 # LIVE DASHBOARD
 elif st.session_state.view == "Dashboard":
+    view_rendered = True
     display_header_with_logo("📢 Live-Aufruf & Status")
     tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"]).upper()
     df_full = load_labels()
@@ -460,10 +467,10 @@ elif st.session_state.view == "Dashboard":
                             if not m.empty:
                                 tags = "".join([f"<span class='tag tag-{t.lower().replace(' ', '')}'>{t}</span> " for t, val in v.items() if val])
                                 st.markdown(f"<div class='cat-card'><div class='cat-number'>{k.split('|')[0]}</div><div class='cat-details'>{get_full_label(m.iloc[0])}</div><div class='tag-container'>{tags}</div></div>", unsafe_allow_html=True)
-    time.sleep(3); st.rerun(); st.stop()
 
 # STEWARD PANEL
 elif st.session_state.view == "Steward_Panel":
+    view_rendered = True
     display_header_with_logo("📝 Steward-Pult")
     tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"]).upper()
     df_full = load_labels()
@@ -481,10 +488,10 @@ elif st.session_state.view == "Steward_Panel":
                 store.data[k]["Zum Richten"] = c2.checkbox("Zum Richten", value=store.data[k]["Zum Richten"], key=f"auf{k}")
                 store.data[k]["BIV"] = c3.checkbox("BIV", value=store.data[k]["BIV"], key=f"biv{k}")
                 store.data[k]["NOM"] = c4.checkbox("NOM", value=store.data[k]["NOM"], key=f"nom{k}")
-    st.stop()
 
 # JUDGE VOTING
 elif st.session_state.view == "Judge_Voting":
+    view_rendered = True
     display_header_with_logo("🗳️ Richter Abstimmung/Judges Votes")
     df_full = load_labels()
     if df_full is not None:
@@ -505,13 +512,18 @@ elif st.session_state.view == "Judge_Voting":
                         curr = store.data["votes"].get(v_key, "Keine Wahl")
                         sel = st.radio("Favorit:", ["Keine Wahl/Not chosen yet"] + list(opts.keys()), index=(list(opts.values()).index(curr)+1) if curr in opts.values() else 0, key=f"r_{v_key}")
                         store.data["votes"][v_key] = opts[sel] if sel != "Keine Wahl/Not chosen yet" else "Keine Wahl/Not chosen yet"
-    st.stop()
 
 # ADMIN PANEL
 elif st.session_state.view == "Admin_Panel":
+    view_rendered = True
     display_header_with_logo("⚙️ Admin-Konsole")
     if st.button("ALLE DATEN ZURÜCKSETZEN"):
         store.data = {}
         store.active_overlay = None
         st.success("Speicher geleert!")
-    st.stop()
+
+# --- ENDE DER VIEWS ---
+# Ganz am Ende des Skripts (ausserhalb aller Elifs), wenn wir automatische Updates brauchen:
+if st.session_state.view in ["Dashboard", "BIS_Public"]:
+    time.sleep(3)
+    st.rerun()
