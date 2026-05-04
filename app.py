@@ -4,6 +4,8 @@ import re
 import time
 from streamlit_autorefresh import st_autorefresh
 
+
+
 # --- 1. SETUP & STYLING ---
 st.set_page_config(layout="wide", page_title="KECB Burgdorf 2026", page_icon="🐾")
 
@@ -138,18 +140,10 @@ st.markdown("""
         border: 2px solid #1a4a9e; display: flex; align-items: center; justify-content: center; 
         height: 80px; width: 100%; line-height: 1.1; 
     }
-    
-    .class-label-box-bis { 
-        background-color: #e9ecef; color: #1a4a9e; padding: 5px; border-radius: 10px; text-align: center; 
-        font-size: 11px !important; text-transform: uppercase; font-weight: 800; 
-        border: 2px solid #1a4a9e; display: flex; align-items: center; justify-content: center; 
-        height: 120px; width: 100%; line-height: 1.1; 
-    }
 
     .cat-card, .placeholder-box { padding: 5px; border: 2px solid #1a4a9e; text-align: center; background-color: #ffffff; border-radius: 14px; margin-bottom: 5px; min-height: 80px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-    .cat-card-bis, .placeholder-box { padding: 5px; border: 2px solid #1a4a9e; text-align: center; background-color: #ffffff; border-radius: 14px; margin-bottom: 5px; min-height: 80px; display: flex; height:120px; flex-direction: column; justify-content: center; align-items: center; }
     .placeholder-box { border: 1px solid #d1d1d1; background-color: #f2f2f2 !important; color: #999999; }
-    .winner-card { border: 3px solid #ff4d4d !important; background-color: #ffcccc !important; color: #b21f2d !important; height:120px;}
+    .winner-card { border: 3px solid #ff4d4d !important; background-color: #ffcccc !important; color: #b21f2d !important; }
     .cat-number { font-size: 28px !important; font-weight: 900 !important; color: #1a4a9e; line-height: 1.0; }
     .cat-details { font-size: 14px !important; color: #333; font-weight: bold; margin-top: 2px; line-height: 1.1; }
     
@@ -185,11 +179,18 @@ if "view" not in st.session_state:
 q_params = st.query_params
 if "view" in q_params:
     v_param = q_params["view"].lower()
+    
+    # NEU: Wenn 'auth' in der URL steht, logge den User automatisch wieder ein
+    if q_params.get("auth") == "true":
+        st.session_state.authenticated = True
+        st.session_state.user_role = q_params.get("role", "Public")
+
     if v_param == "katzenaufruf": st.session_state.view = "Dashboard"
     elif v_param == "bis": st.session_state.view = "BIS_Public"
     elif v_param in ["admin", "steward", "richter", "bis-admin"]:
         st.session_state.view = "Login"
         st.session_state.target_role = v_param
+
 
 def logout():
     st.session_state.authenticated = False
@@ -198,6 +199,26 @@ def logout():
     st.rerun()
 
 # --- 4. HILFSFUNKTIONEN ---
+
+def custom_autorefresh(interval_ms):
+    """A simple autorefresh using modern Streamlit commands."""
+    import streamlit.components.v1 as components
+    # This creates a tiny invisible piece of Javascript that clicks a button
+    # or triggers a rerun every X milliseconds.
+    components.html(
+        f"""
+        <script>
+            window.parent.postMessage({{
+                type: 'streamlit:set_component_value',
+                value: Date.now()
+            }}, '*');
+        </script>
+        """,
+        height=0,
+    )
+    time.sleep(interval_ms / 1000)
+    st.rerun()
+
 
 def display_header_with_logo(text):
     """Zeigt die Überschrift links und das Logo rechtsbündig an"""
@@ -223,7 +244,7 @@ def render_overlay_html(row):
             <div class="ov-cat-name">{name_gross}</div>
             <div class="ov-owner">{besitzer}</div>
             <div style="margin-top: 50px;">
-                <img src="https://kecb.ch/wp-content/uploads/2020/01/Logo-Link-weiss-279x300-1.gif" width="100">
+                <img src="{LOGO_URL}" width="100">
                 <div style="font-weight: bold; font-size: 22px; color: #1a4a9e; margin-top: 10px;">KECB BURGDORF 2026</div>
             </div>
         </div>
@@ -256,7 +277,7 @@ def get_full_label(row):
     return f"{r} {g} ({e})".strip()
 
 def set_view(name):
-    store.active_overlay = None   # <-- WICHTIG
+    store.active_overlay = None   # FIX: Overlay beim Viewwechsel löschen
     st.session_state.view = name
     st.rerun()
 
@@ -273,6 +294,11 @@ st.sidebar.image(LOGO_URL, width=100)
 
 st.session_state.view = st.sidebar.radio("Menü:", available_views, 
     index=available_views.index(st.session_state.view) if st.session_state.view in available_views else 0)
+	
+# FIX: Overlay reset wenn NICHT BIS View
+
+if st.session_state.view != "BIS_Public":
+    store.active_overlay = None	
 
 if st.session_state.authenticated:
     if st.sidebar.button("Abmelden"): logout()
@@ -298,12 +324,15 @@ if st.session_state.view == "Login":
     if st.button("Anmelden"):
         if role_input == "Admin" and password == "admin2026":
             st.session_state.user_role, st.session_state.authenticated = "Admin", True
+            st.query_params.update(auth="true", role="Admin") # URL FIX
             set_view("Home")
         elif role_input == "Steward" and password == "steward2026":
             st.session_state.user_role, st.session_state.authenticated = "Steward", True
+            st.query_params.update(auth="true", role="Steward") # URL FIX
             set_view("Steward_Panel")
         elif role_input == "Richter" and password == "judge2026":
             st.session_state.user_role, st.session_state.authenticated = "Richter", True
+            st.query_params.update(auth="true", role="Richter") # URL FIX
             set_view("Judge_Voting")
         else:
             st.error("Passwort ungültig.")
@@ -311,8 +340,7 @@ if st.session_state.view == "Login":
     if st.button("Abbrechen"): set_view("Dashboard")
     st.markdown("</div>", unsafe_allow_html=True)
 
-    
-    
+
 # HOME (ADMIN NUR)
 elif st.session_state.view == "Home":
     display_header_with_logo("🐾 KECB Burgdorf 2026")
@@ -357,8 +385,13 @@ elif st.session_state.view == "BIS_Admin_Control":
                         if not w_match.empty:
                             store.active_overlay = w_match.iloc[0].to_dict()
                             store.overlay_start_time = time.time()
-                            st.success(f"Overlay für #{final_nr} aktiviert!")
-
+                            # Reset des lokalen Timers für alle Public-Instanzen
+                            if "local_overlay_end" in st.session_state:
+                                st.session_state.local_overlay_end = 0
+                        st.success(f"Overlay für #{final_nr} wurde gestartet!")
+        
+                            
+                            
                 with c_votes:
                     st.markdown("**Stimmen-Details**")
                     if "votes" in store.data:
@@ -370,9 +403,7 @@ elif st.session_state.view == "BIS_Admin_Control":
                             st.write("**Zwischenstand:**")
                             for nr, count in summary.items(): st.write(f"Katze #{nr}: {count} Stimme(n)")
 
-
-                            
-        # BIS PUBLIC VIEW
+# BIS PUBLIC VIEW
 elif st.session_state.view == "BIS_Public":
     if hasattr(store, 'active_overlay') and store.active_overlay:
         if time.time() - store.overlay_start_time < 20:
@@ -411,7 +442,7 @@ elif st.session_state.view == "BIS_Public":
         
         for label, klassen, geschl in bis_defs:
             r_cols = st.columns([0.8] + [1.2]*len(judges) + [0.8])
-            r_cols[0].markdown(f"<div class='class-label-box-bis'>{label}</div>", unsafe_allow_html=True)
+            r_cols[0].markdown(f"<div class='class-label-box'>{label}</div>", unsafe_allow_html=True)
             
             show_noms = store.data.get(f"reveal_{sel_cat}_{label}", False)
             winner_revealed = store.data.get(f"winner_reveal_{sel_cat}_{label}", False)
@@ -445,7 +476,7 @@ elif st.session_state.view == "BIS_Public":
                                     circles_html = f"<div class='judge-initials-container'>{circles}</div>"
 
                             st.markdown(f"""
-                                <div class='cat-card-bis'>
+                                <div class='cat-card'>
                                     <div class='cat-number'>{kat_nr}</div>
                                     <div class='cat-details'>{get_full_label(m.iloc[0])}</div>
                                     {circles_html}
@@ -478,11 +509,9 @@ elif st.session_state.view == "BIS_Public":
                             """, unsafe_allow_html=True)
                 else: 
                     st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
-    st_autorefresh(interval=3000, key="bis_refresh_global")
-    #time.sleep(3)
-    #st.rerun()
 
-
+    time.sleep(3)
+    st.rerun()
 
 
 # LIVE DASHBOARD
@@ -505,8 +534,9 @@ elif st.session_state.view == "Dashboard":
                             if not m.empty:
                                 tags = "".join([f"<span class='tag tag-{t.lower().replace(' ', '')}'>{t}</span> " for t, val in v.items() if val])
                                 st.markdown(f"<div class='cat-card'><div class='cat-number'>{k.split('|')[0]}</div><div class='cat-details'>{get_full_label(m.iloc[0])}</div><div class='tag-container'>{tags}</div></div>", unsafe_allow_html=True)
-    #time.sleep(3); st.rerun()
-    st_autorefresh(interval=3000, key="dash_refresh")
+    st_autorefresh(interval=10000, key="dash_refresh")
+	#time.sleep(3); st.rerun()
+	
 
 # STEWARD PANEL
 elif st.session_state.view == "Steward_Panel":
