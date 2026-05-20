@@ -12,7 +12,7 @@ LOGO_URL = "logo.GIF"
 
 st.markdown("""
     <style>
-    @keyframes blinker { 50% { opacity: 0.2; } }
+    @keyframes blinker { 50% { opacity: 0.3; } }
     
     /* Login Container */
     .login-container {
@@ -28,14 +28,14 @@ st.markdown("""
         margin: 5% auto;
     }
     
-    /* Professionelles Steward Card UI */
+    /* Kompakte Steward Card UI (Inhalt & Buttons zusammengefasst) */
     .steward-card {
         background-color: #ffffff;
         border: 1px solid #dcdcdc;
-        border-radius: 8px;
-        padding: 16px;
-        margin-bottom: 12px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        border-radius: 12px;
+        padding: 14px;
+        margin-bottom: 16px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.04);
     }
     .steward-card.gerichtet {
         background-color: #f8f9fa;
@@ -48,10 +48,10 @@ st.markdown("""
         align-items: center;
         border-bottom: 2px solid #1a4a9e;
         padding-bottom: 6px;
-        margin-bottom: 12px;
+        margin-bottom: 10px;
     }
     .card-cat-number {
-        font-size: 22px !important;
+        font-size: 20px !important;
         font-weight: 800;
         color: #1a4a9e;
     }
@@ -63,7 +63,8 @@ st.markdown("""
     .grid-container {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 6px 12px;
+        gap: 4px 12px;
+        margin-bottom: 12px;
     }
     .card-meta-sub {
         font-size: 13px !important;
@@ -77,54 +78,110 @@ st.markdown("""
         letter-spacing: 0.5px;
     }
 
-    /* --- VOLLSTÄNDIG GEFÜLLTE BUTTONS OHNE ROT & MIT BLINKEN --- */
-    div.stButton > button {
+    /* --- INTEGRIERTE & KLEINERE BUTTONS --- */
+    .button-row-container div.stButton > button {
         width: 100%;
-        height: 50px;
-        border-radius: 12px !important;
+        height: 35px; /* Kleinere, kompakte Höhe */
+        border-radius: 8px !important;
         font-weight: bold !important;
         text-transform: uppercase !important;
-        font-size: 12px !important;
+        font-size: 11px !important;
         transition: all 0.2s ease;
-        margin-bottom: 5px;
+        margin-top: 5px;
         color: white !important;
     }
 
-    /* 1. Spalte: Aufgerufen (Kräftiges Blau) */
-    div[data-testid="stHorizontalBlock"] > div:nth-child(1) button {
+    /* Spalten-spezifische Farbgebungen im Steward-Panel */
+    .button-row-container div[data-testid="stHorizontalBlock"] > div:nth-child(1) button {
         background-color: #007bff !important;
-        border: 2px solid #0056b3 !important;
+        border: 1px solid #0056b3 !important;
     }
-    /* 2. Spalte: BIV (Kräftiges Grün) */
-    div[data-testid="stHorizontalBlock"] > div:nth-child(2) button {
+    .button-row-container div[data-testid="stHorizontalBlock"] > div:nth-child(2) button {
         background-color: #28a745 !important;
-        border: 2px solid #1e7e34 !important;
+        border: 1px solid #1e7e34 !important;
     }
-    /* 3. Spalte: NOM (Kräftiges Gelb/Orange mit dunkler Schrift für Lesbarkeit) */
-    div[data-testid="stHorizontalBlock"] > div:nth-child(3) button {
+    .button-row-container div[data-testid="stHorizontalBlock"] > div:nth-child(3) button {
         background-color: #ffc107 !important;
-        border: 2px solid #d39e00 !important;
+        border: 1px solid #d39e00 !important;
         color: black !important;
     }
-    /* 4. Spalte: Gerichtet (Dezentes Grau) */
-    div[data-testid="stHorizontalBlock"] > div:nth-child(4) button {
+    .button-row-container div[data-testid="stHorizontalBlock"] > div:nth-child(4) button {
         background-color: #6c757d !important;
-        border: 2px solid #545b62 !important;
+        border: 1px solid #545b62 !important;
     }
 
-    /* HOVER EFFEKTE (Leichtes Abdunkeln beim Drüberfahren) */
-    div[data-testid="stHorizontalBlock"] > div:nth-child(1) button:hover { background-color: #0069d9 !important; }
-    div[data-testid="stHorizontalBlock"] > div:nth-child(2) button:hover { background-color: #218838 !important; }
-    div[data-testid="stHorizontalBlock"] > div:nth-child(3) button:hover { background-color: #e0a800 !important; }
-    div[data-testid="stHorizontalBlock"] > div:nth-child(4) button:hover { background-color: #5a6268 !important; }
+    /* Hover-Effekte */
+    .button-row-container div[data-testid="stHorizontalBlock"] > div:nth-child(1) button:hover { background-color: #0069d9 !important; }
+    .button-row-container div[data-testid="stHorizontalBlock"] > div:nth-child(2) button:hover { background-color: #218838 !important; }
+    .button-row-container div[data-testid="stHorizontalBlock"] > div:nth-child(3) button:hover { background-color: #e0a800 !important; }
+    .button-row-container div[data-testid="stHorizontalBlock"] > div:nth-child(4) button:hover { background-color: #5a6268 !important; }
 
-    /* BLINK-ANIMATION FÜR AKTIVE BUTTONS (Stoppt das Streamlit-Rot) */
+    /* Sanftes Blinken für aktive Zustände ohne Streamlit-Rot */
     .st-blink-btn button {
         animation: blinker 1.3s linear infinite !important;
-        box-shadow: 0 0 15px rgba(0,0,0,0.2) !important;
+        box-shadow: 0 0 8px rgba(0,0,0,0.15) !important;
     }
 
-    /* Dashboard Styles */
+    /* Dashboard & Overlay Styles */
+    .winner-overlay {
+        position: fixed;
+        top: 10%; left: 10%; 
+        width: 80vw; height: 80vh;
+        background-color: white;
+        z-index: 9999999;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        text-align: center;
+        border-radius: 40px;
+        box-shadow: 0px 0px 100px rgba(0,0,0,0.5);
+        border: 15px solid #1a4a9e;
+        animation: fadeIn 0.5s ease-out;
+        padding: 40px;
+    }
+    .judge-initials-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 4px;
+        margin-top: 8px;
+        padding-top: 6px;
+        border-top: 1px solid #eee;
+    }
+    .judge-circle {
+        width: 24px;
+        height: 24px;
+        background-color: #1a4a9e;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        font-weight: bold;
+        cursor: help;
+    }
+    .overlay-backdrop {
+        position: fixed;
+        top: 0; left: 0; width: 100vw; height: 100vh;
+        background-color: rgba(0,0,0,0.7);
+        z-index: 9999998;
+    }
+    .ov-header {
+        font-size: 24px !important; font-weight: 500; color: #333;
+        text-transform: uppercase;
+        border-bottom: 2px solid #ccc; width: 80%;
+        padding-bottom: 15px; margin-bottom: 30px;
+    }
+    .ov-cat-name {
+        font-size: 45px !important; font-weight: 900;
+        text-transform: uppercase; color: #000;
+        margin-bottom: 20px; line-height: 1.1;
+        width: 90%; word-wrap: break-word;
+    }
+    .ov-owner { font-size: 30px !important; font-style: italic; color: #444; }
+    .header-text { text-transform: uppercase !important; font-size: 26px !important; font-weight: bold; color: #1a4a9e; margin: 0 !important; }
+    @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+
     .judge-header-box { background-color: #1a4a9e; color: white; padding: 8px; border-radius: 10px; text-align: center; font-size: 12px !important; text-transform: uppercase; font-weight: bold; margin-bottom: 10px; border: 2px solid #0d2a5e; height: 60px; display: flex; align-items: center; justify-content: center; }
     .class-label-box { background-color: #e9ecef; color: #1a4a9e; padding: 5px; border-radius: 10px; text-align: center; font-size: 11px !important; text-transform: uppercase; font-weight: 800; border: 2px solid #1a4a9e; display: flex; align-items: center; justify-content: center; height: 80px; width: 100%; line-height: 1.1; }
     .cat-card, .placeholder-box { padding: 5px; border: 2px solid #1a4a9e; text-align: center; background-color: #ffffff; border-radius: 14px; margin-bottom: 5px; min-height: 80px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
@@ -532,7 +589,6 @@ elif st.session_state.view == "Steward_Panel":
                 nr = row['KAT_STR']
                 k = f"{nr}|{mein_richter}"
                 
-                # Spalten flexibel auslesen
                 klasse = row.get('KLASSE_INTERNAL', row.get('AUSSTELLUNGSKLASSE', row.get('KLASSE', 'N/A')))
                 fg_cols = [c for c in row.index if "FARBGRUPPE" in c or "FARB-GRUPPE" in c]
                 farbgruppe = row[fg_cols[0]] if fg_cols else row.get('FARBGRUPPE', 'N/A')
@@ -553,6 +609,7 @@ elif st.session_state.view == "Steward_Panel":
                 flags = store.data[k]["flags"]
                 card_class = "steward-card gerichtet" if flags.get("Gerichtet") else "steward-card"
                 
+                # HTML Container für die gesamte Box der Katze
                 st.markdown(f"""
                 <div class="{card_class}">
                     <div class="card-header-row">
@@ -565,12 +622,13 @@ elif st.session_state.view == "Steward_Panel":
                         <span class="card-meta-sub"><span class="meta-label">Geschlecht:</span> {geschlecht}</span>
                         <span class="card-meta-sub"><span class="meta-label">Geboren:</span> {geb_datum}</span>
                     </div>
-                </div>
                 """, unsafe_allow_html=True)
                 
+                # BUTTONS DIREKT INNERHALB DES GRAUEN RAHMENS
+                st.markdown('<div class="button-row-container">', unsafe_allow_html=True)
                 c1, c2, c3, c4 = st.columns(4)
                 
-                # BUTTON 1: AUFRUFEN (Blau + Blinken bei Aktivierung)
+                # BUTTON 1: AUFRUFEN (Blau)
                 is_rich = flags.get("Zum Richten")
                 with c1:
                     if is_rich: st.markdown('<div class="st-blink-btn">', unsafe_allow_html=True)
@@ -582,7 +640,7 @@ elif st.session_state.view == "Steward_Panel":
                         st.rerun()
                     if is_rich: st.markdown('</div>', unsafe_allow_html=True)
                 
-                # BUTTON 2: BIV (Grün + Blinken bei Aktivierung)
+                # BUTTON 2: BIV (Grün)
                 is_biv = flags.get("BIV")
                 with c2:
                     if is_biv: st.markdown('<div class="st-blink-btn">', unsafe_allow_html=True)
@@ -592,7 +650,7 @@ elif st.session_state.view == "Steward_Panel":
                         st.rerun()
                     if is_biv: st.markdown('</div>', unsafe_allow_html=True)
                 
-                # BUTTON 3: NOMINIEREN (Gelb + Blinken bei Aktivierung)
+                # BUTTON 3: NOM (Gelb)
                 is_nom = flags.get("NOM")
                 with c3:
                     if is_nom: st.markdown('<div class="st-blink-btn">', unsafe_allow_html=True)
@@ -603,7 +661,7 @@ elif st.session_state.view == "Steward_Panel":
                         st.rerun()
                     if is_nom: st.markdown('</div>', unsafe_allow_html=True)
                 
-                # BUTTON 4: GERICHTET (Grau - kein Blinken nötig da erledigt)
+                # BUTTON 4: GERICHTET (Grau)
                 is_done = flags.get("Gerichtet")
                 with c4:
                     if st.button("[ ERLEDIGT ] GERICHTET" if is_done else "GERICHTET", key=f"btn_done_{k}"):
@@ -614,7 +672,10 @@ elif st.session_state.view == "Steward_Panel":
                             store.data[k]["flags"]["Gerichtet"] = False
                         st.rerun()
                 
-                st.markdown("<div style='margin-bottom: 25px;'></div>", unsafe_allow_html=True)
+                st.markdown('</div>', unsafe_allow_html=True) # Ende .button-row-container
+                st.markdown('</div>', unsafe_allow_html=True) # Ende .steward-card (Schließt Rahmen)
+                
+                st.markdown("<div style='margin-bottom: 5px;'></div>", unsafe_allow_html=True)
 
 # JUDGE VOTING
 elif st.session_state.view == "Judge_Voting":
