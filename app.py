@@ -290,7 +290,24 @@ def get_store():
 
 store = get_store()
 
-# --- 3. SESSION STATE & URL PARAMETER ---
+
+# --- 3. SESSION STATE & URL PARAMETER (FIXED: DAUERHAFT EINGELOGGT) ---
+q_params = st.query_params
+
+# 1. Prüfen, ob Zugangsdaten direkt in der URL stecken (Erzwingt das Login bei jedem Rerun)
+if "auth" in q_params and q_params["auth"] == "true":
+    st.session_state.authenticated = True
+    st.session_state.user_role = q_params.get("role", "Public")
+    
+    # Falls eine bestimmte Ansicht in der URL steht, diese erzwingen
+    if "view" in q_params:
+        v_param = q_params["view"].lower()
+        if v_param == "steward": st.session_state.view = "Steward_Panel"
+        elif v_param == "richter": st.session_state.view = "Judge_Voting"
+        elif v_param == "admin": st.session_state.view = "Home"
+        elif v_param == "bis-admin": st.session_state.view = "BIS_Admin_Control"
+
+# 2. Standard-Fallbacks, falls nichts in der URL steht
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 if "user_role" not in st.session_state:
@@ -298,12 +315,9 @@ if "user_role" not in st.session_state:
 if "view" not in st.session_state:
     st.session_state.view = "Dashboard"
 
-q_params = st.query_params
-if "view" in q_params:
+# Falls man manuell über das Menü navigiert, ohne URL-Parameter zu verlieren
+if "view" in q_params and not st.session_state.authenticated:
     v_param = q_params["view"].lower()
-    if q_params.get("auth") == "true":
-        st.session_state.authenticated = True
-        st.session_state.user_role = q_params.get("role", "Public")
     if v_param == "katzenaufruf": st.session_state.view = "Dashboard"
     elif v_param == "bis": st.session_state.view = "BIS_Public"
     elif v_param in ["admin", "steward", "richter", "bis-admin"]:
@@ -314,7 +328,9 @@ def logout():
     st.session_state.authenticated = False
     st.session_state.user_role = "Public"
     st.session_state.view = "Dashboard"
+    st.query_params.clear() # Löscht die Login-Parameter aus der URL beim Logout
     st.rerun()
+
 
 # --- 4. HILFSFUNKTIONEN ---
 def display_header_with_logo(text):
