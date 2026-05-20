@@ -422,6 +422,7 @@ if st.session_state.view == "Login":
 # HOME (ADMIN NUR)
 elif st.session_state.view == "Home":
     display_header_with_logo("🐾 KECB Burgdorf 2026")
+    st.markdown('<div class="home-buttons">', unsafe_allow_html=True)
     col1, col2 = st.columns(2)
     with col1:
         if st.button("📢 LIVE-DASHBOARD"): set_view("Dashboard")
@@ -431,6 +432,7 @@ elif st.session_state.view == "Home":
         if st.button("📝 STEWARD-PULT"): set_view("Steward_Panel")
         if st.button("👨‍⚖️ BIS ADMIN / CONTROL"): set_view("BIS_Admin_Control")
         if st.button("⚙️ ADMIN-KONSOLE (RESET)"): set_view("Admin_Panel")
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # BIS ADMIN CONTROL
 elif st.session_state.view == "BIS_Admin_Control":
