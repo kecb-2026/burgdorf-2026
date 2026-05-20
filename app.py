@@ -127,6 +127,14 @@ st.markdown("""
     }
 
 
+    /* Diese Klasse erzwingt das Blinken direkt auf dem Button-Element */
+    .blink-active button {
+        animation: blinker 1.3s linear infinite !important;
+        box-shadow: 0 0 10px rgba(255,255,255,0.5) !important;
+        border: 2px solid white !important;
+    }
+
+
     /* Dashboard Styles */
     .judge-header-box { background-color: #1a4a9e; color: white; padding: 8px; border-radius: 10px; text-align: center; font-size: 12px !important; text-transform: uppercase; font-weight: bold; margin-bottom: 10px; border: 2px solid #0d2a5e; height: 60px; display: flex; align-items: center; justify-content: center; }
     .class-label-box { background-color: #e9ecef; color: #1a4a9e; padding: 5px; border-radius: 10px; text-align: center; font-size: 11px !important; text-transform: uppercase; font-weight: 800; border: 2px solid #1a4a9e; display: flex; align-items: center; justify-content: center; height: 80px; width: 100%; line-height: 1.1; }
@@ -576,7 +584,7 @@ elif st.session_state.view == "Steward_Panel":
                 # BUTTON 1: AUFRUFEN (Blau + Blinken bei Aktivierung)
                 is_rich = flags.get("Zum Richten")
                 with c1:
-                    if is_rich: st.markdown('<div class="st-blink-btn">', unsafe_allow_html=True)
+                    if is_rich: st.markdown('<div class="button-class">', unsafe_allow_html=True)
                     if st.button("[ AKTIV ] AUFGERUFEN" if is_rich else "AUFRUFEN", key=f"btn_rich_{k}"):
                         store.data[k]["flags"]["Zum Richten"] = not is_rich
                         if store.data[k]["flags"]["Zum Richten"]:
