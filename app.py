@@ -4,8 +4,6 @@ import re
 import time
 from streamlit_autorefresh import st_autorefresh
 
-
-
 # --- 1. SETUP & STYLING ---
 st.set_page_config(layout="wide", page_title="KECB Burgdorf 2026", page_icon="🐾")
 
@@ -29,6 +27,56 @@ st.markdown("""
         max-width: 400px;
         margin: 5% auto;
     }
+    
+    /* Professionelles Steward Card UI */
+    .steward-card {
+        background-color: #ffffff;
+        border: 1px solid #dcdcdc;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 12px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+    .steward-card.gerichtet {
+        background-color: #f8f9fa;
+        border: 1px dashed #cccccc;
+        opacity: 0.6;
+    }
+    .card-header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 2px solid #1a4a9e;
+        padding-bottom: 6px;
+        margin-bottom: 12px;
+    }
+    .card-cat-number {
+        font-size: 22px !important;
+        font-weight: 800;
+        color: #1a4a9e;
+    }
+    .card-meta-main {
+        font-size: 15px !important;
+        font-weight: 700;
+        color: #222;
+    }
+    .grid-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px 12px;
+    }
+    .card-meta-sub {
+        font-size: 13px !important;
+        color: #555;
+    }
+    .meta-label {
+        font-weight: 600;
+        color: #666;
+        text-transform: uppercase;
+        font-size: 11px !important;
+        letter-spacing: 0.5px;
+    }
+
     /* Erzeugt einheitliche Höhen für alle Boxen in einer Zeile */
     .grid-wrapper {
         display: flex;
@@ -36,14 +84,11 @@ st.markdown("""
         height: 100%;
     }
 
-
     /* Die spezifischen Boxen nutzen nun alle den Flex-Container */
     .class-label-box { background-color: #e9ecef; border: 2px solid #1a4a9e; color: #1a4a9e; font-weight: 800; }
     .cat-card { background-color: #ffffff; border: 2px solid #1a4a9e; }
     .placeholder-box { background-color: #f8f9fa !important; border: 1px solid #d1d1d1; color: #cccccc; }
     .winner-card { background-color: #ffcccc !important; border: 3px solid #ff4d4d !important; }
-
-
 
     /* Overlay als zentrierte Box (80% Größe) */
     .winner-overlay {
@@ -62,7 +107,6 @@ st.markdown("""
         padding: 40px;
     }
     
-        /* Initialen Kreise */
     .judge-initials-container {
         display: flex;
         flex-wrap: wrap;
@@ -84,9 +128,8 @@ st.markdown("""
         justify-content: center;
         font-size: 10px;
         font-weight: bold;
-        cursor: help; /* Zeigt an, dass man drüberfahren kann */
+        cursor: help;
     }
-
     
     .overlay-backdrop {
         position: fixed;
@@ -95,7 +138,6 @@ st.markdown("""
         z-index: 9999998;
     }
 
-    /* TITEL ANPASSUNGEN */
     .ov-header {
         font-size: 24px !important; font-weight: 500; color: #333;
         text-transform: uppercase;
@@ -114,7 +156,6 @@ st.markdown("""
         font-size: 30px !important; font-style: italic; color: #444;
     }
     
-    /* NEU: Klasse für die Hauptüberschriften neben dem Logo */
     .header-text {
         text-transform: uppercase !important;
         font-size: 26px !important;
@@ -125,22 +166,18 @@ st.markdown("""
 
     @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
 
-    .stButton button { width: 100%; height: 50px; font-size: 13px !important; font-weight: bold !important; border-radius: 12px !important; margin-bottom: 5px; border: 2px solid #1a4a9e !important; }
-    
-    .judge-header-box { 
-        background-color: #1a4a9e; color: white; padding: 8px; border-radius: 10px; text-align: center; 
-        font-size: 12px !important; text-transform: uppercase; font-weight: bold; 
-        margin-bottom: 10px; border: 2px solid #0d2a5e; height: 60px; 
-        display: flex; align-items: center; justify-content: center; 
+    /* Stil für die Streamlit-Buttons im Steward-Pult */
+    div.stButton > button {
+        width: 100%;
+        border-radius: 6px !important;
+        font-weight: bold !important;
+        text-transform: uppercase !important;
+        font-size: 12px !important;
+        transition: all 0.2s ease;
     }
     
-    .class-label-box { 
-        background-color: #e9ecef; color: #1a4a9e; padding: 5px; border-radius: 10px; text-align: center; 
-        font-size: 11px !important; text-transform: uppercase; font-weight: 800; 
-        border: 2px solid #1a4a9e; display: flex; align-items: center; justify-content: center; 
-        height: 80px; width: 100%; line-height: 1.1; 
-    }
-
+    .judge-header-box { background-color: #1a4a9e; color: white; padding: 8px; border-radius: 10px; text-align: center; font-size: 12px !important; text-transform: uppercase; font-weight: bold; margin-bottom: 10px; border: 2px solid #0d2a5e; height: 60px; display: flex; align-items: center; justify-content: center; }
+    .class-label-box { background-color: #e9ecef; color: #1a4a9e; padding: 5px; border-radius: 10px; text-align: center; font-size: 11px !important; text-transform: uppercase; font-weight: 800; border: 2px solid #1a4a9e; display: flex; align-items: center; justify-content: center; height: 80px; width: 100%; line-height: 1.1; }
     .cat-card, .placeholder-box { padding: 5px; border: 2px solid #1a4a9e; text-align: center; background-color: #ffffff; border-radius: 14px; margin-bottom: 5px; min-height: 80px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
     .placeholder-box { border: 1px solid #d1d1d1; background-color: #f2f2f2 !important; color: #999999; }
     .winner-card { border: 3px solid #ff4d4d !important; background-color: #ffcccc !important; color: #b21f2d !important; }
@@ -175,36 +212,43 @@ if "user_role" not in st.session_state:
     st.session_state.user_role = "Public"
 if "view" not in st.session_state:
     st.session_state.view = "Dashboard"
+if "assigned_judge" not in st.session_state:
+    st.session_state.assigned_judge = None
 
 q_params = st.query_params
 if "view" in q_params:
     v_param = q_params["view"].lower()
     
-    # NEU: Wenn 'auth' in der URL steht, logge den User automatisch wieder ein
     if q_params.get("auth") == "true":
         st.session_state.authenticated = True
         st.session_state.user_role = q_params.get("role", "Public")
 
-    if v_param == "katzenaufruf": st.session_state.view = "Dashboard"
+    # Direkter, passwortloser Zugriff für Richter via URL (?view=Richter&name=Martti+Peltonen)
+    if v_param == "richter" and "name" in q_params:
+        st.session_state.authenticated = True
+        st.session_state.user_role = "Richter"
+        st.session_state.assigned_judge = q_params["name"]
+        st.session_state.view = "Judge_Voting"
+    elif v_param == "katzenaufruf": st.session_state.view = "Dashboard"
     elif v_param == "bis": st.session_state.view = "BIS_Public"
     elif v_param in ["admin", "steward", "richter", "bis-admin"]:
-        st.session_state.view = "Login"
-        st.session_state.target_role = v_param
-
+        if not st.session_state.authenticated:
+            st.session_state.view = "Login"
+            st.session_state.target_role = v_param
+        else:
+            role_view_map = {"admin": "Home", "steward": "Steward_Panel", "richter": "Judge_Voting", "bis-admin": "BIS_Admin_Control"}
+            st.session_state.view = role_view_map.get(v_param, "Dashboard")
 
 def logout():
     st.session_state.authenticated = False
     st.session_state.user_role = "Public"
     st.session_state.view = "Dashboard"
+    st.session_state.assigned_judge = None
     st.rerun()
 
 # --- 4. HILFSFUNKTIONEN ---
-
 def custom_autorefresh(interval_ms):
-    """A simple autorefresh using modern Streamlit commands."""
     import streamlit.components.v1 as components
-    # This creates a tiny invisible piece of Javascript that clicks a button
-    # or triggers a rerun every X milliseconds.
     components.html(
         f"""
         <script>
@@ -219,9 +263,7 @@ def custom_autorefresh(interval_ms):
     time.sleep(interval_ms / 1000)
     st.rerun()
 
-
 def display_header_with_logo(text):
-    """Zeigt die Überschrift links und das Logo rechtsbündig an"""
     col_text, col_logo = st.columns([5, 1]) 
     with col_text:
         st.markdown(f"<p class='header-text'>{text}</p>", unsafe_allow_html=True)
@@ -277,7 +319,7 @@ def get_full_label(row):
     return f"{r} {g} ({e})".strip()
 
 def set_view(name):
-    store.active_overlay = None   # FIX: Overlay beim Viewwechsel löschen
+    store.active_overlay = None   
     st.session_state.view = name
     st.rerun()
 
@@ -295,8 +337,6 @@ st.sidebar.image(LOGO_URL, width=100)
 st.session_state.view = st.sidebar.radio("Menü:", available_views, 
     index=available_views.index(st.session_state.view) if st.session_state.view in available_views else 0)
 	
-# FIX: Overlay reset wenn NICHT BIS View
-
 if st.session_state.view != "BIS_Public":
     store.active_overlay = None	
 
@@ -324,22 +364,21 @@ if st.session_state.view == "Login":
     if st.button("Anmelden"):
         if role_input == "Admin" and password == "admin2026":
             st.session_state.user_role, st.session_state.authenticated = "Admin", True
-            st.query_params.update(auth="true", role="Admin") # URL FIX
+            st.query_params.update(auth="true", role="Admin") 
             set_view("Home")
         elif role_input == "Steward" and password == "steward2026":
             st.session_state.user_role, st.session_state.authenticated = "Steward", True
-            st.query_params.update(auth="true", role="Steward") # URL FIX
+            st.query_params.update(auth="true", role="Steward") 
             set_view("Steward_Panel")
         elif role_input == "Richter" and password == "judge2026":
             st.session_state.user_role, st.session_state.authenticated = "Richter", True
-            st.query_params.update(auth="true", role="Richter") # URL FIX
+            st.query_params.update(auth="true", role="Richter") 
             set_view("Judge_Voting")
         else:
             st.error("Passwort ungültig.")
     
     if st.button("Abbrechen"): set_view("Dashboard")
     st.markdown("</div>", unsafe_allow_html=True)
-
 
 # HOME (ADMIN NUR)
 elif st.session_state.view == "Home":
@@ -385,13 +424,10 @@ elif st.session_state.view == "BIS_Admin_Control":
                         if not w_match.empty:
                             store.active_overlay = w_match.iloc[0].to_dict()
                             store.overlay_start_time = time.time()
-                            # Reset des lokalen Timers für alle Public-Instanzen
                             if "local_overlay_end" in st.session_state:
                                 st.session_state.local_overlay_end = 0
                         st.success(f"Overlay für #{final_nr} wurde gestartet!")
         
-                            
-                            
                 with c_votes:
                     st.markdown("**Stimmen-Details**")
                     if "votes" in store.data:
@@ -403,7 +439,7 @@ elif st.session_state.view == "BIS_Admin_Control":
                             st.write("**Zwischenstand:**")
                             for nr, count in summary.items(): st.write(f"Katze #{nr}: {count} Stimme(n)")
 
-# BIS PUBLIC VIEW
+# ABSOLUT UNANGETASTET: BIS PUBLIC VIEW (Inklusive Refresh & Layering)
 elif st.session_state.view == "BIS_Public":
     if hasattr(store, 'active_overlay') and store.active_overlay:
         if time.time() - store.overlay_start_time < 20:
@@ -412,7 +448,6 @@ elif st.session_state.view == "BIS_Public":
         else: store.active_overlay = None; st.rerun()
 
     def get_initials(name):
-        """Erzeugt Initialen aus Vor- und Nachnamen (z.B. Martti Peltonen -> MP)"""
         parts = str(name).split()
         if len(parts) >= 2:
             return (parts[0][0] + parts[-1][0]).upper()
@@ -434,7 +469,6 @@ elif st.session_state.view == "BIS_Public":
         r_col = f"RICHTER {tag}"
         judges = sorted([r for r in df_full[df_full[tag].astype(str).str.upper() == 'X'][r_col].unique() if str(r) != "nan"])
         
-        # Header
         cols = st.columns([0.8] + [1.2]*len(judges) + [0.8])
         for i, j in enumerate(judges): 
             cols[i+1].markdown(f"<div class='judge-header-box'>{j}</div>", unsafe_allow_html=True)
@@ -487,7 +521,6 @@ elif st.session_state.view == "BIS_Public":
                     else: 
                         st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
             
-            # BIS GEWINNER SPALTE
             with r_cols[-1]:
                 if winner_revealed:
                     prefix = f"v_{sel_cat}_{label}_"
@@ -513,8 +546,7 @@ elif st.session_state.view == "BIS_Public":
     time.sleep(3)
     st.rerun()
 
-
-# LIVE DASHBOARD
+# LIVE DASHBOARD (SORTIERT NACH KLICK-REIHENFOLGE DES STEWARDS)
 elif st.session_state.view == "Dashboard":
     display_header_with_logo("📢 Live-Aufruf & Status")
     tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"]).upper()
@@ -528,17 +560,40 @@ elif st.session_state.view == "Dashboard":
             for i, j in enumerate(judges):
                 with cols[i]:
                     st.markdown(f"<div class='judge-header-box'>{j}</div>", unsafe_allow_html=True)
+                    
+                    judge_entries = []
                     for k, v in store.data.items():
-                        if "|" in k and k.split("|")[1] == j and any(v.values()):
-                            m = df_tag[df_tag['KAT_STR'] == k.split("|")[0]]
-                            if not m.empty:
-                                tags = "".join([f"<span class='tag tag-{t.lower().replace(' ', '')}'>{t}</span> " for t, val in v.items() if val])
-                                st.markdown(f"<div class='cat-card'><div class='cat-number'>{k.split('|')[0]}</div><div class='cat-details'>{get_full_label(m.iloc[0])}</div><div class='tag-container'>{tags}</div></div>", unsafe_allow_html=True)
+                        if "|" in k and k.split("|")[1] == j:
+                            # Kompatibilität sichern, falls alte Datenstruktur geladen ist
+                            flags = v.get("flags", v) if isinstance(v, dict) else {}
+                            
+                            beim_richten = flags.get("Zum Richten") and not flags.get("Gerichtet")
+                            nominiert = flags.get("NOM")
+                            
+                            if beim_richten or nominiert:
+                                judge_entries.append({"key": k, "data": v if isinstance(v, dict) else {"flags": v}})
+                    
+                    # Sortierung strikt nach Zeitstempel des Steward-Klicks (älteste oben)
+                    judge_entries.sort(key=lambda x: x["data"].get("timestamp", 0))
+                    
+                    for entry in judge_entries:
+                        kat_nr = entry["key"].split("|")[0]
+                        flags = entry["data"].get("flags", entry["data"])
+                        m = df_tag[df_tag['KAT_STR'] == kat_nr]
+                        if not m.empty:
+                            tags = "".join([f"<span class='tag tag-{t.lower().replace(' ', '')}'>{t}</span> " for t, val in flags.items() if val and t != "Gerichtet"])
+                            if tags: # Nur anzeigen, wenn aktive Tags vorhanden sind
+                                st.markdown(f"""
+                                    <div class='cat-card'>
+                                        <div class='cat-number'>{kat_nr}</div>
+                                        <div class='cat-details'>{get_full_label(m.iloc[0])}</div>
+                                        <div class='tag-container'>{tags}</div>
+                                    </div>
+                                """, unsafe_allow_html=True)
+                            
     st_autorefresh(interval=10000, key="dash_refresh")
-	#time.sleep(3); st.rerun()
-	
 
-# STEWARD PANEL
+# STEWARD PANEL (KATEGORIE-FILTER, VISUELLE INFO-KARTEN UND STRUKTURIERTE TEXT-BUTTONS)
 elif st.session_state.view == "Steward_Panel":
     display_header_with_logo("📝 Steward-Pult")
     tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"]).upper()
@@ -547,28 +602,115 @@ elif st.session_state.view == "Steward_Panel":
         r_col = f"RICHTER {tag}"
         all_j = sorted([r for r in df_full[df_full[tag].astype(str).str.upper() == 'X'][r_col].unique() if str(r) != "nan"])
         mein_richter = st.selectbox("Richter wählen:", ["--"] + all_j)
+        
         if mein_richter != "--":
-            df_j = df_full[(df_full[tag].astype(str).str.upper() == 'X') & (df_full[r_col] == mein_richter)].sort_values('KATALOG-NR')
+            # 1. Dynamischer Kategorie-Filter für diesen spezifischen Richter
+            df_richter_alle = df_full[(df_full[tag].astype(str).str.upper() == 'X') & (df_full[r_col] == mein_richter)]
+            verfuegbare_kategorien = sorted([str(cat) for cat in df_richter_alle['KATEGORIE'].unique() if str(cat) != "nan"])
+            meine_kategorie = st.selectbox("Kategorie wählen:", verfuegbare_kategorien)
+            
+            # 2. Liste für das Pult laden (Gefiltert nach Richter + Kategorie)
+            df_j = df_richter_alle[df_richter_alle['KATEGORIE'] == meine_kategorie].sort_values('KATALOG-NR')
+            st.divider()
+            
             for _, row in df_j.iterrows():
                 nr = row['KAT_STR']; k = f"{nr}|{mein_richter}"
-                if k not in store.data: store.data[k] = {"Zum Richten": False, "BIV": False, "NOM": False}
-                c1, c2, c3, c4 = st.columns([3, 1.2, 1, 1])
-                c1.write(f"**#{nr}** {get_full_label(row)}")
-                store.data[k]["Zum Richten"] = c2.checkbox("Zum Richten", value=store.data[k]["Zum Richten"], key=f"auf{k}")
-                store.data[k]["BIV"] = c3.checkbox("BIV", value=store.data[k]["BIV"], key=f"biv{k}")
-                store.data[k]["NOM"] = c4.checkbox("NOM", value=store.data[k]["NOM"], key=f"nom{k}")
+                
+                # Stammdaten extrahieren
+                klasse = row.get('KLASSE_INTERNAL', 'N/A')
+                farbgruppe = row.get('FARBGRUPPE', 'N/A')
+                geschlecht = row.get('GESCHLECHT', 'N/A')
+                geb_datum = row.get('GEB_DATUM', 'N/A')
+                if isinstance(geb_datum, pd.Timestamp):
+                    geb_datum = geb_datum.strftime('%d.%m.%Y')
+                
+                if k not in store.data or not isinstance(store.data[k], dict) or "flags" not in store.data[k]: 
+                    store.data[k] = {
+                        "flags": {"Zum Richten": False, "BIV": False, "NOM": False, "Gerichtet": False},
+                        "timestamp": 0
+                    }
+                
+                flags = store.data[k]["flags"]
+                card_class = "steward-card gerichtet" if flags.get("Gerichtet") else "steward-card"
+                
+                # HTML Infokarte für den Steward
+                st.markdown(f"""
+                <div class="{card_class}">
+                    <div class="card-header-row">
+                        <span class="card-cat-number">Nr. {nr}</span>
+                        <span class="card-meta-main">{get_full_label(row)}</span>
+                    </div>
+                    <div class="grid-container">
+                        <span class="card-meta-sub"><span class="meta-label">Klasse:</span> {klasse}</span>
+                        <span class="card-meta-sub"><span class="meta-label">Farbgruppe:</span> {farbgruppe}</span>
+                        <span class="card-meta-sub"><span class="meta-label">Geschlecht:</span> {geschlecht}</span>
+                        <span class="card-meta-sub"><span class="meta-label">Geboren:</span> {geb_datum}</span>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                c1, c2, c3, c4 = st.columns(4)
+                
+                # BUTTON 1: AUFRUFEN (Erstrichter-Aufruf)
+                type_rich = "primary" if flags.get("Zum Richten") else "secondary"
+                label_rich = "[ AKTIV ] AUFGERUFEN" if flags.get("Zum Richten") else "AUFRUFEN"
+                if c1.button(label_rich, key=f"btn_rich_{k}", type=type_rich):
+                    store.data[k]["flags"]["Zum Richten"] = not flags.get("Zum Richten")
+                    if store.data[k]["flags"]["Zum Richten"]:
+                        store.data[k]["flags"]["Gerichtet"] = False
+                        store.data[k]["timestamp"] = time.time()
+                    st.rerun()
+                
+                # BUTTON 2: BEST IN VARIETY (BIV)
+                type_biv = "primary" if flags.get("BIV") else "secondary"
+                label_biv = "[ GEWONNEN ] BIV" if flags.get("BIV") else "BIV VERGEBEN"
+                if c2.button(label_biv, key=f"btn_biv_{k}", type=type_biv):
+                    store.data[k]["flags"]["BIV"] = not flags.get("BIV")
+                    store.data[k]["timestamp"] = time.time()
+                    st.rerun()
+                
+                # BUTTON 3: NOMINIEREN (Für die BIS-Endrunde)
+                type_nom = "primary" if flags.get("NOM") else "secondary"
+                label_nom = "[ NOMINIERT ] BIS" if flags.get("NOM") else "NOMINIEREN"
+                if c3.button(label_nom, key=f"btn_nom_{k}", type=type_nom):
+                    store.data[k]["flags"]["NOM"] = not flags.get("NOM")
+                    if store.data[k]["flags"]["NOM"]:
+                        store.data[k]["timestamp"] = time.time()
+                    st.rerun()
+                
+                # BUTTON 4: GERICHTET (Archivierung / Ausblenden)
+                type_done = "primary" if flags.get("Gerichtet") else "secondary"
+                label_done = "[ ERLEDIGT ] GERICHTET" if flags.get("Gerichtet") else "GERICHTET"
+                if c4.button(label_done, key=f"btn_done_{k}", type=type_done):
+                    if not flags.get("Gerichtet"):
+                        store.data[k]["flags"]["Zum Richten"] = False
+                        store.data[k]["flags"]["Gerichtet"] = True
+                    else:
+                        store.data[k]["flags"]["Gerichtet"] = False
+                    st.rerun()
+                
+                st.markdown("<div style='margin-bottom: 25px;'></div>", unsafe_allow_html=True)
 
-# JUDGE VOTING
+# RICHTER VOTING VIEW (MIT DIRECT-ACCESS FILTER & LOCK)
 elif st.session_state.view == "Judge_Voting":
     display_header_with_logo("🗳️ Richter Abstimmung/Judges Votes")
     df_full = load_labels()
     if df_full is not None:
         tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"]).upper()
-        r_col = f"RICHTER {tag}"; all_judges = sorted([r for r in df_full[r_col].unique() if str(r) != "nan"])
+        r_col = f"RICHTER {tag}"
+        all_judges = sorted([r for r in df_full[r_col].unique() if str(r) != "nan"])
+        
         c1, c2 = st.columns(2)
-        active_j = c1.selectbox("Identität/Identity:", ["--"] + all_judges)
+        
+        if st.session_state.assigned_judge:
+            active_j = st.session_state.assigned_judge
+            c1.markdown(f"<div style='padding: 10px; background-color: #e9ecef; border-radius: 5px; font-weight: bold;'>Richter: {active_j} 🔒</div>", unsafe_allow_html=True)
+        else:
+            active_j = c1.selectbox("Identität/Identity:", ["--"] + all_judges)
+            
         active_cat = c2.selectbox("Kategorie/Category:", sorted(df_full['KATEGORIE'].unique()))
-        if active_j != "--":
+        
+        if active_j != "--" and active_j is not None:
             if "votes" not in store.data: store.data["votes"] = {}
             bis_defs = [("Adult Male", [1,3,5,7,9], "M"), ("Adult Female", [1,3,5,7,9], "W"), ("Neuter Male", [2,4,6,8,10], "M"), ("Neuter Female", [2,4,6,8,10], "W"), ("Junior 8-12 Male", [11], "M"), ("Junior 8-12 Female", [11], "W"), ("Kitten 4-8 Male", [12], "M"), ("Kitten 4-8 Female", [12], "W")]
             for label, klassen, geschl in bis_defs:
