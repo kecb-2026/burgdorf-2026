@@ -483,14 +483,33 @@ elif st.session_state.view == "Home":
     st.markdown('<div class="home-buttons">', unsafe_allow_html=True)
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("📢 LIVE-DASHBOARD"): set_view("Dashboard")
-        if st.button("🏆 BEST IN SHOW (PUBLIC)"): set_view("BIS_Public")
-        if st.button("🗳️ RICHTER-VOTING"): set_view("Judge_Voting")
+        if st.button("📢 LIVE-DASHBOARD"):
+            st.query_params.update({"view": "katzenaufruf"})
+            set_view("Dashboard")
+            st.rerun()
+        if st.button("🏆 BEST IN SHOW (PUBLIC)"):
+            st.query_params.update({"view": "bis"})
+            set_view("BIS_Public")
+            st.rerun()
+        if st.button("🗳️ RICHTER-VOTING"):
+            st.query_params.update({"view": "richter", "auth": "true", "role": "Richter"})
+            set_view("Judge_Voting")
+            st.rerun()
     with col2:
-        if st.button("📝 STEWARD-PULT"): set_view("Steward_Panel")
-        if st.button("👨‍⚖️ BIS ADMIN / CONTROL"): set_view("BIS_Admin_Control")
-        if st.button("⚙️ ADMIN-KONSOLE (RESET)"): set_view("Admin_Panel")
+        if st.button("📝 STEWARD-PULT"):
+            st.query_params.update({"view": "steward", "auth": "true", "role": "Steward"})
+            set_view("Steward_Panel")
+            st.rerun()
+        if st.button("👨‍⚖️ BIS ADMIN / CONTROL"):
+            st.query_params.update({"view": "bis-admin", "auth": "true", "role": "Admin"})
+            set_view("BIS_Admin_Control")
+            st.rerun()
+        if st.button("⚙️ ADMIN-KONSOLE (RESET)"):
+            st.query_params.update({"view": "admin", "auth": "true", "role": "Admin"})
+            set_view("Admin_Panel")
+            st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
+
 
 # BIS ADMIN CONTROL
 elif st.session_state.view == "BIS_Admin_Control":
