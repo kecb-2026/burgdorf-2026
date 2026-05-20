@@ -255,6 +255,25 @@ st.markdown("""
     .tag-zumrichten { background-color: #007bff; }
     .tag-biv { background-color: #28a745; animation: blinker 1.5s linear infinite; }
     .tag-nom { background-color: #ffc107; color: black; animation: blinker 1s linear infinite; }
+
+    /* --- ERGÄNZUNG: CSS ABSOLUT SPEZIFISCH AUF STEWARD-CARDS BESCHRÄNKEN --- */
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] div.stButton > button {
+        height: 25px !important;
+        min-height: 25px !important;
+        min-width: 10px !important;
+        padding: 0px 5px !important;
+        font-size: 8px !important;
+        line-height: 1 !important;
+        border-radius: 8px !important;
+    }
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(1) button { background-color: #007bff !important; border: 2px solid #0056b3 !important; color: white !important; }
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(2) button { background-color: #28a745 !important; border: 2px solid #1e7e34 !important; color: white !important; }
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(3) button { background-color: #ffc107 !important; border: 2px solid #d39e00 !important; color: black !important; }
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(4) button { background-color: #6c757d !important; border: 2px solid #545b62 !important; color: white !important; }
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(1) button:hover { background-color: #0069d9 !important; }
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(2) button:hover { background-color: #218838 !important; }
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(3) button:hover { background-color: #e0a800 !important; }
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(4) button:hover { background-color: #5a6268 !important; }
 </style>
     """, unsafe_allow_html=True)
 
@@ -655,7 +674,8 @@ elif st.session_state.view == "Dashboard":
                             
     st_autorefresh(interval=10000, key="dash_refresh")
 
-# STEWARD PANEL
+
+# --- CORRRECTIONS ONLY IN THE STEWARD PANEL ---
 elif st.session_state.view == "Steward_Panel":
     display_header_with_logo("📝 Steward-Pult")
     tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"]).upper()
@@ -698,7 +718,10 @@ elif st.session_state.view == "Steward_Panel":
                 flags = store.data[k]["flags"]
                 card_class = "steward-card-wrapper gerichtet" if flags.get("Gerichtet") else "steward-card-wrapper"
                 
-                # DER SCHLÜSSELTRICK: Ein einziger HTML-Container umschließt Text UND Buttons!
+                # DER FEHLERFREIE KASTEN-ANSATZ:
+                # Wir bauen einen sauberen HTML-Kasten. Um Verschachtelungsfehler zu vermeiden, 
+                # lagern wir die Streamlit-Buttons nicht in Spalten IN das HTML aus, sondern schließen 
+                # das HTML vorher, damit Streamlit-Komponenten fehlerfrei gerendert werden.
                 st.markdown(f"""
                 <div class="{card_class}">
                     <div class="card-header-row">
@@ -712,9 +735,11 @@ elif st.session_state.view == "Steward_Panel":
                         <span class="card-meta-sub"><span class="meta-label">Geboren:</span> {geb_datum}</span>
                     </div>
                     <div style="border-top: 1px solid #e2e2e2; padding-top: 10px; margin-top: 12px; margin-bottom: 8px;"></div>
+                </div>
                 """, unsafe_allow_html=True)
                 
-                # Streamlit Buttons rendern sich automatisch sauber innerhalb des geöffneten div-Wrappers!
+                # Wir rendern die Spalten nativ unter dem Kasten-Wrapper, welcher via CSS im Hintergrund 
+                # exklusiv gestylt wird.
                 c1, c2, c3, c4 = st.columns(4)
                 
                 # BUTTON 1: AUFRUFEN
@@ -760,9 +785,6 @@ elif st.session_state.view == "Steward_Panel":
                         else:
                             store.data[k]["flags"]["Gerichtet"] = False
                         st.rerun()
-                
-                # Schließen des Kasten-divs
-                st.markdown("</div>", unsafe_allow_html=True)
 
 
 # JUDGE VOTING
