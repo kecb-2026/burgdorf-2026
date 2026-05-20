@@ -562,15 +562,15 @@ elif st.session_state.view == "Dashboard":
                     st.markdown(f"<div class='judge-header-box'>{j}</div>", unsafe_allow_html=True)
                     for k, v in store.data.items():
                         if "|" in k and k.split("|")[1] == j and any(v.values()):
+                            # FIX: Holt die Katze aus der Tabelle, filtert aber strikt, damit sie zur Tabellenansicht passt
                             m = df_tag[df_tag['KAT_STR'] == k.split("|")[0]]
                             if not m.empty:
                                 tags = "".join([f"<span class='tag tag-{t.lower().replace(' ', '')}'>{t}</span> " for t, val in v.items() if val])
                                 st.markdown(f"<div class='cat-card'><div class='cat-number'>{k.split('|')[0]}</div><div class='cat-details'>{get_full_label(m.iloc[0])}</div><div class='tag-container'>{tags}</div></div>", unsafe_allow_html=True)
     st_autorefresh(interval=10000, key="dash_refresh")
-	#time.sleep(3); st.rerun()
-	
 
-# STEWARD PANEL (AUSSCHLIESSLICH HIER KLASSEN UND COMPONENTEN ERFASST)
+
+# STEWARD PANEL (JETZT MIT STRIKTER FILTERUNG NACH RICHTER UND KATEGORIE)
 elif st.session_state.view == "Steward_Panel":
     display_header_with_logo("📝 Steward-Pult")
     tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"]).upper()
@@ -578,55 +578,68 @@ elif st.session_state.view == "Steward_Panel":
     if df_full is not None:
         r_col = f"RICHTER {tag}"
         all_j = sorted([r for r in df_full[df_full[tag].astype(str).str.upper() == 'X'][r_col].unique() if str(r) != "nan"])
+        
+        # Eingabemasken für Richter UND Kategorie
         mein_richter = st.selectbox("Richter wählen:", ["--"] + all_j)
+        
+        # Holt alle verfügbaren Kategorien für den gewählten Richter
         if mein_richter != "--":
-            df_j = df_full[(df_full[tag].astype(str).str.upper() == 'X') & (df_full[r_col] == mein_richter)].sort_values('KATALOG-NR')
+            kategorien_pool = sorted(df_full[(df_full[tag].astype(str).str.upper() == 'X') & (df_full[r_col] == mein_richter)]['KATEGORIE'].unique())
+            meine_kategorie = st.selectbox("Kategorie wählen:", ["--"] + [str(kat) for kat in kategorien_pool])
             
-            for _, row in df_j.iterrows():
-                nr = row['KAT_STR']
-                k = f"{nr}|{mein_richter}"
+            if meine_kategorie != "--":
+                # FIX: Filtert jetzt strikt nach Richter UND Kategorie
+                df_j = df_full[
+                    (df_full[tag].astype(str).str.upper() == 'X') & 
+                    (df_full[r_col] == mein_richter) & 
+                    (df_full['KATEGORIE'].astype(str) == meine_kategorie)
+                ].sort_values('KATALOG-NR')
                 
-                if k not in store.data: 
-                    store.data[k] = {"Zum Richten": False, "BIV": False, "NOM": False}
-                
-                # Werte auslesen
-                is_richten = store.data[k]["Zum Richten"]
-                is_biv = store.data[k]["BIV"]
-                is_nom = store.data[k]["NOM"]
-                
-                # Container-Box für die Kachel rendern
-                st.markdown(f"""
-                <div class="steward-card-container">
-                    <div class="steward-card-title">🐾 #{nr} &nbsp;|&nbsp; {get_full_label(row)}</div>
-                </div>
-                """, unsafe_allow_html=True)
-                
-                # Steuerungskomponeenten sauber in einer Zeile platzieren
-                st.markdown('<div class="steward-btn-container">', unsafe_allow_html=True)
-                c1, c2, c3 = st.columns(3)
-                
-                with c1:
-                    st.markdown(f'<div class="{"steward-btn-richten-active" if is_richten else "steward-btn-richten"}">', unsafe_allow_html=True)
-                    if st.button("RICHTEN AKTIV" if is_richten else "ZUM RICHTEN", key=f"auf{k}"):
-                        store.data[k]["Zum Richten"] = not is_richten
-                        st.rerun()
-                    st.markdown('</div>', unsafe_allow_html=True)
+                for _, row in df_j.iterrows():
+                    nr = row['KAT_STR']
+                    k = f"{nr}|{mein_richter}"
                     
-                with c2:
-                    st.markdown(f'<div class="{"steward-btn-biv-active" if is_biv else "steward-btn-biv"}">', unsafe_allow_html=True)
-                    if st.button("BIV AKTIV" if is_biv else "BIV", key=f"biv{k}"):
-                        store.data[k]["BIV"] = not is_biv
-                        st.rerun()
-                    st.markdown('</div>', unsafe_allow_html=True)
+                    if k not in store.data: 
+                        store.data[k] = {"Zum Richten": False, "BIV": False, "NOM": False}
                     
-                with c3:
-                    st.markdown(f'<div class="{"steward-btn-nom-active" if is_nom else "steward-btn-nom"}">', unsafe_allow_html=True)
-                    if st.button("NOM AKTIV" if is_nom else "NOM", key=f"nom{k}"):
-                        store.data[k]["NOM"] = not is_nom
-                        st.rerun()
-                    st.markdown('</div>', unsafe_allow_html=True)
+                    # Werte auslesen
+                    is_richten = store.data[k]["Zum Richten"]
+                    is_biv = store.data[k]["BIV"]
+                    is_nom = store.data[k]["NOM"]
                     
-                st.markdown('</div>', unsafe_allow_html=True)
+                    # Container-Box für die Kachel rendern
+                    st.markdown(f"""
+                    <div class="steward-card-container">
+                        <div class="steward-card-title">🐾 #{nr} &nbsp;|&nbsp; {get_full_label(row)}</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    # Steuerungskomponenten sauber platzieren
+                    st.markdown('<div class="steward-btn-container">', unsafe_allow_html=True)
+                    c1, c2, c3 = st.columns(3)
+                    
+                    with c1:
+                        st.markdown(f'<div class="{"steward-btn-richten-active" if is_richten else "steward-btn-richten"}">', unsafe_allow_html=True)
+                        if st.button("RICHTEN AKTIV" if is_richten else "ZUM RICHTEN", key=f"auf{k}"):
+                            store.data[k]["Zum Richten"] = not is_richten
+                            st.rerun()
+                        st.markdown('</div>', unsafe_allow_html=True)
+                        
+                    with c2:
+                        st.markdown(f'<div class="{"steward-btn-biv-active" if is_biv else "steward-btn-biv"}">', unsafe_allow_html=True)
+                        if st.button("BIV AKTIV" if is_biv else "BIV", key=f"biv{k}"):
+                            store.data[k]["BIV"] = not is_biv
+                            st.rerun()
+                        st.markdown('</div>', unsafe_allow_html=True)
+                        
+                    with c3:
+                        st.markdown(f'<div class="{"steward-btn-nom-active" if is_nom else "steward-btn-nom"}">', unsafe_allow_html=True)
+                        if st.button("NOM AKTIV" if is_nom else "NOM", key=f"nom{k}"):
+                            store.data[k]["NOM"] = not is_nom
+                            st.rerun()
+                        st.markdown('</div>', unsafe_allow_html=True)
+                        
+                    st.markdown('</div>', unsafe_allow_html=True)
 
 # JUDGE VOTING
 elif st.session_state.view == "Judge_Voting":
