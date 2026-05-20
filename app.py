@@ -49,18 +49,26 @@ st.markdown("""
 
     /* Professionelles Steward Card UI */
     .steward-card {
-        background-color: #ffffff;
+        background-color: #f8f9fa; /* Karte standardmäßig komplett hellgrau */
         border: 1px solid #dcdcdc;
         border-radius: 8px;
-        padding: 16px;
-        margin-bottom: 12px;
+        padding: 16px 16px 4px 16px; /* Unten weniger Padding, da Buttons jetzt inside sind */
+        margin-bottom: 0px; /* Bündig mit den Buttons */
         box-shadow: 0 2px 4px rgba(0,0,0,0.02);
     }
     .steward-card.gerichtet {
-        background-color: #f8f9fa;
+        background-color: #f8f9fa; /* Bleibt hellgrau bei erledigt */
         border: 1px dashed #cccccc;
         opacity: 0.6;
     }
+    
+    /* Container für die Buttons direkt in der Card */
+    .card-button-container {
+        margin-top: 14px;
+        padding-top: 10px;
+        border-top: 1px solid #eee;
+    }
+    
     .card-header-row {
         display: flex;
         justify-content: space-between;
@@ -707,6 +715,7 @@ elif st.session_state.view == "Steward_Panel":
                 flags = store.data[k]["flags"]
                 card_class = "steward-card gerichtet" if flags.get("Gerichtet") else "steward-card"
                 
+                # Geöffneter div-Container für die Card umschließt nun auch die Buttons
                 st.markdown(f"""
                 <div class="{card_class}">
                     <div class="card-header-row">
@@ -719,12 +728,13 @@ elif st.session_state.view == "Steward_Panel":
                         <span class="card-meta-sub"><span class="meta-label">Geschlecht:</span> {geschlecht}</span>
                         <span class="card-meta-sub"><span class="meta-label">Geboren:</span> {geb_datum}</span>
                     </div>
-                </div>
+                    <div class="card-button-container">
                 """, unsafe_allow_html=True)
                 
+                # Streamlit Buttons werden gerendert (sie rutschen dank Streamlit's HTML-Injektion visuell in den Container)
                 c1, c2, c3, c4 = st.columns(4)
                 
-                # BUTTON 1: AUFRUFEN (Blau + Blinken bei Aktivierung)
+                # BUTTON 1: AUFRUFEN
                 is_rich = flags.get("Zum Richten")
                 with c1:
                     if is_rich: st.markdown('<div class="button-class">', unsafe_allow_html=True)
@@ -736,7 +746,7 @@ elif st.session_state.view == "Steward_Panel":
                         st.rerun()
                     if is_rich: st.markdown('</div>', unsafe_allow_html=True)
                 
-                # BUTTON 2: BIV (Grün + Blinken bei Aktivierung)
+                # BUTTON 2: BIV
                 is_biv = flags.get("BIV")
                 with c2:
                     if is_biv: st.markdown('<div class="st-blink-btn">', unsafe_allow_html=True)
@@ -746,7 +756,7 @@ elif st.session_state.view == "Steward_Panel":
                         st.rerun()
                     if is_biv: st.markdown('</div>', unsafe_allow_html=True)
                 
-                # BUTTON 3: NOMINIEREN (Gelb + Blinken bei Aktivierung)
+                # BUTTON 3: NOMINIEREN
                 is_nom = flags.get("NOM")
                 with c3:
                     if is_nom: st.markdown('<div class="st-blink-btn">', unsafe_allow_html=True)
@@ -757,7 +767,7 @@ elif st.session_state.view == "Steward_Panel":
                         st.rerun()
                     if is_nom: st.markdown('</div>', unsafe_allow_html=True)
                 
-                # BUTTON 4: GERICHTET (Grau - kein Blinken nötig da erledigt)
+                # BUTTON 4: GERICHTET
                 is_done = flags.get("Gerichtet")
                 with c4:
                     if st.button("[ ERLEDIGT ] GERICHTET" if is_done else "GERICHTET", key=f"btn_done_{k}"):
@@ -768,7 +778,12 @@ elif st.session_state.view == "Steward_Panel":
                             store.data[k]["flags"]["Gerichtet"] = False
                         st.rerun()
                 
-                st.markdown("<div style='margin-bottom: 25px;'></div>", unsafe_allow_html=True)
+                # Schließen des umschließenden HTML-Rahmens (Card)
+                st.markdown("""
+                    </div>
+                </div>
+                <div style='margin-bottom: 25px;'></div>
+                """, unsafe_allow_html=True)
 
 
 
