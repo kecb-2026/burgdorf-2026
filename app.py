@@ -11,7 +11,10 @@ st.set_page_config(layout="wide", page_title="KECB Burgdorf 2026", page_icon="�
 LOGO_URL = "logo.GIF"
 
 st.markdown("""
-   <style>
+
+    
+        
+    <style>
     @keyframes blinker { 50% { opacity: 0.1; } }
     @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
     
@@ -85,7 +88,7 @@ st.markdown("""
         letter-spacing: 0.5px;
     }
 
-    /* --- GLOBALE BUTTONS --- */
+    /* --- GLOBALE BUTTONS (DASHBOARD) --- */
     div.stButton > button, .stButton button {
         width: 100% !important;
         height: 50px !important;
@@ -97,6 +100,18 @@ st.markdown("""
         margin-bottom: 5px;
         border: 2px solid #1a4a9e !important;
         color: white !important;
+    }
+
+    /* --- REPARATUR: BUTTONS SPEZIFISCH IM STEWARD PANEL VERKLEINERN --- */
+    /* Überschreibt die 50px von oben für die Buttons unter/in den Steward-Cards */
+    div[data-testid="stHorizontalBlock"] div.stButton > button {
+        height: 25px !important;
+        min-height: 25px !important;
+        min-width: 10px !important;
+        padding: 0px 5px !important;
+        font-size: 8px !important;
+        line-height: 1 !important;
+        border-radius: 8px !important;
     }
 
     /* Spalten-spezifische Button-Farben für das Steward-Pult */
@@ -234,6 +249,7 @@ st.markdown("""
     .tag-biv { background-color: #28a745; animation: blinker 1.5s linear infinite; }
     .tag-nom { background-color: #ffc107; color: black; animation: blinker 1s linear infinite; }
 </style>
+
 
     """, unsafe_allow_html=True)
 
