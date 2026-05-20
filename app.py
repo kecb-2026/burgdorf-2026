@@ -554,7 +554,6 @@ elif st.session_state.view == "Steward_Panel":
                 nr = row['KAT_STR']
                 k = f"{nr}|{mein_richter}"
                 
-                # Spalten flexibel auslesen
                 klasse = row.get('KLASSE_INTERNAL', row.get('AUSSTELLUNGSKLASSE', row.get('KLASSE', 'N/A')))
                 fg_cols = [c for c in row.index if "FARBGRUPPE" in c or "FARB-GRUPPE" in c]
                 farbgruppe = row[fg_cols[0]] if fg_cols else row.get('FARBGRUPPE', 'N/A')
@@ -592,27 +591,48 @@ elif st.session_state.view == "Steward_Panel":
                 
                 c1, c2, c3, c4 = st.columns(4)
                 
-                # BUTTON 1: AUFRUFEN (Blau + Blinken bei Aktivierung)
-                is_rich = flags.get("Zum Richten")
+                # BUTTON 1
                 with c1:
-                    if is_rich: st.markdown('<div class="button-class">', unsafe_allow_html=True)
-                    if st.button("[ AKTIV ] AUFGERUFEN" if is_rich else "AUFRUFEN", key=f"btn_rich_{k}"):
-                        store.data[k]["flags"]["Zum Richten"] = not is_rich
+                    if flags.get("Zum Richten"): st.markdown('<div class="button-class">', unsafe_allow_html=True)
+                    if st.button("[ AKTIV ] AUFGERUFEN" if flags.get("Zum Richten") else "AUFRUFEN", key=f"btn_rich_{k}"):
+                        store.data[k]["flags"]["Zum Richten"] = not flags.get("Zum Richten")
                         if store.data[k]["flags"]["Zum Richten"]:
                             store.data[k]["flags"]["Gerichtet"] = False
                             store.data[k]["timestamp"] = time.time()
                         st.rerun()
-                    if is_rich: st.markdown('</div>', unsafe_allow_html=True)
+                    if flags.get("Zum Richten"): st.markdown('</div>', unsafe_allow_html=True)
                 
-                # BUTTON 2: BIV (Grün + Blinken bei Aktivierung)
-                is_biv = flags.get("BIV")
+                # BUTTON 2
                 with c2:
-                    if is_biv: st.markdown('<div class="st-blink-btn">', unsafe_allow_html=True)
-                    if st.button("[ AKTIV ] BIV" if is_biv else "BIV", key=f"btn_biv_{k}"):
-                        store.data[k]["flags"]["BIV"] = not is_biv
+                    if flags.get("BIV"): st.markdown('<div class="button-class">', unsafe_allow_html=True)
+                    if st.button("[ AKTIV ] BIV" if flags.get("BIV") else "BIV", key=f"btn_biv_{k}"):
+                        store.data[k]["flags"]["BIV"] = not flags.get("BIV")
                         store.data[k]["timestamp"] = time.time()
                         st.rerun()
-                    if is_biv: st.markdown('</div>', unsafe_allow_html=True)
+                    if flags.get("BIV"): st.markdown('</div>', unsafe_allow_html=True)
+                
+                # BUTTON 3
+                with c3:
+                    if flags.get("NOM"): st.markdown('<div class="button-class">', unsafe_allow_html=True)
+                    if st.button("[ AKTIV ] NOM" if flags.get("NOM") else "NOM", key=f"btn_nom_{k}"):
+                        store.data[k]["flags"]["NOM"] = not flags.get("NOM")
+                        if store.data[k]["flags"]["NOM"]:
+                            store.data[k]["timestamp"] = time.time()
+                        st.rerun()
+                    if flags.get("NOM"): st.markdown('</div>', unsafe_allow_html=True)
+                
+                # BUTTON 4
+                with c4:
+                    if st.button("[ ERLEDIGT ] GERICHTET" if flags.get("Gerichtet") else "GERICHTET", key=f"btn_done_{k}"):
+                        if not flags.get("Gerichtet"):
+                            store.data[k]["flags"]["Zum Richten"] = False
+                            store.data[k]["flags"]["Gerichtet"] = True
+                        else:
+                            store.data[k]["flags"]["Gerichtet"] = False
+                        st.rerun()
+                
+                st.markdown("<div style='margin-bottom: 25px;'></div>", unsafe_allow_html=True)
+
                 
                 # BUTTON 3: NOMINIEREN (Gelb + Blinken bei Aktivierung)
                 is_nom = flags.get("NOM")
