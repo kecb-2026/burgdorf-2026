@@ -12,7 +12,7 @@ LOGO_URL = "logo.GIF"
 
 st.markdown("""
     <style>
-    @keyframes blinker { 50% { opacity: 0.1; } }
+    @keyframes blinker { 50% { opacity: 0.2; } }
     
     /* Login Container */
     .login-container {
@@ -77,7 +77,7 @@ st.markdown("""
         letter-spacing: 0.5px;
     }
 
-    /* Dynamische Farb-Anpassungen für Steward Buttons passend zum Dashboard */
+    /* --- VOLLSTÄNDIG GEFÜLLTE BUTTONS OHNE ROT & MIT BLINKEN --- */
     div.stButton > button {
         width: 100%;
         height: 50px;
@@ -87,27 +87,44 @@ st.markdown("""
         font-size: 12px !important;
         transition: all 0.2s ease;
         margin-bottom: 5px;
-        border: 2px solid #1a4a9e !important;
-        background-color: white;
-        color: #1a4a9e;
+        color: white !important;
     }
 
-    /* Aufgerufen (Blau) */
-    div[data-testid="stHorizontalBlock"] > div:nth-child(1) button { border-color: #007bff !important; color: #007bff; }
-    div[data-testid="stHorizontalBlock"] > div:nth-child(1) button[data-style="primary"] { background-color: #007bff !important; color: white !important; }
-    
-    /* BIV (Grün) */
-    div[data-testid="stHorizontalBlock"] > div:nth-child(2) button { border-color: #28a745 !important; color: #28a745; }
-    div[data-testid="stHorizontalBlock"] > div:nth-child(2) button[data-style="primary"] { background-color: #28a745 !important; color: white !important; }
-    
-    /* NOM (Gelb/Orange) */
-    div[data-testid="stHorizontalBlock"] > div:nth-child(3) button { border-color: #ffc107 !important; color: #ffc107; }
-    div[data-testid="stHorizontalBlock"] > div:nth-child(3) button[data-style="primary"] { background-color: #ffc107 !important; color: black !important; border-color: #ffc107 !important; }
+    /* 1. Spalte: Aufgerufen (Kräftiges Blau) */
+    div[data-testid="stHorizontalBlock"] > div:nth-child(1) button {
+        background-color: #007bff !important;
+        border: 2px solid #0056b3 !important;
+    }
+    /* 2. Spalte: BIV (Kräftiges Grün) */
+    div[data-testid="stHorizontalBlock"] > div:nth-child(2) button {
+        background-color: #28a745 !important;
+        border: 2px solid #1e7e34 !important;
+    }
+    /* 3. Spalte: NOM (Kräftiges Gelb/Orange mit dunkler Schrift für Lesbarkeit) */
+    div[data-testid="stHorizontalBlock"] > div:nth-child(3) button {
+        background-color: #ffc107 !important;
+        border: 2px solid #d39e00 !important;
+        color: black !important;
+    }
+    /* 4. Spalte: Gerichtet (Dezentes Grau) */
+    div[data-testid="stHorizontalBlock"] > div:nth-child(4) button {
+        background-color: #6c757d !important;
+        border: 2px solid #545b62 !important;
+    }
 
-    /* Gerichtet (Grau) */
-    div[data-testid="stHorizontalBlock"] > div:nth-child(4) button { border-color: #6c757d !important; color: #6c757d; }
-    div[data-testid="stHorizontalBlock"] > div:nth-child(4) button[data-style="primary"] { background-color: #6c757d !important; color: white !important; }
+    /* HOVER EFFEKTE (Leichtes Abdunkeln beim Drüberfahren) */
+    div[data-testid="stHorizontalBlock"] > div:nth-child(1) button:hover { background-color: #0069d9 !important; }
+    div[data-testid="stHorizontalBlock"] > div:nth-child(2) button:hover { background-color: #218838 !important; }
+    div[data-testid="stHorizontalBlock"] > div:nth-child(3) button:hover { background-color: #e0a800 !important; }
+    div[data-testid="stHorizontalBlock"] > div:nth-child(4) button:hover { background-color: #5a6268 !important; }
 
+    /* BLINK-ANIMATION FÜR AKTIVE BUTTONS (Stoppt das Streamlit-Rot) */
+    .st-blink-btn button {
+        animation: blinker 1.3s linear infinite !important;
+        box-shadow: 0 0 15px rgba(0,0,0,0.2) !important;
+    }
+
+    /* Dashboard Styles */
     .judge-header-box { background-color: #1a4a9e; color: white; padding: 8px; border-radius: 10px; text-align: center; font-size: 12px !important; text-transform: uppercase; font-weight: bold; margin-bottom: 10px; border: 2px solid #0d2a5e; height: 60px; display: flex; align-items: center; justify-content: center; }
     .class-label-box { background-color: #e9ecef; color: #1a4a9e; padding: 5px; border-radius: 10px; text-align: center; font-size: 11px !important; text-transform: uppercase; font-weight: 800; border: 2px solid #1a4a9e; display: flex; align-items: center; justify-content: center; height: 80px; width: 100%; line-height: 1.1; }
     .cat-card, .placeholder-box { padding: 5px; border: 2px solid #1a4a9e; text-align: center; background-color: #ffffff; border-radius: 14px; margin-bottom: 5px; min-height: 80px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
@@ -214,7 +231,6 @@ def load_labels():
 
 def get_full_label(row):
     r = row.get('RASSE_KURZ', row.get('RASSE', ''))
-    # Sicheres Finden der Farbgruppe, auch bei variierenden Spaltennamen
     fg_col = [c for c in row.index if "FARBGRUPPE" in c or "FARB-GRUPPE" in c]
     fg_val = row[fg_col[0]] if fg_col else row.get('FARBGRUPPE', '')
     g = roman_to_numeric(fg_val)
@@ -516,24 +532,17 @@ elif st.session_state.view == "Steward_Panel":
                 nr = row['KAT_STR']
                 k = f"{nr}|{mein_richter}"
                 
-                # --- FLEXIBLES AUSLESEN DER EXCEL-SPALTEN ---
+                # Spalten flexibel auslesen
                 klasse = row.get('KLASSE_INTERNAL', row.get('AUSSTELLUNGSKLASSE', row.get('KLASSE', 'N/A')))
-                
-                # Farbgruppen-Spalte flexibel ermitteln
                 fg_cols = [c for c in row.index if "FARBGRUPPE" in c or "FARB-GRUPPE" in c]
                 farbgruppe = row[fg_cols[0]] if fg_cols else row.get('FARBGRUPPE', 'N/A')
-                if pd.isna(farbgruppe) or str(farbgruppe).strip().lower() == "nan":
-                    farbgruppe = "N/A"
+                if pd.isna(farbgruppe) or str(farbgruppe).strip().lower() == "nan": farbgruppe = "N/A"
                 
                 geschlecht = row.get('GESCHLECHT', 'N/A')
-                
-                # Geburtsdatum-Spalte flexibel ermitteln
                 geb_cols = [c for c in row.index if "GEB" in c or "GEBURT" in c]
                 geb_datum = row[geb_cols[0]] if geb_cols else row.get('GEB_DATUM', 'N/A')
-                if isinstance(geb_datum, pd.Timestamp):
-                    geb_datum = geb_datum.strftime('%d.%m.%Y')
-                elif pd.isna(geb_datum) or str(geb_datum).strip().lower() == "nan":
-                    geb_datum = "N/A"
+                if isinstance(geb_datum, pd.Timestamp): geb_datum = geb_datum.strftime('%d.%m.%Y')
+                elif pd.isna(geb_datum) or str(geb_datum).strip().lower() == "nan": geb_datum = "N/A"
                 
                 if k not in store.data or not isinstance(store.data[k], dict) or "flags" not in store.data[k]: 
                     store.data[k] = {
@@ -544,7 +553,6 @@ elif st.session_state.view == "Steward_Panel":
                 flags = store.data[k]["flags"]
                 card_class = "steward-card gerichtet" if flags.get("Gerichtet") else "steward-card"
                 
-                # UI Card Rendering
                 st.markdown(f"""
                 <div class="{card_class}">
                     <div class="card-header-row">
@@ -562,39 +570,49 @@ elif st.session_state.view == "Steward_Panel":
                 
                 c1, c2, c3, c4 = st.columns(4)
                 
-                # BUTTON 1: AUFRUFEN (Blau)
+                # BUTTON 1: AUFRUFEN (Blau + Blinken bei Aktivierung)
                 is_rich = flags.get("Zum Richten")
-                if c1.button("[ AKTIV ] AUFGERUFEN" if is_rich else "AUFRUFEN", key=f"btn_rich_{k}", type="primary" if is_rich else "secondary"):
-                    store.data[k]["flags"]["Zum Richten"] = not is_rich
-                    if store.data[k]["flags"]["Zum Richten"]:
-                        store.data[k]["flags"]["Gerichtet"] = False
-                        store.data[k]["timestamp"] = time.time()
-                    st.rerun()
+                with c1:
+                    if is_rich: st.markdown('<div class="st-blink-btn">', unsafe_allow_html=True)
+                    if st.button("[ AKTIV ] AUFGERUFEN" if is_rich else "AUFRUFEN", key=f"btn_rich_{k}"):
+                        store.data[k]["flags"]["Zum Richten"] = not is_rich
+                        if store.data[k]["flags"]["Zum Richten"]:
+                            store.data[k]["flags"]["Gerichtet"] = False
+                            store.data[k]["timestamp"] = time.time()
+                        st.rerun()
+                    if is_rich: st.markdown('</div>', unsafe_allow_html=True)
                 
-                # BUTTON 2: BIV (Grün)
+                # BUTTON 2: BIV (Grün + Blinken bei Aktivierung)
                 is_biv = flags.get("BIV")
-                if c2.button("[ AKTIV ] BIV" if is_biv else "BIV", key=f"btn_biv_{k}", type="primary" if is_biv else "secondary"):
-                    store.data[k]["flags"]["BIV"] = not is_biv
-                    store.data[k]["timestamp"] = time.time()
-                    st.rerun()
-                
-                # BUTTON 3: NOMINIEREN (Gelb)
-                is_nom = flags.get("NOM")
-                if c3.button("[ AKTIV ] NOM" if is_nom else "NOM", key=f"btn_nom_{k}", type="primary" if is_nom else "secondary"):
-                    store.data[k]["flags"]["NOM"] = not is_nom
-                    if store.data[k]["flags"]["NOM"]:
+                with c2:
+                    if is_biv: st.markdown('<div class="st-blink-btn">', unsafe_allow_html=True)
+                    if st.button("[ AKTIV ] BIV" if is_biv else "BIV", key=f"btn_biv_{k}"):
+                        store.data[k]["flags"]["BIV"] = not is_biv
                         store.data[k]["timestamp"] = time.time()
-                    st.rerun()
+                        st.rerun()
+                    if is_biv: st.markdown('</div>', unsafe_allow_html=True)
                 
-                # BUTTON 4: GERICHTET (Grau)
+                # BUTTON 3: NOMINIEREN (Gelb + Blinken bei Aktivierung)
+                is_nom = flags.get("NOM")
+                with c3:
+                    if is_nom: st.markdown('<div class="st-blink-btn">', unsafe_allow_html=True)
+                    if st.button("[ AKTIV ] NOM" if is_nom else "NOM", key=f"btn_nom_{k}"):
+                        store.data[k]["flags"]["NOM"] = not is_nom
+                        if store.data[k]["flags"]["NOM"]:
+                            store.data[k]["timestamp"] = time.time()
+                        st.rerun()
+                    if is_nom: st.markdown('</div>', unsafe_allow_html=True)
+                
+                # BUTTON 4: GERICHTET (Grau - kein Blinken nötig da erledigt)
                 is_done = flags.get("Gerichtet")
-                if c4.button("[ ERLEDIGT ] GERICHTET" if is_done else "GERICHTET", key=f"btn_done_{k}", type="primary" if is_done else "secondary"):
-                    if not is_done:
-                        store.data[k]["flags"]["Zum Richten"] = False
-                        store.data[k]["flags"]["Gerichtet"] = True
-                    else:
-                        store.data[k]["flags"]["Gerichtet"] = False
-                    st.rerun()
+                with c4:
+                    if st.button("[ ERLEDIGT ] GERICHTET" if is_done else "GERICHTET", key=f"btn_done_{k}"):
+                        if not is_done:
+                            store.data[k]["flags"]["Zum Richten"] = False
+                            store.data[k]["flags"]["Gerichtet"] = True
+                        else:
+                            store.data[k]["flags"]["Gerichtet"] = False
+                        st.rerun()
                 
                 st.markdown("<div style='margin-bottom: 25px;'></div>", unsafe_allow_html=True)
 
