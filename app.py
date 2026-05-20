@@ -118,11 +118,14 @@ st.markdown("""
     div[data-testid="stHorizontalBlock"] > div:nth-child(3) button:hover { background-color: #e0a800 !important; }
     div[data-testid="stHorizontalBlock"] > div:nth-child(4) button:hover { background-color: #5a6268 !important; }
 
-    /* BLINK-ANIMATION FÜR AKTIVE BUTTONS (Stoppt das Streamlit-Rot) */
+        /* BLINK-ANIMATION FÜR AKTIVE BUTTONS */
+    /* Wir zielen jetzt direkt auf das <button> Element innerhalb unseres Containers */
     .st-blink-btn button {
         animation: blinker 1.3s linear infinite !important;
         box-shadow: 0 0 15px rgba(0,0,0,0.2) !important;
+        border-color: white !important; /* Optional: Weisser Rand für mehr Kontrast beim Blinken */
     }
+
 
     /* Dashboard Styles */
     .judge-header-box { background-color: #1a4a9e; color: white; padding: 8px; border-radius: 10px; text-align: center; font-size: 12px !important; text-transform: uppercase; font-weight: bold; margin-bottom: 10px; border: 2px solid #0d2a5e; height: 60px; display: flex; align-items: center; justify-content: center; }
