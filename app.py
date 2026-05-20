@@ -675,7 +675,7 @@ elif st.session_state.view == "Dashboard":
     st_autorefresh(interval=10000, key="dash_refresh")
 
 
-# --- CORRRECTIONS ONLY IN THE STEWARD PANEL ---
+# --- CORRECTIONS ONLY IN THE STEWARD PANEL ---
 elif st.session_state.view == "Steward_Panel":
     display_header_with_logo("📝 Steward-Pult")
     tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"]).upper()
@@ -718,10 +718,8 @@ elif st.session_state.view == "Steward_Panel":
                 flags = store.data[k]["flags"]
                 card_class = "steward-card-wrapper gerichtet" if flags.get("Gerichtet") else "steward-card-wrapper"
                 
-                # DER FEHLERFREIE KASTEN-ANSATZ:
-                # Wir bauen einen sauberen HTML-Kasten. Um Verschachtelungsfehler zu vermeiden, 
-                # lagern wir die Streamlit-Buttons nicht in Spalten IN das HTML aus, sondern schließen 
-                # das HTML vorher, damit Streamlit-Komponenten fehlerfrei gerendert werden.
+                # --- START DES GRAUEN RECHTECKS ---
+                # Wir öffnen das div mit der Klasse steward-card-wrapper.
                 st.markdown(f"""
                 <div class="{card_class}">
                     <div class="card-header-row">
@@ -735,11 +733,9 @@ elif st.session_state.view == "Steward_Panel":
                         <span class="card-meta-sub"><span class="meta-label">Geboren:</span> {geb_datum}</span>
                     </div>
                     <div style="border-top: 1px solid #e2e2e2; padding-top: 10px; margin-top: 12px; margin-bottom: 8px;"></div>
-                </div>
                 """, unsafe_allow_html=True)
                 
-                # Wir rendern die Spalten nativ unter dem Kasten-Wrapper, welcher via CSS im Hintergrund 
-                # exklusiv gestylt wird.
+                # Die originalen Spalten für die Buttons (damit dein CSS nth-child(1) bis (4) greift!)
                 c1, c2, c3, c4 = st.columns(4)
                 
                 # BUTTON 1: AUFRUFEN
@@ -785,6 +781,10 @@ elif st.session_state.view == "Steward_Panel":
                         else:
                             store.data[k]["flags"]["Gerichtet"] = False
                         st.rerun()
+                
+                # --- ENDE DES GRAUEN RECHTECKS ---
+                # Erst nachdem die Buttons gerendert wurden, schließen wir das umschließende HTML-Kasten-Div.
+                st.markdown("</div>", unsafe_allow_html=True)
 
 
 # JUDGE VOTING
