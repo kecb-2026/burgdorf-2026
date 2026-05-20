@@ -11,8 +11,9 @@ st.set_page_config(layout="wide", page_title="KECB Burgdorf 2026", page_icon="�
 LOGO_URL = "logo.GIF"
 
 st.markdown("""
-    <style>
-    @keyframes blinker { 50% { opacity: 0.2; } }
+   <style>
+    @keyframes blinker { 50% { opacity: 0.1; } }
+    @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
     
     /* Login Container */
     .login-container {
@@ -26,9 +27,15 @@ st.markdown("""
         border: 2px solid #1a4a9e;
         max-width: 400px;
         margin: 5% auto;
-        font-color: 000;
     }
-    
+
+    /* Erzeugt einheitliche Höhen für alle Boxen in einer Zeile */
+    .grid-wrapper {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
     /* Professionelles Steward Card UI */
     .steward-card {
         background-color: #ffffff;
@@ -78,91 +85,156 @@ st.markdown("""
         letter-spacing: 0.5px;
     }
 
-    /* --- VOLLSTÄNDIG GEFÜLLTE BUTTONS OHNE ROT & MIT BLINKEN --- */
-    div.stButton > button {
-        min-width: 100px;
-        width: 100%;
-        height: 30px;
-        padding: 0px 5px !important;
+    /* --- GLOBALE BUTTONS --- */
+    div.stButton > button, .stButton button {
+        width: 100% !important;
+        height: 50px !important;
+        border-radius: 12px !important;
         font-weight: bold !important;
         text-transform: uppercase !important;
-        font-size: 8px !important;
+        font-size: 12px !important;
         transition: all 0.2s ease;
-        line-hight: 1px;
+        margin-bottom: 5px;
+        border: 2px solid #1a4a9e !important;
         color: white !important;
     }
-    
-    /* Buttons nur innerhalb der Steward-Card verkleinern */
-.steward-card div.stButton > button {
-    height: 25px !important;
-    padding: 0px 5px !important;
-    font-size: 8px !important;
-    line-height: 1 !important;
-    min-height: 30px !important;
-    width: 100px !important;
-}
 
-
-    /* 1. Spalte: Aufgerufen (Kräftiges Blau) */
+    /* Spalten-spezifische Button-Farben für das Steward-Pult */
     div[data-testid="stHorizontalBlock"] > div:nth-child(1) button {
         background-color: #007bff !important;
         border: 2px solid #0056b3 !important;
+        color: white !important;
     }
-    /* 2. Spalte: BIV (Kräftiges Grün) */
     div[data-testid="stHorizontalBlock"] > div:nth-child(2) button {
         background-color: #28a745 !important;
         border: 2px solid #1e7e34 !important;
+        color: white !important;
     }
-    /* 3. Spalte: NOM (Kräftiges Gelb/Orange mit dunkler Schrift für Lesbarkeit) */
     div[data-testid="stHorizontalBlock"] > div:nth-child(3) button {
         background-color: #ffc107 !important;
         border: 2px solid #d39e00 !important;
         color: black !important;
     }
-    /* 4. Spalte: Gerichtet (Dezentes Grau) */
     div[data-testid="stHorizontalBlock"] > div:nth-child(4) button {
         background-color: #6c757d !important;
         border: 2px solid #545b62 !important;
+        color: white !important;
     }
 
-    /* HOVER EFFEKTE (Leichtes Abdunkeln beim Drüberfahren) */
+    /* Hover Effekte */
     div[data-testid="stHorizontalBlock"] > div:nth-child(1) button:hover { background-color: #0069d9 !important; }
     div[data-testid="stHorizontalBlock"] > div:nth-child(2) button:hover { background-color: #218838 !important; }
     div[data-testid="stHorizontalBlock"] > div:nth-child(3) button:hover { background-color: #e0a800 !important; }
     div[data-testid="stHorizontalBlock"] > div:nth-child(4) button:hover { background-color: #5a6268 !important; }
 
-        /* BLINK-ANIMATION FÜR AKTIVE BUTTONS */
-    /* Wir zielen jetzt direkt auf das <button> Element innerhalb unseres Containers */
-    .st-blink-btn button {
+    /* Blinken für aktive Container-Wrapper im Python-Code */
+    .button-class button, .st-blink-btn button, .blink-active button {
         animation: blinker 1.3s linear infinite !important;
         box-shadow: 0 0 15px rgba(0,0,0,0.2) !important;
-        border-color: white !important; /* Optional: Weisser Rand für mehr Kontrast beim Blinken */
     }
 
-
-    /* Diese Klasse erzwingt das Blinken direkt auf dem Button-Element */
-    .blink-active button {
-        animation: blinker 1.3s linear infinite !important;
-        box-shadow: 0 0 10px rgba(255,255,255,0.5) !important;
-        border: 2px solid white !important;
+    /* Dashboard & Richter-Layout Styles */
+    .judge-header-box { 
+        background-color: #1a4a9e; color: white; padding: 8px; border-radius: 10px; text-align: center; 
+        font-size: 12px !important; text-transform: uppercase; font-weight: bold; 
+        margin-bottom: 10px; border: 2px solid #0d2a5e; height: 60px; 
+        display: flex; align-items: center; justify-content: center; 
+    }
+    
+    .class-label-box { 
+        background-color: #e9ecef; color: #1a4a9e; padding: 5px; border-radius: 10px; text-align: center; 
+        font-size: 11px !important; text-transform: uppercase; font-weight: 800; 
+        border: 2px solid #1a4a9e; display: flex; align-items: center; justify-content: center; 
+        height: 80px; width: 100%; line-height: 1.1; 
     }
 
-
-    /* Dashboard Styles */
-    .judge-header-box { background-color: #1a4a9e; color: white; padding: 8px; border-radius: 10px; text-align: center; font-size: 12px !important; text-transform: uppercase; font-weight: bold; margin-bottom: 10px; border: 2px solid #0d2a5e; height: 60px; display: flex; align-items: center; justify-content: center; }
-    .class-label-box { background-color: #e9ecef; color: #1a4a9e; padding: 5px; border-radius: 10px; text-align: center; font-size: 11px !important; text-transform: uppercase; font-weight: 800; border: 2px solid #1a4a9e; display: flex; align-items: center; justify-content: center; height: 80px; width: 100%; line-height: 1.1; }
     .cat-card, .placeholder-box { padding: 5px; border: 2px solid #1a4a9e; text-align: center; background-color: #ffffff; border-radius: 14px; margin-bottom: 5px; min-height: 80px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
     .placeholder-box { border: 1px solid #d1d1d1; background-color: #f2f2f2 !important; color: #999999; }
     .winner-card { border: 3px solid #ff4d4d !important; background-color: #ffcccc !important; color: #b21f2d !important; }
     .cat-number { font-size: 28px !important; font-weight: 900 !important; color: #1a4a9e; line-height: 1.0; }
     .cat-details { font-size: 14px !important; color: #333; font-weight: bold; margin-top: 2px; line-height: 1.1; }
+
+    /* Richter Initialen Kreise */
+    .judge-initials-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 4px;
+        margin-top: 8px;
+        padding-top: 6px;
+        border-top: 1px solid #eee;
+    }
+    .judge-circle {
+        width: 24px;
+        height: 24px;
+        background-color: #1a4a9e;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        font-weight: bold;
+        cursor: help;
+    }
+
+    /* Overlay als zentrierte Box (80% Größe) */
+    .winner-overlay {
+        position: fixed;
+        top: 10%; left: 10%; 
+        width: 80vw; height: 80vh;
+        background-color: white;
+        z-index: 9999999;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        text-align: center;
+        border-radius: 40px;
+        box-shadow: 0px 0px 100px rgba(0,0,0,0.5);
+        border: 15px solid #1a4a9e;
+        padding: 40px;
+        animation: fadeIn 0.5s ease-out;
+    }
+    .overlay-backdrop {
+        position: fixed;
+        top: 0; left: 0; width: 100vw; height: 100vh;
+        background-color: rgba(0,0,0,0.7);
+        z-index: 9999998;
+    }
+
+    /* Titel Anpassungen Overlay */
+    .ov-header {
+        font-size: 24px !important; font-weight: 500; color: #333;
+        text-transform: uppercase;
+        border-bottom: 2px solid #ccc; width: 80%;
+        padding-bottom: 15px; margin-bottom: 30px;
+    }
+    .ov-cat-name {
+        font-size: 45px !important; font-weight: 900;
+        text-transform: uppercase; color: #000;
+        margin-bottom: 20px; line-height: 1.1;
+        width: 90%; word-wrap: break-word;
+    }
+    .ov-owner {
+        font-size: 30px !important; font-style: italic; color: #444;
+    }
     
+    /* Klasse für Hauptüberschriften neben dem Logo */
+    .header-text {
+        text-transform: uppercase !important;
+        font-size: 26px !important;
+        font-weight: bold;
+        color: #1a4a9e;
+        margin: 0 !important;
+    }
+    
+    /* Tags */
     .tag-container { margin-top: 4px; display: flex; justify-content: center; flex-wrap: wrap; gap: 3px; }
     .tag { font-weight: bold; padding: 4px 8px; border-radius: 6px; font-size: 11px; text-transform: uppercase; color: white; }
     .tag-zumrichten { background-color: #007bff; }
     .tag-biv { background-color: #28a745; animation: blinker 1.5s linear infinite; }
     .tag-nom { background-color: #ffc107; color: black; animation: blinker 1s linear infinite; }
-    </style>
+</style>
+
     """, unsafe_allow_html=True)
 
 # --- 2. GLOBALER SPEICHER ---
