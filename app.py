@@ -79,7 +79,7 @@ st.markdown("""
 
     /* --- VOLLSTÄNDIG GEFÜLLTE BUTTONS OHNE ROT & MIT BLINKEN --- */
     div.stButton > button {
-        width: 100%;
+        width: 100px;
         height: 25px;
         padding: 0px 5px !important;
         font-weight: bold !important;
