@@ -152,6 +152,37 @@ st.markdown("""
     .tag-zumrichten { background-color: #007bff; }
     .tag-biv { background-color: #28a745; animation: blinker 1.5s linear infinite; }
     .tag-nom { background-color: #ffc107; color: black; animation: blinker 1s linear infinite; }
+
+    /* --- STEWARD PANEL STYLES --- */
+    .steward-card-container {
+        background-color: #ffffff;
+        border: 2px solid #1a4a9e;
+        border-radius: 14px;
+        padding: 12px;
+        margin-bottom: 8px;
+    }
+    .steward-card-title {
+        font-size: 15px;
+        font-weight: bold;
+        color: #333333;
+        margin-bottom: 8px;
+    }
+    .steward-btn-container div.stButton > button {
+        height: 38px !important;
+        font-size: 11px !important;
+        text-transform: uppercase !important;
+        border-radius: 8px !important;
+        margin-bottom: 0px !important;
+    }
+    /* Standard-Inaktiv-Farben */
+    .steward-btn-richten div.stButton > button { background-color: #f8f9fa !important; color: #007bff !important; border: 2px solid #007bff !important; }
+    .steward-btn-biv div.stButton > button { background-color: #f8f9fa !important; color: #28a745 !important; border: 2px solid #28a745 !important; }
+    .steward-btn-nom div.stButton > button { background-color: #f8f9fa !important; color: #ff4d4d !important; border: 2px solid #ff4d4d !important; }
+
+    /* Aktive Zustände */
+    .steward-btn-richten-active div.stButton > button { background-color: #007bff !important; color: white !important; border: 2px solid #0056b3 !important; }
+    .steward-btn-biv-active div.stButton > button { background-color: #28a745 !important; color: white !important; border: 2px solid #1e7e34 !important; animation: blinker 1.5s linear infinite !important; }
+    .steward-btn-nom-active div.stButton > button { background-color: #ff4d4d !important; color: white !important; border: 2px solid #b21f2d !important; animation: blinker 1s linear infinite !important; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -179,8 +210,6 @@ if "view" not in st.session_state:
 q_params = st.query_params
 if "view" in q_params:
     v_param = q_params["view"].lower()
-    
-    # NEU: Wenn 'auth' in der URL steht, logge den User automatisch wieder ein
     if q_params.get("auth") == "true":
         st.session_state.authenticated = True
         st.session_state.user_role = q_params.get("role", "Public")
@@ -191,7 +220,6 @@ if "view" in q_params:
         st.session_state.view = "Login"
         st.session_state.target_role = v_param
 
-
 def logout():
     st.session_state.authenticated = False
     st.session_state.user_role = "Public"
@@ -199,29 +227,7 @@ def logout():
     st.rerun()
 
 # --- 4. HILFSFUNKTIONEN ---
-
-def custom_autorefresh(interval_ms):
-    """A simple autorefresh using modern Streamlit commands."""
-    import streamlit.components.v1 as components
-    # This creates a tiny invisible piece of Javascript that clicks a button
-    # or triggers a rerun every X milliseconds.
-    components.html(
-        f"""
-        <script>
-            window.parent.postMessage({{
-                type: 'streamlit:set_component_value',
-                value: Date.now()
-            }}, '*');
-        </script>
-        """,
-        height=0,
-    )
-    time.sleep(interval_ms / 1000)
-    st.rerun()
-
-
 def display_header_with_logo(text):
-    """Zeigt die Überschrift links und das Logo rechtsbündig an"""
     col_text, col_logo = st.columns([5, 1]) 
     with col_text:
         st.markdown(f"<p class='header-text'>{text}</p>", unsafe_allow_html=True)
@@ -277,7 +283,7 @@ def get_full_label(row):
     return f"{r} {g} ({e})".strip()
 
 def set_view(name):
-    store.active_overlay = None   # FIX: Overlay beim Viewwechsel löschen
+    store.active_overlay = None
     st.session_state.view = name
     st.rerun()
 
@@ -295,8 +301,6 @@ st.sidebar.image(LOGO_URL, width=100)
 st.session_state.view = st.sidebar.radio("Menü:", available_views, 
     index=available_views.index(st.session_state.view) if st.session_state.view in available_views else 0)
 	
-# FIX: Overlay reset wenn NICHT BIS View
-
 if st.session_state.view != "BIS_Public":
     store.active_overlay = None	
 
@@ -324,15 +328,15 @@ if st.session_state.view == "Login":
     if st.button("Anmelden"):
         if role_input == "Admin" and password == "admin2026":
             st.session_state.user_role, st.session_state.authenticated = "Admin", True
-            st.query_params.update(auth="true", role="Admin") # URL FIX
+            st.query_params.update(auth="true", role="Admin")
             set_view("Home")
         elif role_input == "Steward" and password == "steward2026":
             st.session_state.user_role, st.session_state.authenticated = "Steward", True
-            st.query_params.update(auth="true", role="Steward") # URL FIX
+            st.query_params.update(auth="true", role="Steward")
             set_view("Steward_Panel")
         elif role_input == "Richter" and password == "judge2026":
             st.session_state.user_role, st.session_state.authenticated = "Richter", True
-            st.query_params.update(auth="true", role="Richter") # URL FIX
+            st.query_params.update(auth="true", role="Richter")
             set_view("Judge_Voting")
         else:
             st.error("Passwort ungültig.")
@@ -385,13 +389,10 @@ elif st.session_state.view == "BIS_Admin_Control":
                         if not w_match.empty:
                             store.active_overlay = w_match.iloc[0].to_dict()
                             store.overlay_start_time = time.time()
-                            # Reset des lokalen Timers für alle Public-Instanzen
                             if "local_overlay_end" in st.session_state:
                                 st.session_state.local_overlay_end = 0
                         st.success(f"Overlay für #{final_nr} wurde gestartet!")
-        
-                            
-                            
+                                    
                 with c_votes:
                     st.markdown("**Stimmen-Details**")
                     if "votes" in store.data:
@@ -412,7 +413,6 @@ elif st.session_state.view == "BIS_Public":
         else: store.active_overlay = None; st.rerun()
 
     def get_initials(name):
-        """Erzeugt Initialen aus Vor- und Nachnamen (z.B. Martti Peltonen -> MP)"""
         parts = str(name).split()
         if len(parts) >= 2:
             return (parts[0][0] + parts[-1][0]).upper()
@@ -434,7 +434,6 @@ elif st.session_state.view == "BIS_Public":
         r_col = f"RICHTER {tag}"
         judges = sorted([r for r in df_full[df_full[tag].astype(str).str.upper() == 'X'][r_col].unique() if str(r) != "nan"])
         
-        # Header
         cols = st.columns([0.8] + [1.2]*len(judges) + [0.8])
         for i, j in enumerate(judges): 
             cols[i+1].markdown(f"<div class='judge-header-box'>{j}</div>", unsafe_allow_html=True)
@@ -487,7 +486,6 @@ elif st.session_state.view == "BIS_Public":
                     else: 
                         st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
             
-            # BIS GEWINNER SPALTE
             with r_cols[-1]:
                 if winner_revealed:
                     prefix = f"v_{sel_cat}_{label}_"
@@ -514,49 +512,113 @@ elif st.session_state.view == "BIS_Public":
     st.rerun()
 
 
-# LIVE DASHBOARD
+# LIVE DASHBOARD (FIX: FILTERT JETZT STRENG GEGEN DIE AKTUELLE SELEKTION)
 elif st.session_state.view == "Dashboard":
     display_header_with_logo("📢 Live-Aufruf & Status")
     tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"]).upper()
     df_full = load_labels()
+    
     if df_full is not None:
         r_col = f"RICHTER {tag}"
         df_tag = df_full[df_full[tag].astype(str).str.upper() == 'X'].copy()
         judges = sorted([r for r in df_tag[r_col].unique() if str(r) != "nan"])
+        
         if judges:
             cols = st.columns(len(judges))
             for i, j in enumerate(judges):
                 with cols[i]:
                     st.markdown(f"<div class='judge-header-box'>{j}</div>", unsafe_allow_html=True)
+                    
+                    # Hole alle Katzen des aktuellen Richters j am gewählten Tag
+                    df_richter_aktuell = df_tag[df_tag[r_col] == j]
+                    gueltige_katzen_nrs = set(df_richter_aktuell['KAT_STR'].tolist())
+                    
                     for k, v in store.data.items():
-                        if "|" in k and k.split("|")[1] == j and any(v.values()):
-                            m = df_tag[df_tag['KAT_STR'] == k.split("|")[0]]
-                            if not m.empty:
-                                tags = "".join([f"<span class='tag tag-{t.lower().replace(' ', '')}'>{t}</span> " for t, val in v.items() if val])
-                                st.markdown(f"<div class='cat-card'><div class='cat-number'>{k.split('|')[0]}</div><div class='cat-details'>{get_full_label(m.iloc[0])}</div><div class='tag-container'>{tags}</div></div>", unsafe_allow_html=True)
+                        if "|" in k:
+                            kat_nr, r_name = k.split("|")[0], k.split("|")[1]
+                            
+                            # KORREKTUR: Nur anzeigen, wenn der Richter übereinstimmt UND die Katze am gewählten Tag auch wirklich diesem Richter zugeordnet ist!
+                            if r_name == j and kat_nr in gueltige_katzen_nrs and any(v.values()):
+                                m = df_richter_aktuell[df_richter_aktuell['KAT_STR'] == kat_nr]
+                                if not m.empty:
+                                    tags = "".join([f"<span class='tag tag-{t.lower().replace(' ', '')}'>{t}</span> " for t, val in v.items() if val])
+                                    st.markdown(f"""
+                                        <div class='cat-card'>
+                                            <div class='cat-number'>{kat_nr}</div>
+                                            <div class='cat-details'>{get_full_label(m.iloc[0])}</div>
+                                            <div class='tag-container'>{tags}</div>
+                                        </div>
+                                    """, unsafe_allow_html=True)
+                                    
     st_autorefresh(interval=10000, key="dash_refresh")
-	#time.sleep(3); st.rerun()
-	
 
-# STEWARD PANEL
+
+# STEWARD PANEL (FIX: INITIALISIERUNG GEGEN KEYERROR GESICHERT)
 elif st.session_state.view == "Steward_Panel":
     display_header_with_logo("📝 Steward-Pult")
     tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"]).upper()
     df_full = load_labels()
+    
     if df_full is not None:
         r_col = f"RICHTER {tag}"
         all_j = sorted([r for r in df_full[df_full[tag].astype(str).str.upper() == 'X'][r_col].unique() if str(r) != "nan"])
+        
         mein_richter = st.selectbox("Richter wählen:", ["--"] + all_j)
+        
         if mein_richter != "--":
-            df_j = df_full[(df_full[tag].astype(str).str.upper() == 'X') & (df_full[r_col] == mein_richter)].sort_values('KATALOG-NR')
-            for _, row in df_j.iterrows():
-                nr = row['KAT_STR']; k = f"{nr}|{mein_richter}"
-                if k not in store.data: store.data[k] = {"Zum Richten": False, "BIV": False, "NOM": False}
-                c1, c2, c3, c4 = st.columns([3, 1.2, 1, 1])
-                c1.write(f"**#{nr}** {get_full_label(row)}")
-                store.data[k]["Zum Richten"] = c2.checkbox("Zum Richten", value=store.data[k]["Zum Richten"], key=f"auf{k}")
-                store.data[k]["BIV"] = c3.checkbox("BIV", value=store.data[k]["BIV"], key=f"biv{k}")
-                store.data[k]["NOM"] = c4.checkbox("NOM", value=store.data[k]["NOM"], key=f"nom{k}")
+            kategorien_pool = sorted(df_full[(df_full[tag].astype(str).str.upper() == 'X') & (df_full[r_col] == mein_richter)]['KATEGORIE'].unique())
+            meine_kategorie = st.selectbox("Kategorie wählen:", ["--"] + [str(kat) for kat in kategorien_pool])
+            
+            if meine_kategorie != "--":
+                df_j = df_full[
+                    (df_full[tag].astype(str).str.upper() == 'X') & 
+                    (df_full[r_col] == mein_richter) & 
+                    (df_full['KATEGORIE'].astype(str) == meine_kategorie)
+                ].sort_values('KATALOG-NR')
+                
+                for _, row in df_j.iterrows():
+                    nr = row['KAT_STR']
+                    k = f"{nr}|{mein_richter}"
+                    
+                    # FIX: Sichere Initialisierung im store.data um den KeyError abzufangen!
+                    if k not in store.data: 
+                        store.data[k] = {"Zum Richten": False, "BIV": False, "NOM": False}
+                    
+                    is_richten = store.data[k]["Zum Richten"]
+                    is_biv = store.data[k]["BIV"]
+                    is_nom = store.data[k]["NOM"]
+                    
+                    st.markdown(f"""
+                    <div class="steward-card-container">
+                        <div class="steward-card-title">🐾 #{nr} &nbsp;|&nbsp; {get_full_label(row)}</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    st.markdown('<div class="steward-btn-container">', unsafe_allow_html=True)
+                    c1, c2, c3 = st.columns(3)
+                    
+                    with c1:
+                        st.markdown(f'<div class="{"steward-btn-richten-active" if is_richten else "steward-btn-richten"}">', unsafe_allow_html=True)
+                        if st.button("RICHTEN AKTIV" if is_richten else "ZUM RICHTEN", key=f"auf{k}"):
+                            store.data[k]["Zum Richten"] = not is_richten
+                            st.rerun()
+                        st.markdown('</div>', unsafe_allow_html=True)
+                        
+                    with c2:
+                        st.markdown(f'<div class="{"steward-btn-biv-active" if is_biv else "steward-btn-biv"}">', unsafe_allow_html=True)
+                        if st.button("BIV AKTIV" if is_biv else "BIV", key=f"biv{k}"):
+                            store.data[k]["BIV"] = not is_biv
+                            st.rerun()
+                        st.markdown('</div>', unsafe_allow_html=True)
+                        
+                    with c3:
+                        st.markdown(f'<div class="{"steward-btn-nom-active" if is_nom else "steward-btn-nom"}">', unsafe_allow_html=True)
+                        if st.button("NOM AKTIV" if is_nom else "NOM", key=f"nom{k}"):
+                            store.data[k]["NOM"] = not is_nom
+                            st.rerun()
+                        st.markdown('</div>', unsafe_allow_html=True)
+                        
+                    st.markdown('</div>', unsafe_allow_html=True)
 
 # JUDGE VOTING
 elif st.session_state.view == "Judge_Voting":
