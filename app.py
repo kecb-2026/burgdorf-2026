@@ -19,8 +19,8 @@ st.markdown("""
     .home-buttons div.stButton > button {
         width: 100% !important;
         height: 50px !important;
-        background-color: #1a4a9e !important; 
-        color: white !important; 
+        background-color: #1a4a9e !important; /* Feste blaue Hintergrundfarbe */
+        color: white !important; /* Weiße Schrift auf blauem Grund */
     }
 
     /* Login Container */
@@ -44,19 +44,19 @@ st.markdown("""
         height: 100%;
     }
 
-    /* --- STYLING FÜR DIE NATIVEN STREAMLIT CONTAINER (STEWARD CARDS) --- */
-    /* Wir stylen das data-testid von st.container(border=True) */
-    div[data-testid="stContainerBorderBlock"] {
-        background-color: #f8f9fa !important; /* Karte standardmäßig komplett hellgrau */
+    /* --- STEWARD CARDS STYLES (ORIGINAL WIEDERHERGESTELLT) --- */
+    /* Der Kasten umschließt jetzt das Meta-Grid UND die Buttons */
+    .steward-card-wrapper {
+        background-color: #f8f9fa !important; /* Karte komplett hellgrau */
         border: 1px solid #dcdcdc !important;
-        border-radius: 8px !important;
-        padding: 16px !important;
-        margin-bottom: 20px !important;
+        border-radius: 12px !important;
+        padding: 16px 16px 12px 16px !important;
+        margin-bottom: 25px !important;
         box-shadow: 0 2px 4px rgba(0,0,0,0.02) !important;
     }
     
-    /* Falls die Katze gerichtet ist, verpassen wir dem Container via Markdown eine opacity */
-    .steward-card-gerichtet {
+    .steward-card-wrapper.gerichtet {
+        border: 1px dashed #cccccc !important;
         opacity: 0.6 !important;
     }
     
@@ -82,7 +82,7 @@ st.markdown("""
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 6px 12px;
-        margin-bottom: 15px;
+        margin-bottom: 12px;
     }
     .card-meta-sub {
         font-size: 13px !important;
@@ -111,45 +111,45 @@ st.markdown("""
     }
 
     /* --- BUTTONS SPEZIFISCH IM STEWARD PANEL VERKLEINERN --- */
-    div[data-testid="stContainerBorderBlock"] div.stButton > button {
-        height: 32px !important;
-        min-height: 32px !important;
+    div[data-testid="stHorizontalBlock"] div.stButton > button {
+        height: 25px !important;
+        min-height: 25px !important;
         min-width: 10px !important;
         padding: 0px 5px !important;
-        font-size: 10px !important;
+        font-size: 8px !important;
         line-height: 1 !important;
         border-radius: 8px !important;
     }
 
     /* Spalten-spezifische Button-Farben für das Steward-Pult */
-    div[data-testid="stContainerBorderBlock"] div[data-testid="stHorizontalBlock"] > div:nth-child(1) button {
+    div[data-testid="stHorizontalBlock"] > div:nth-child(1) button {
         background-color: #007bff !important;
         border: 2px solid #0056b3 !important;
         color: white !important;
     }
-    div[data-testid="stContainerBorderBlock"] div[data-testid="stHorizontalBlock"] > div:nth-child(2) button {
+    div[data-testid="stHorizontalBlock"] > div:nth-child(2) button {
         background-color: #28a745 !important;
         border: 2px solid #1e7e34 !important;
         color: white !important;
     }
-    div[data-testid="stContainerBorderBlock"] div[data-testid="stHorizontalBlock"] > div:nth-child(3) button {
+    div[data-testid="stHorizontalBlock"] > div:nth-child(3) button {
         background-color: #ffc107 !important;
         border: 2px solid #d39e00 !important;
         color: black !important;
     }
-    div[data-testid="stContainerBorderBlock"] div[data-testid="stHorizontalBlock"] > div:nth-child(4) button {
+    div[data-testid="stHorizontalBlock"] > div:nth-child(4) button {
         background-color: #6c757d !important;
         border: 2px solid #545b62 !important;
         color: white !important;
     }
 
     /* Hover Effekte */
-    div[data-testid="stContainerBorderBlock"] div[data-testid="stHorizontalBlock"] > div:nth-child(1) button:hover { background-color: #0069d9 !important; }
-    div[data-testid="stContainerBorderBlock"] div[data-testid="stHorizontalBlock"] > div:nth-child(2) button:hover { background-color: #218838 !important; }
-    div[data-testid="stContainerBorderBlock"] div[data-testid="stHorizontalBlock"] > div:nth-child(3) button:hover { background-color: #e0a800 !important; }
-    div[data-testid="stContainerBorderBlock"] div[data-testid="stHorizontalBlock"] > div:nth-child(4) button:hover { background-color: #5a6268 !important; }
+    div[data-testid="stHorizontalBlock"] > div:nth-child(1) button:hover { background-color: #0069d9 !important; }
+    div[data-testid="stHorizontalBlock"] > div:nth-child(2) button:hover { background-color: #218838 !important; }
+    div[data-testid="stHorizontalBlock"] > div:nth-child(3) button:hover { background-color: #e0a800 !important; }
+    div[data-testid="stHorizontalBlock"] > div:nth-child(4) button:hover { background-color: #5a6268 !important; }
 
-    /* Blinken für aktive Container-Wrapper */
+    /* Blinken für aktive Container-Wrapper im Python-Code */
     .button-class button, .st-blink-btn button, .blink-active button {
         animation: blinker 1.3s linear infinite !important;
         box-shadow: 0 0 15px rgba(0,0,0,0.2) !important;
@@ -420,7 +420,7 @@ if st.session_state.view == "Login":
     def_idx = role_list.index(role_map.get(target, "Richter"))
 
     role_input = st.selectbox("Rolle wählen:", role_list, index=def_idx)
-    password = text_input = st.text_input("Passwort:", type="password")
+    password = st.text_input("Passwort:", type="password")
     
     if st.button("Anmelden"):
         if role_input == "Admin" and password == "admin2026":
@@ -486,7 +486,7 @@ elif st.session_state.view == "BIS_Admin_Control":
                     if final_nr and st.button(f"🏆 PUBLIC OVERLAY STARTEN (#{final_nr})", key=f"btn_ov_{sel_cat}_{label}"):
                         w_match = df_full[df_full['KAT_STR'] == str(final_nr)]
                         if not w_match.empty:
-                            store.active_overlay = w_match.iloc[0].to_dict()
+                            store.active_overlay = m_w = w_match.iloc[0].to_dict()
                             store.overlay_start_time = time.time()
                             if "local_overlay_end" in st.session_state:
                                 st.session_state.local_overlay_end = 0
@@ -655,8 +655,7 @@ elif st.session_state.view == "Dashboard":
                             
     st_autorefresh(interval=10000, key="dash_refresh")
 
-
-# --- DIESER BEREICH WURDE KOMPLETT REFORMIERT FÜR DIE BUTTONS IN DER GRAUEN BOX ---
+# STEWARD PANEL
 elif st.session_state.view == "Steward_Panel":
     display_header_with_logo("📝 Steward-Pult")
     tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"]).upper()
@@ -678,7 +677,7 @@ elif st.session_state.view == "Steward_Panel":
                 nr = row['KAT_STR']
                 k = f"{nr}|{mein_richter}"
                 
-                # Datenaufbereitung
+                # Spalten flexibel auslesen
                 klasse = row.get('KLASSE_INTERNAL', row.get('AUSSTELLUNGSKLASSE', row.get('KLASSE', 'N/A')))
                 fg_cols = [c for c in row.index if "FARBGRUPPE" in c or "FARB-GRUPPE" in c]
                 farbgruppe = row[fg_cols[0]] if fg_cols else row.get('FARBGRUPPE', 'N/A')
@@ -697,77 +696,73 @@ elif st.session_state.view == "Steward_Panel":
                     }
                 
                 flags = store.data[k]["flags"]
-                is_done = flags.get("Gerichtet")
+                card_class = "steward-card-wrapper gerichtet" if flags.get("Gerichtet") else "steward-card-wrapper"
                 
-                # JETZT NEU: Nativer Streamlit Container erzwingt den Einschluss aller Elemente!
-                # Wenn gerichtet, nutzen wir ein unsichtbares div zur Abschwächung (opacity 0.6)
-                with st.container(border=True):
-                    if is_done:
-                        st.markdown('<div class="steward-card-gerichtet">', unsafe_allow_html=True)
-                    
-                    # Karten Header & Meta-Daten via HTML
-                    st.markdown(f"""
-                        <div class="card-header-row">
-                            <span class="card-cat-number">Nr. {nr}</span>
-                            <span class="card-meta-main">{get_full_label(row)}</span>
-                        </div>
-                        <div class="grid-container">
-                            <span class="card-meta-sub"><span class="meta-label">Klasse:</span> {klasse}</span>
-                            <span class="card-meta-sub"><span class="meta-label">Farbgruppe:</span> {farbgruppe}</span>
-                            <span class="card-meta-sub"><span class="meta-label">Geschlecht:</span> {geschlecht}</span>
-                            <span class="card-meta-sub"><span class="meta-label">Geboren:</span> {geb_datum}</span>
-                        </div>
-                        <div style="border-top: 1px solid #ddd; padding-top: 10px; margin-top: 10px;"></div>
-                    """, unsafe_allow_html=True)
-                    
-                    # Spalten für die Buttons (JETZT SICHER IM CONTAINER EINGESCHLOSSEN)
-                    c1, c2, c3, c4 = st.columns(4)
-                    
-                    # BUTTON 1: AUFRUFEN
-                    is_rich = flags.get("Zum Richten")
-                    with c1:
-                        if is_rich: st.markdown('<div class="button-class">', unsafe_allow_html=True)
-                        if st.button("[ AKTIV ] AUFGERUFEN" if is_rich else "AUFRUFEN", key=f"btn_rich_{k}"):
-                            store.data[k]["flags"]["Zum Richten"] = not is_rich
-                            if store.data[k]["flags"]["Zum Richten"]:
-                                store.data[k]["flags"]["Gerichtet"] = False
-                                store.data[k]["timestamp"] = time.time()
-                            st.rerun()
-                        if is_rich: st.markdown('</div>', unsafe_allow_html=True)
-                    
-                    # BUTTON 2: BIV
-                    is_biv = flags.get("BIV")
-                    with c2:
-                        if is_biv: st.markdown('<div class="st-blink-btn">', unsafe_allow_html=True)
-                        if st.button("[ AKTIV ] BIV" if is_biv else "BIV", key=f"btn_biv_{k}"):
-                            store.data[k]["flags"]["BIV"] = not is_biv
+                # DER SCHLÜSSELTRICK: Ein einziger HTML-Container umschließt Text UND Buttons!
+                st.markdown(f"""
+                <div class="{card_class}">
+                    <div class="card-header-row">
+                        <span class="card-cat-number">Nr. {nr}</span>
+                        <span class="card-meta-main">{get_full_label(row)}</span>
+                    </div>
+                    <div class="grid-container">
+                        <span class="card-meta-sub"><span class="meta-label">Klasse:</span> {klasse}</span>
+                        <span class="card-meta-sub"><span class="meta-label">Farbgruppe:</span> {farbgruppe}</span>
+                        <span class="card-meta-sub"><span class="meta-label">Geschlecht:</span> {geschlecht}</span>
+                        <span class="card-meta-sub"><span class="meta-label">Geboren:</span> {geb_datum}</span>
+                    </div>
+                    <div style="border-top: 1px solid #e2e2e2; padding-top: 10px; margin-top: 12px; margin-bottom: 8px;"></div>
+                """, unsafe_allow_html=True)
+                
+                # Streamlit Buttons rendern sich automatisch sauber innerhalb des geöffneten div-Wrappers!
+                c1, c2, c3, c4 = st.columns(4)
+                
+                # BUTTON 1: AUFRUFEN
+                is_rich = flags.get("Zum Richten")
+                with c1:
+                    if is_rich: st.markdown('<div class="button-class">', unsafe_allow_html=True)
+                    if st.button("[ AKTIV ] AUFGERUFEN" if is_rich else "AUFRUFEN", key=f"btn_rich_{k}"):
+                        store.data[k]["flags"]["Zum Richten"] = not is_rich
+                        if store.data[k]["flags"]["Zum Richten"]:
+                            store.data[k]["flags"]["Gerichtet"] = False
                             store.data[k]["timestamp"] = time.time()
-                            st.rerun()
-                        if is_biv: st.markdown('</div>', unsafe_allow_html=True)
-                    
-                    # BUTTON 3: NOMINIEREN
-                    is_nom = flags.get("NOM")
-                    with c3:
-                        if is_nom: st.markdown('<div class="st-blink-btn">', unsafe_allow_html=True)
-                        if st.button("[ AKTIV ] NOM" if is_nom else "NOM", key=f"btn_nom_{k}"):
-                            store.data[k]["flags"]["NOM"] = not is_nom
-                            if store.data[k]["flags"]["NOM"]:
-                                store.data[k]["timestamp"] = time.time()
-                            st.rerun()
-                        if is_nom: st.markdown('</div>', unsafe_allow_html=True)
-                    
-                    # BUTTON 4: GERICHTET
-                    with c4:
-                        if st.button("[ ERLEDIGT ] GERICHTET" if is_done else "GERICHTET", key=f"btn_done_{k}"):
-                            if not is_done:
-                                store.data[k]["flags"]["Zum Richten"] = False
-                                store.data[k]["flags"]["Gerichtet"] = True
-                            else:
-                                store.data[k]["flags"]["Gerichtet"] = False
-                            st.rerun()
-                    
-                    if is_done:
-                        st.markdown('</div>', unsafe_allow_html=True)
+                        st.rerun()
+                    if is_rich: st.markdown('</div>', unsafe_allow_html=True)
+                
+                # BUTTON 2: BIV
+                is_biv = flags.get("BIV")
+                with c2:
+                    if is_biv: st.markdown('<div class="st-blink-btn">', unsafe_allow_html=True)
+                    if st.button("[ AKTIV ] BIV" if is_biv else "BIV", key=f"btn_biv_{k}"):
+                        store.data[k]["flags"]["BIV"] = not is_biv
+                        store.data[k]["timestamp"] = time.time()
+                        st.rerun()
+                    if is_biv: st.markdown('</div>', unsafe_allow_html=True)
+                
+                # BUTTON 3: NOMINIEREN
+                is_nom = flags.get("NOM")
+                with c3:
+                    if is_nom: st.markdown('<div class="st-blink-btn">', unsafe_allow_html=True)
+                    if st.button("[ AKTIV ] NOM" if is_nom else "NOM", key=f"btn_nom_{k}"):
+                        store.data[k]["flags"]["NOM"] = not is_nom
+                        if store.data[k]["flags"]["NOM"]:
+                            store.data[k]["timestamp"] = time.time()
+                        st.rerun()
+                    if is_nom: st.markdown('</div>', unsafe_allow_html=True)
+                
+                # BUTTON 4: GERICHTET
+                is_done = flags.get("Gerichtet")
+                with c4:
+                    if st.button("[ ERLEDIGT ] GERICHTET" if is_done else "GERICHTET", key=f"btn_done_{k}"):
+                        if not is_done:
+                            store.data[k]["flags"]["Zum Richten"] = False
+                            store.data[k]["flags"]["Gerichtet"] = True
+                        else:
+                            store.data[k]["flags"]["Gerichtet"] = False
+                        st.rerun()
+                
+                # Schließen des Kasten-divs
+                st.markdown("</div>", unsafe_allow_html=True)
 
 
 # JUDGE VOTING
