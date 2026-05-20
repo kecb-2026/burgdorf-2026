@@ -90,17 +90,16 @@ st.markdown("""
         color: white !important;
     }
     
-    div.stButtonS > button {
-        width: 100px;
-        height: 25px;
-        padding: 0px 5px !important;
-        font-weight: bold !important;
-        text-transform: uppercase !important;
-        font-size: 8px !important;
-        transition: all 0.2s ease;
-        line-hight: 1px;
-        color: white !important;
-    }
+    /* Buttons nur innerhalb der Steward-Card verkleinern */
+.steward-card div.stButton > button {
+    height: 25px !important;
+    padding: 0px 5px !important;
+    font-size: 8px !important;
+    line-height: 1 !important;
+    min-height: 30px !important;
+    width: 100px !important;
+}
+
 
     /* 1. Spalte: Aufgerufen (Kräftiges Blau) */
     div[data-testid="stHorizontalBlock"] > div:nth-child(1) button {
