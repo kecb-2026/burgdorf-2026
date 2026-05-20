@@ -26,6 +26,7 @@ st.markdown("""
         border: 2px solid #1a4a9e;
         max-width: 400px;
         margin: 5% auto;
+        font-color: 000;
     }
     
     /* Professionelles Steward Card UI */
@@ -79,6 +80,7 @@ st.markdown("""
 
     /* --- VOLLSTÄNDIG GEFÜLLTE BUTTONS OHNE ROT & MIT BLINKEN --- */
     div.stButton > button {
+        min-width: 100px;
         width: 100%;
         height: 30px;
         padding: 0px 5px !important;
