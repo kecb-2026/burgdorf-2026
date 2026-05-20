@@ -77,104 +77,37 @@ st.markdown("""
         letter-spacing: 0.5px;
     }
 
-    /* Erzeugt einheitliche Höhen für alle Boxen in einer Zeile */
-    .grid-wrapper {
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-    }
-
-    .class-label-box { background-color: #e9ecef; border: 2px solid #1a4a9e; color: #1a4a9e; font-weight: 800; }
-    .cat-card { background-color: #ffffff; border: 2px solid #1a4a9e; }
-    .placeholder-box { background-color: #f8f9fa !important; border: 1px solid #d1d1d1; color: #cccccc; }
-    .winner-card { background-color: #ffcccc !important; border: 3px solid #ff4d4d !important; }
-
-    /* Overlay als zentrierte Box (80% Größe) */
-    .winner-overlay {
-        position: fixed;
-        top: 10%; left: 10%; 
-        width: 80vw; height: 80vh;
-        background-color: white;
-        z-index: 9999999;
-        display: flex; flex-direction: column;
-        align-items: center; justify-content: center;
-        text-align: center;
-        border-radius: 40px;
-        box-shadow: 0px 0px 100px rgba(0,0,0,0.5);
-        border: 15px solid #1a4a9e;
-        animation: fadeIn 0.5s ease-out;
-        padding: 40px;
-    }
-    
-    .judge-initials-container {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 4px;
-        margin-top: 8px;
-        padding-top: 6px;
-        border-top: 1px solid #eee;
-    }
-
-    .judge-circle {
-        width: 24px;
-        height: 24px;
-        background-color: #1a4a9e;
-        color: white;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 10px;
-        font-weight: bold;
-        cursor: help;
-    }
-    
-    .overlay-backdrop {
-        position: fixed;
-        top: 0; left: 0; width: 100vw; height: 100vh;
-        background-color: rgba(0,0,0,0.7);
-        z-index: 9999998;
-    }
-
-    .ov-header {
-        font-size: 24px !important; font-weight: 500; color: #333;
-        text-transform: uppercase;
-        border-bottom: 2px solid #ccc; width: 80%;
-        padding-bottom: 15px; margin-bottom: 30px;
-    }
-    
-    .ov-cat-name {
-        font-size: 45px !important; font-weight: 900;
-        text-transform: uppercase; color: #000;
-        margin-bottom: 20px; line-height: 1.1;
-        width: 90%; word-wrap: break-word;
-    }
-    
-    .ov-owner {
-        font-size: 30px !important; font-style: italic; color: #444;
-    }
-    
-    .header-text {
-        text-transform: uppercase !important;
-        font-size: 26px !important;
-        font-weight: bold;
-        color: #1a4a9e;
-        margin: 0 !important;
-    }
-
-    @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
-
-    /* Stil für die Streamlit-Buttons im Steward-Pult */
+    /* Dynamische Farb-Anpassungen für Steward Buttons passend zum Dashboard */
     div.stButton > button {
         width: 100%;
-        border-radius: 6px !important;
+        height: 50px;
+        border-radius: 12px !important;
         font-weight: bold !important;
         text-transform: uppercase !important;
         font-size: 12px !important;
         transition: all 0.2s ease;
+        margin-bottom: 5px;
+        border: 2px solid #1a4a9e !important;
+        background-color: white;
+        color: #1a4a9e;
     }
+
+    /* Aufgerufen (Blau) */
+    div[data-testid="stHorizontalBlock"] > div:nth-child(1) button { border-color: #007bff !important; color: #007bff; }
+    div[data-testid="stHorizontalBlock"] > div:nth-child(1) button[data-style="primary"] { background-color: #007bff !important; color: white !important; }
     
+    /* BIV (Grün) */
+    div[data-testid="stHorizontalBlock"] > div:nth-child(2) button { border-color: #28a745 !important; color: #28a745; }
+    div[data-testid="stHorizontalBlock"] > div:nth-child(2) button[data-style="primary"] { background-color: #28a745 !important; color: white !important; }
+    
+    /* NOM (Gelb/Orange) */
+    div[data-testid="stHorizontalBlock"] > div:nth-child(3) button { border-color: #ffc107 !important; color: #ffc107; }
+    div[data-testid="stHorizontalBlock"] > div:nth-child(3) button[data-style="primary"] { background-color: #ffc107 !important; color: black !important; border-color: #ffc107 !important; }
+
+    /* Gerichtet (Grau) */
+    div[data-testid="stHorizontalBlock"] > div:nth-child(4) button { border-color: #6c757d !important; color: #6c757d; }
+    div[data-testid="stHorizontalBlock"] > div:nth-child(4) button[data-style="primary"] { background-color: #6c757d !important; color: white !important; }
+
     .judge-header-box { background-color: #1a4a9e; color: white; padding: 8px; border-radius: 10px; text-align: center; font-size: 12px !important; text-transform: uppercase; font-weight: bold; margin-bottom: 10px; border: 2px solid #0d2a5e; height: 60px; display: flex; align-items: center; justify-content: center; }
     .class-label-box { background-color: #e9ecef; color: #1a4a9e; padding: 5px; border-radius: 10px; text-align: center; font-size: 11px !important; text-transform: uppercase; font-weight: 800; border: 2px solid #1a4a9e; display: flex; align-items: center; justify-content: center; height: 80px; width: 100%; line-height: 1.1; }
     .cat-card, .placeholder-box { padding: 5px; border: 2px solid #1a4a9e; text-align: center; background-color: #ffffff; border-radius: 14px; margin-bottom: 5px; min-height: 80px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
@@ -211,56 +144,26 @@ if "user_role" not in st.session_state:
     st.session_state.user_role = "Public"
 if "view" not in st.session_state:
     st.session_state.view = "Dashboard"
-if "assigned_judge" not in st.session_state:
-    st.session_state.assigned_judge = None
 
 q_params = st.query_params
 if "view" in q_params:
     v_param = q_params["view"].lower()
-    
     if q_params.get("auth") == "true":
         st.session_state.authenticated = True
         st.session_state.user_role = q_params.get("role", "Public")
-
-    if v_param == "richter" and "name" in q_params:
-        st.session_state.authenticated = True
-        st.session_state.user_role = "Richter"
-        st.session_state.assigned_judge = q_params["name"]
-        st.session_state.view = "Judge_Voting"
-    elif v_param == "katzenaufruf": st.session_state.view = "Dashboard"
+    if v_param == "katzenaufruf": st.session_state.view = "Dashboard"
     elif v_param == "bis": st.session_state.view = "BIS_Public"
     elif v_param in ["admin", "steward", "richter", "bis-admin"]:
-        if not st.session_state.authenticated:
-            st.session_state.view = "Login"
-            st.session_state.target_role = v_param
-        else:
-            role_view_map = {"admin": "Home", "steward": "Steward_Panel", "richter": "Judge_Voting", "bis-admin": "BIS_Admin_Control"}
-            st.session_state.view = role_view_map.get(v_param, "Dashboard")
+        st.session_state.view = "Login"
+        st.session_state.target_role = v_param
 
 def logout():
     st.session_state.authenticated = False
     st.session_state.user_role = "Public"
     st.session_state.view = "Dashboard"
-    st.session_state.assigned_judge = None
     st.rerun()
 
 # --- 4. HILFSFUNKTIONEN ---
-def custom_autorefresh(interval_ms):
-    import streamlit.components.v1 as components
-    components.html(
-        f"""
-        <script>
-            window.parent.postMessage({{
-                type: 'streamlit:set_component_value',
-                value: Date.now()
-            }}, '*');
-        </script>
-        """,
-        height=0,
-    )
-    time.sleep(interval_ms / 1000)
-    st.rerun()
-
 def display_header_with_logo(text):
     col_text, col_logo = st.columns([5, 1]) 
     with col_text:
@@ -276,7 +179,6 @@ def render_overlay_html(row):
     farbe = row.get('FARBE', '')
     name_gross = str(row.get('NAME', '')).upper()
     besitzer = f"{row.get('BESITZER VORNAME', '')} {row.get('BESITZER NACHNAME', '')}"
-    
     return f"""
         <div class="overlay-backdrop"></div>
         <div class="winner-overlay">
@@ -312,9 +214,12 @@ def load_labels():
 
 def get_full_label(row):
     r = row.get('RASSE_KURZ', row.get('RASSE', ''))
-    g = roman_to_numeric(row.get('FARBGRUPPE', ''))
+    # Sicheres Finden der Farbgruppe, auch bei variierenden Spaltennamen
+    fg_col = [c for c in row.index if "FARBGRUPPE" in c or "FARB-GRUPPE" in c]
+    fg_val = row[fg_col[0]] if fg_col else row.get('FARBGRUPPE', '')
+    g = roman_to_numeric(fg_val)
     e = row.get('FARBE', '')
-    return f"{r} {g} ({e})".strip()
+    return f"{r} {g} ({e})".strip() if g else f"{r} ({e})".strip()
 
 def set_view(name):
     store.active_overlay = None   
@@ -562,7 +467,6 @@ elif st.session_state.view == "Dashboard":
                     judge_entries = []
                     for k, v in store.data.items():
                         if "|" in k and k.split("|")[1] == j:
-                            # Sichere Abfrage der Flags-Struktur
                             flags = v.get("flags", {}) if isinstance(v, dict) else {}
                             beim_richten = flags.get("Zum Richten", False) and not flags.get("Gerichtet", False)
                             nominiert = flags.get("NOM", False)
@@ -602,12 +506,9 @@ elif st.session_state.view == "Steward_Panel":
         
         if mein_richter != "--":
             df_richter_alle = df_full[(df_full[tag].astype(str).str.upper() == 'X') & (df_full[r_col] == mein_richter)]
-            
-            # Wichtig: Typ-Bereinigung und String-Konvertierung für den Selektor
             verfuegbare_kategorien = sorted(list(set([str(cat).replace('.0', '') for cat in df_richter_alle['KATEGORIE'].unique() if pd.notna(cat)])))
             meine_kategorie = st.selectbox("Kategorie wählen:", verfuegbare_kategorien)
             
-            # Filterung nach Kategorie (Typunabhängiger Vergleich über Strings)
             df_j = df_richter_alle[df_richter_alle['KATEGORIE'].astype(str).str.replace('.0', '') == meine_kategorie].sort_values('KATALOG-NR')
             st.divider()
             
@@ -615,14 +516,25 @@ elif st.session_state.view == "Steward_Panel":
                 nr = row['KAT_STR']
                 k = f"{nr}|{mein_richter}"
                 
-                klasse = row.get('KLASSE_INTERNAL', 'N/A')
-                farbgruppe = row.get('FARBGRUPPE', 'N/A')
+                # --- FLEXIBLES AUSLESEN DER EXCEL-SPALTEN ---
+                klasse = row.get('KLASSE_INTERNAL', row.get('AUSSTELLUNGSKLASSE', row.get('KLASSE', 'N/A')))
+                
+                # Farbgruppen-Spalte flexibel ermitteln
+                fg_cols = [c for c in row.index if "FARBGRUPPE" in c or "FARB-GRUPPE" in c]
+                farbgruppe = row[fg_cols[0]] if fg_cols else row.get('FARBGRUPPE', 'N/A')
+                if pd.isna(farbgruppe) or str(farbgruppe).strip().lower() == "nan":
+                    farbgruppe = "N/A"
+                
                 geschlecht = row.get('GESCHLECHT', 'N/A')
-                geb_datum = row.get('GEB_DATUM', 'N/A')
+                
+                # Geburtsdatum-Spalte flexibel ermitteln
+                geb_cols = [c for c in row.index if "GEB" in c or "GEBURT" in c]
+                geb_datum = row[geb_cols[0]] if geb_cols else row.get('GEB_DATUM', 'N/A')
                 if isinstance(geb_datum, pd.Timestamp):
                     geb_datum = geb_datum.strftime('%d.%m.%Y')
+                elif pd.isna(geb_datum) or str(geb_datum).strip().lower() == "nan":
+                    geb_datum = "N/A"
                 
-                # DAUERHAFTE INITIALISIERUNG: Verhindert den Absturz bei leeren Daten
                 if k not in store.data or not isinstance(store.data[k], dict) or "flags" not in store.data[k]: 
                     store.data[k] = {
                         "flags": {"Zum Richten": False, "BIV": False, "NOM": False, "Gerichtet": False},
@@ -632,6 +544,7 @@ elif st.session_state.view == "Steward_Panel":
                 flags = store.data[k]["flags"]
                 card_class = "steward-card gerichtet" if flags.get("Gerichtet") else "steward-card"
                 
+                # UI Card Rendering
                 st.markdown(f"""
                 <div class="{card_class}">
                     <div class="card-header-row">
@@ -649,38 +562,34 @@ elif st.session_state.view == "Steward_Panel":
                 
                 c1, c2, c3, c4 = st.columns(4)
                 
-                # BUTTON 1: AUFRUFEN
-                type_rich = "primary" if flags.get("Zum Richten") else "secondary"
-                label_rich = "[ AKTIV ] AUFGERUFEN" if flags.get("Zum Richten") else "AUFRUFEN"
-                if c1.button(label_rich, key=f"btn_rich_{k}", type=type_rich):
-                    store.data[k]["flags"]["Zum Richten"] = not flags.get("Zum Richten")
+                # BUTTON 1: AUFRUFEN (Blau)
+                is_rich = flags.get("Zum Richten")
+                if c1.button("[ AKTIV ] AUFGERUFEN" if is_rich else "AUFRUFEN", key=f"btn_rich_{k}", type="primary" if is_rich else "secondary"):
+                    store.data[k]["flags"]["Zum Richten"] = not is_rich
                     if store.data[k]["flags"]["Zum Richten"]:
                         store.data[k]["flags"]["Gerichtet"] = False
                         store.data[k]["timestamp"] = time.time()
                     st.rerun()
                 
-                # BUTTON 2: BIV
-                type_biv = "primary" if flags.get("BIV") else "secondary"
-                label_biv = "[ GEWONNEN ] BIV" if flags.get("BIV") else "BIV VERGEBEN"
-                if c2.button(label_biv, key=f"btn_biv_{k}", type=type_biv):
-                    store.data[k]["flags"]["BIV"] = not flags.get("BIV")
+                # BUTTON 2: BIV (Grün)
+                is_biv = flags.get("BIV")
+                if c2.button("[ AKTIV ] BIV" if is_biv else "BIV", key=f"btn_biv_{k}", type="primary" if is_biv else "secondary"):
+                    store.data[k]["flags"]["BIV"] = not is_biv
                     store.data[k]["timestamp"] = time.time()
                     st.rerun()
                 
-                # BUTTON 3: NOMINIEREN
-                type_nom = "primary" if flags.get("NOM") else "secondary"
-                label_nom = "[ NOMINIERT ] BIS" if flags.get("NOM") else "NOMINIEREN"
-                if c3.button(label_nom, key=f"btn_nom_{k}", type=type_nom):
-                    store.data[k]["flags"]["NOM"] = not flags.get("NOM")
+                # BUTTON 3: NOMINIEREN (Gelb)
+                is_nom = flags.get("NOM")
+                if c3.button("[ AKTIV ] NOM" if is_nom else "NOM", key=f"btn_nom_{k}", type="primary" if is_nom else "secondary"):
+                    store.data[k]["flags"]["NOM"] = not is_nom
                     if store.data[k]["flags"]["NOM"]:
                         store.data[k]["timestamp"] = time.time()
                     st.rerun()
                 
-                # BUTTON 4: GERICHTET
-                type_done = "primary" if flags.get("Gerichtet") else "secondary"
-                label_done = "[ ERLEDIGT ] GERICHTET" if flags.get("Gerichtet") else "GERICHTET"
-                if c4.button(label_done, key=f"btn_done_{k}", type=type_done):
-                    if not flags.get("Gerichtet"):
+                # BUTTON 4: GERICHTET (Grau)
+                is_done = flags.get("Gerichtet")
+                if c4.button("[ ERLEDIGT ] GERICHTET" if is_done else "GERICHTET", key=f"btn_done_{k}", type="primary" if is_done else "secondary"):
+                    if not is_done:
                         store.data[k]["flags"]["Zum Richten"] = False
                         store.data[k]["flags"]["Gerichtet"] = True
                     else:
@@ -689,25 +598,17 @@ elif st.session_state.view == "Steward_Panel":
                 
                 st.markdown("<div style='margin-bottom: 25px;'></div>", unsafe_allow_html=True)
 
-# RICHTER VOTING VIEW
+# JUDGE VOTING
 elif st.session_state.view == "Judge_Voting":
     display_header_with_logo("🗳️ Richter Abstimmung/Judges Votes")
     df_full = load_labels()
     if df_full is not None:
         tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"]).upper()
-        r_col = f"RICHTER {tag}"
-        all_judges = sorted([r for r in df_full[r_col].unique() if str(r) != "nan"])
-        
+        r_col = f"RICHTER {tag}"; all_judges = sorted([r for r in df_full[r_col].unique() if str(r) != "nan"])
         c1, c2 = st.columns(2)
-        if st.session_state.assigned_judge:
-            active_j = st.session_state.assigned_judge
-            c1.markdown(f"<div style='padding: 10px; background-color: #e9ecef; border-radius: 5px; font-weight: bold;'>Richter: {active_j} 🔒</div>", unsafe_allow_html=True)
-        else:
-            active_j = c1.selectbox("Identität/Identity:", ["--"] + all_judges)
-            
+        active_j = c1.selectbox("Identität/Identity:", ["--"] + all_judges)
         active_cat = c2.selectbox("Kategorie/Category:", sorted(df_full['KATEGORIE'].unique()))
-        
-        if active_j != "--" and active_j is not None:
+        if active_j != "--":
             if "votes" not in store.data: store.data["votes"] = {}
             bis_defs = [("Adult Male", [1,3,5,7,9], "M"), ("Adult Female", [1,3,5,7,9], "W"), ("Neuter Male", [2,4,6,8,10], "M"), ("Neuter Female", [2,4,6,8,10], "W"), ("Junior 8-12 Male", [11], "M"), ("Junior 8-12 Female", [11], "W"), ("Kitten 4-8 Male", [12], "M"), ("Kitten 4-8 Female", [12], "W")]
             for label, klassen, geschl in bis_defs:
