@@ -152,38 +152,6 @@ st.markdown("""
     .tag-zumrichten { background-color: #007bff; }
     .tag-biv { background-color: #28a745; animation: blinker 1.5s linear infinite; }
     .tag-nom { background-color: #ffc107; color: black; animation: blinker 1s linear infinite; }
-
-    /* --- NEUE EIGENE STYLES NUR FÜR DAS STEWARD PANEL --- */
-    .steward-card-container {
-        background-color: #ffffff;
-        border: 2px solid #1a4a9e;
-        border-radius: 14px;
-        padding: 12px;
-        margin-bottom: 12px;
-    }
-    .steward-card-title {
-        font-size: 15px;
-        font-weight: bold;
-        color: #333333;
-        margin-bottom: 8px;
-    }
-    /* Buttons im Steward-Pult kompakt überschreiben */
-    .steward-btn-container div.stButton > button {
-        height: 38px !important;
-        font-size: 11px !important;
-        text-transform: uppercase !important;
-        border-radius: 8px !important;
-        margin-bottom: 0px !important;
-    }
-    /* Standard-Zustände (Inaktiv) */
-    .steward-btn-richten div.stButton > button { background-color: #f8f9fa !important; color: #007bff !important; border: 2px solid #007bff !important; }
-    .steward-btn-biv div.stButton > button { background-color: #f8f9fa !important; color: #28a745 !important; border: 2px solid #28a745 !important; }
-    .steward-btn-nom div.stButton > button { background-color: #f8f9fa !important; color: #ffc107 !important; border: 2px solid #ffc107 !important; }
-
-    /* Aktive Zustände (Gedrückt) */
-    .steward-btn-richten-active div.stButton > button { background-color: #007bff !important; color: white !important; border: 2px solid #0056b3 !important; }
-    .steward-btn-biv-active div.stButton > button { background-color: #28a745 !important; color: white !important; border: 2px solid #1e7e34 !important; animation: blinker 1.5s linear infinite !important; }
-    .steward-btn-nom-active div.stButton > button { background-color: #ffc107 !important; color: black !important; border: 2px solid #d39e00 !important; animation: blinker 1s linear infinite !important; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -562,15 +530,15 @@ elif st.session_state.view == "Dashboard":
                     st.markdown(f"<div class='judge-header-box'>{j}</div>", unsafe_allow_html=True)
                     for k, v in store.data.items():
                         if "|" in k and k.split("|")[1] == j and any(v.values()):
-                            # FIX: Holt die Katze aus der Tabelle, filtert aber strikt, damit sie zur Tabellenansicht passt
                             m = df_tag[df_tag['KAT_STR'] == k.split("|")[0]]
                             if not m.empty:
                                 tags = "".join([f"<span class='tag tag-{t.lower().replace(' ', '')}'>{t}</span> " for t, val in v.items() if val])
                                 st.markdown(f"<div class='cat-card'><div class='cat-number'>{k.split('|')[0]}</div><div class='cat-details'>{get_full_label(m.iloc[0])}</div><div class='tag-container'>{tags}</div></div>", unsafe_allow_html=True)
     st_autorefresh(interval=10000, key="dash_refresh")
+	#time.sleep(3); st.rerun()
+	
 
-
-# STEWARD PANEL (JETZT MIT STRIKTER FILTERUNG NACH RICHTER UND KATEGORIE)
+# STEWARD PANEL
 elif st.session_state.view == "Steward_Panel":
     display_header_with_logo("📝 Steward-Pult")
     tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"]).upper()
@@ -578,68 +546,17 @@ elif st.session_state.view == "Steward_Panel":
     if df_full is not None:
         r_col = f"RICHTER {tag}"
         all_j = sorted([r for r in df_full[df_full[tag].astype(str).str.upper() == 'X'][r_col].unique() if str(r) != "nan"])
-        
-        # Eingabemasken für Richter UND Kategorie
         mein_richter = st.selectbox("Richter wählen:", ["--"] + all_j)
-        
-        # Holt alle verfügbaren Kategorien für den gewählten Richter
         if mein_richter != "--":
-            kategorien_pool = sorted(df_full[(df_full[tag].astype(str).str.upper() == 'X') & (df_full[r_col] == mein_richter)]['KATEGORIE'].unique())
-            meine_kategorie = st.selectbox("Kategorie wählen:", ["--"] + [str(kat) for kat in kategorien_pool])
-            
-            if meine_kategorie != "--":
-                # FIX: Filtert jetzt strikt nach Richter UND Kategorie
-                df_j = df_full[
-                    (df_full[tag].astype(str).str.upper() == 'X') & 
-                    (df_full[r_col] == mein_richter) & 
-                    (df_full['KATEGORIE'].astype(str) == meine_kategorie)
-                ].sort_values('KATALOG-NR')
-                
-                for _, row in df_j.iterrows():
-                    nr = row['KAT_STR']
-                    k = f"{nr}|{mein_richter}"
-                    
-                    if k not in store.data: 
-                        store.data[k] = {"Zum Richten": False, "BIV": False, "NOM": False}
-                    
-                    # Werte auslesen
-                    is_richten = store.data[k]["Zum Richten"]
-                    is_biv = store.data[k]["BIV"]
-                    is_nom = store.data[k]["NOM"]
-                    
-                    # Container-Box für die Kachel rendern
-                    st.markdown(f"""
-                    <div class="steward-card-container">
-                        <div class="steward-card-title">🐾 #{nr} &nbsp;|&nbsp; {get_full_label(row)}</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    
-                    # Steuerungskomponenten sauber platzieren
-                    st.markdown('<div class="steward-btn-container">', unsafe_allow_html=True)
-                    c1, c2, c3 = st.columns(3)
-                    
-                    with c1:
-                        st.markdown(f'<div class="{"steward-btn-richten-active" if is_richten else "steward-btn-richten"}">', unsafe_allow_html=True)
-                        if st.button("RICHTEN AKTIV" if is_richten else "ZUM RICHTEN", key=f"auf{k}"):
-                            store.data[k]["Zum Richten"] = not is_richten
-                            st.rerun()
-                        st.markdown('</div>', unsafe_allow_html=True)
-                        
-                    with c2:
-                        st.markdown(f'<div class="{"steward-btn-biv-active" if is_biv else "steward-btn-biv"}">', unsafe_allow_html=True)
-                        if st.button("BIV AKTIV" if is_biv else "BIV", key=f"biv{k}"):
-                            store.data[k]["BIV"] = not is_biv
-                            st.rerun()
-                        st.markdown('</div>', unsafe_allow_html=True)
-                        
-                    with c3:
-                        st.markdown(f'<div class="{"steward-btn-nom-active" if is_nom else "steward-btn-nom"}">', unsafe_allow_html=True)
-                        if st.button("NOM AKTIV" if is_nom else "NOM", key=f"nom{k}"):
-                            store.data[k]["NOM"] = not is_nom
-                            st.rerun()
-                        st.markdown('</div>', unsafe_allow_html=True)
-                        
-                    st.markdown('</div>', unsafe_allow_html=True)
+            df_j = df_full[(df_full[tag].astype(str).str.upper() == 'X') & (df_full[r_col] == mein_richter)].sort_values('KATALOG-NR')
+            for _, row in df_j.iterrows():
+                nr = row['KAT_STR']; k = f"{nr}|{mein_richter}"
+                if k not in store.data: store.data[k] = {"Zum Richten": False, "BIV": False, "NOM": False}
+                c1, c2, c3, c4 = st.columns([3, 1.2, 1, 1])
+                c1.write(f"**#{nr}** {get_full_label(row)}")
+                store.data[k]["Zum Richten"] = c2.checkbox("Zum Richten", value=store.data[k]["Zum Richten"], key=f"auf{k}")
+                store.data[k]["BIV"] = c3.checkbox("BIV", value=store.data[k]["BIV"], key=f"biv{k}")
+                store.data[k]["NOM"] = c4.checkbox("NOM", value=store.data[k]["NOM"], key=f"nom{k}")
 
 # JUDGE VOTING
 elif st.session_state.view == "Judge_Voting":
