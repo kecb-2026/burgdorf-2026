@@ -472,7 +472,6 @@ elif st.session_state.view == "BIS_Admin_Control":
 
 # BIS PUBLIC VIEW
 elif st.session_state.view == "BIS_Public":
-    st_autorefresh(interval=3000, key="bis_refresh") # Autorefresh alle 3 Sek
     if hasattr(store, 'active_overlay') and store.active_overlay:
         if time.time() - store.overlay_start_time < 20:
             st.markdown(render_overlay_html(store.active_overlay), unsafe_allow_html=True)
@@ -580,7 +579,7 @@ elif st.session_state.view == "BIS_Public":
 
 # LIVE DASHBOARD
 elif st.session_state.view == "Dashboard":
-    st_autorefresh(interval=3000, key="dash_refresh") # Autorefresh alle 3 Sek
+	st_autorefresh(interval=3000, key="dash_refresh") # Autorefresh alle 3 Sek
     display_header_with_logo("📢 Live-Aufruf & Status")
     tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"]).upper()
     df_full = load_labels()
