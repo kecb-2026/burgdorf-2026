@@ -17,7 +17,15 @@ st.markdown("""
     <style>
     @keyframes blinker { 50% { opacity: 0.1; } }
     @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
-    
+
+        /* Greift NUR noch auf die Buttons im Home-Menü zu: */
+.home-buttons div.stButton > button {
+    width: 100% !important;
+    height: 50px !important;
+    background-color: #1a4a9e !important; /* Feste blaue Hintergrundfarbe */
+    color: white !important; /* Weiße Schrift auf blauem Grund */
+}
+
     /* Login Container */
     .login-container {
         display: flex;
