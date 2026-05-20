@@ -388,6 +388,37 @@ elif st.session_state.view != "Login":
 
 # LOGIN VIEW
 if st.session_state.view == "Login":
+    # --- CSS-STYLING FÜR BUTTONS & CONTAINER HIER EINGESETZT ---
+    st.markdown("""
+        <style>
+        /* CSS für alle Buttons (Sidebar + Hauptbereich) */
+        div.stButton > button {
+            background-color: #ffffff !important;
+            color: #1a4a9e !important;
+            border: 2px solid #1a4a9e !important;
+            border-radius: 10px !important;
+            font-weight: bold !important;
+            width: 100% !important;
+            display: block !important;
+            transition: all 0.2s ease-in-out;
+        }
+        
+        /* Hover-Effekt für die Buttons */
+        div.stButton > button:hover {
+            background-color: #1a4a9e !important;
+            color: #ffffff !important;
+        }
+
+        /* Container-Styling für den Login-Bereich */
+        .login-container {
+            border: 2px solid #1a4a9e !important;
+            border-radius: 15px;
+            padding: 20px;
+            background-color: transparent;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
     st.markdown("<div class='login-container'>", unsafe_allow_html=True)
     st.image(LOGO_URL, width=120)
     st.markdown("<h2 style='text-align:center; color:#1a4a9e; text-transform: uppercase; font-size: 20px;'>Interner Bereich</h2>", unsafe_allow_html=True)
@@ -418,6 +449,7 @@ if st.session_state.view == "Login":
     
     if st.button("Abbrechen"): set_view("Dashboard")
     st.markdown("</div>", unsafe_allow_html=True)
+
 
 # HOME (ADMIN NUR)
 elif st.session_state.view == "Home":
