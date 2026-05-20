@@ -1,3 +1,5 @@
+Geht so
+
 import streamlit as st
 import pandas as pd
 import re
@@ -579,7 +581,7 @@ elif st.session_state.view == "BIS_Public":
 
 # LIVE DASHBOARD
 elif st.session_state.view == "Dashboard":
-	display_header_with_logo("📢 Live-Aufruf & Status")
+    display_header_with_logo("📢 Live-Aufruf & Status")
     tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"]).upper()
     df_full = load_labels()
     if df_full is not None:
