@@ -84,7 +84,6 @@ st.markdown("""
         height: 100%;
     }
 
-    /* Die spezifischen Boxen nutzen nun alle den Flex-Container */
     .class-label-box { background-color: #e9ecef; border: 2px solid #1a4a9e; color: #1a4a9e; font-weight: 800; }
     .cat-card { background-color: #ffffff; border: 2px solid #1a4a9e; }
     .placeholder-box { background-color: #f8f9fa !important; border: 1px solid #d1d1d1; color: #cccccc; }
@@ -223,7 +222,6 @@ if "view" in q_params:
         st.session_state.authenticated = True
         st.session_state.user_role = q_params.get("role", "Public")
 
-    # Direkter, passwortloser Zugriff für Richter via URL (?view=Richter&name=Martti+Peltonen)
     if v_param == "richter" and "name" in q_params:
         st.session_state.authenticated = True
         st.session_state.user_role = "Richter"
@@ -439,7 +437,7 @@ elif st.session_state.view == "BIS_Admin_Control":
                             st.write("**Zwischenstand:**")
                             for nr, count in summary.items(): st.write(f"Katze #{nr}: {count} Stimme(n)")
 
-# ABSOLUT UNANGETASTET: BIS PUBLIC VIEW (Inklusive Refresh & Layering)
+# BIS PUBLIC VIEW
 elif st.session_state.view == "BIS_Public":
     if hasattr(store, 'active_overlay') and store.active_overlay:
         if time.time() - store.overlay_start_time < 20:
@@ -546,7 +544,7 @@ elif st.session_state.view == "BIS_Public":
     time.sleep(3)
     st.rerun()
 
-# LIVE DASHBOARD (SORTIERT NACH KLICK-REIHENFOLGE DES STEWARDS)
+# LIVE DASHBOARD
 elif st.session_state.view == "Dashboard":
     display_header_with_logo("📢 Live-Aufruf & Status")
     tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"]).upper()
@@ -564,25 +562,24 @@ elif st.session_state.view == "Dashboard":
                     judge_entries = []
                     for k, v in store.data.items():
                         if "|" in k and k.split("|")[1] == j:
-                            # Kompatibilität sichern, falls alte Datenstruktur geladen ist
-                            flags = v.get("flags", v) if isinstance(v, dict) else {}
+                            # Sichere Abfrage der Flags-Struktur
+                            flags = v.get("flags", {}) if isinstance(v, dict) else {}
+                            beim_richten = flags.get("Zum Richten", False) and not flags.get("Gerichtet", False)
+                            nominiert = flags.get("NOM", False)
+                            biv = flags.get("BIV", False)
                             
-                            beim_richten = flags.get("Zum Richten") and not flags.get("Gerichtet")
-                            nominiert = flags.get("NOM")
-                            
-                            if beim_richten or nominiert:
-                                judge_entries.append({"key": k, "data": v if isinstance(v, dict) else {"flags": v}})
+                            if beim_richten or nominiert or biv:
+                                judge_entries.append({"key": k, "data": v if isinstance(v, dict) else {"flags": {}}})
                     
-                    # Sortierung strikt nach Zeitstempel des Steward-Klicks (älteste oben)
                     judge_entries.sort(key=lambda x: x["data"].get("timestamp", 0))
                     
                     for entry in judge_entries:
                         kat_nr = entry["key"].split("|")[0]
-                        flags = entry["data"].get("flags", entry["data"])
+                        flags = entry["data"].get("flags", {})
                         m = df_tag[df_tag['KAT_STR'] == kat_nr]
                         if not m.empty:
                             tags = "".join([f"<span class='tag tag-{t.lower().replace(' ', '')}'>{t}</span> " for t, val in flags.items() if val and t != "Gerichtet"])
-                            if tags: # Nur anzeigen, wenn aktive Tags vorhanden sind
+                            if tags: 
                                 st.markdown(f"""
                                     <div class='cat-card'>
                                         <div class='cat-number'>{kat_nr}</div>
@@ -593,7 +590,7 @@ elif st.session_state.view == "Dashboard":
                             
     st_autorefresh(interval=10000, key="dash_refresh")
 
-# STEWARD PANEL (KATEGORIE-FILTER, VISUELLE INFO-KARTEN UND STRUKTURIERTE TEXT-BUTTONS)
+# STEWARD PANEL
 elif st.session_state.view == "Steward_Panel":
     display_header_with_logo("📝 Steward-Pult")
     tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"]).upper()
@@ -604,19 +601,20 @@ elif st.session_state.view == "Steward_Panel":
         mein_richter = st.selectbox("Richter wählen:", ["--"] + all_j)
         
         if mein_richter != "--":
-            # 1. Dynamischer Kategorie-Filter für diesen spezifischen Richter
             df_richter_alle = df_full[(df_full[tag].astype(str).str.upper() == 'X') & (df_full[r_col] == mein_richter)]
-            verfuegbare_kategorien = sorted([str(cat) for cat in df_richter_alle['KATEGORIE'].unique() if str(cat) != "nan"])
+            
+            # Wichtig: Typ-Bereinigung und String-Konvertierung für den Selektor
+            verfuegbare_kategorien = sorted(list(set([str(cat).replace('.0', '') for cat in df_richter_alle['KATEGORIE'].unique() if pd.notna(cat)])))
             meine_kategorie = st.selectbox("Kategorie wählen:", verfuegbare_kategorien)
             
-            # 2. Liste für das Pult laden (Gefiltert nach Richter + Kategorie)
-            df_j = df_richter_alle[df_richter_alle['KATEGORIE'] == meine_kategorie].sort_values('KATALOG-NR')
+            # Filterung nach Kategorie (Typunabhängiger Vergleich über Strings)
+            df_j = df_richter_alle[df_richter_alle['KATEGORIE'].astype(str).str.replace('.0', '') == meine_kategorie].sort_values('KATALOG-NR')
             st.divider()
             
             for _, row in df_j.iterrows():
-                nr = row['KAT_STR']; k = f"{nr}|{mein_richter}"
+                nr = row['KAT_STR']
+                k = f"{nr}|{mein_richter}"
                 
-                # Stammdaten extrahieren
                 klasse = row.get('KLASSE_INTERNAL', 'N/A')
                 farbgruppe = row.get('FARBGRUPPE', 'N/A')
                 geschlecht = row.get('GESCHLECHT', 'N/A')
@@ -624,6 +622,7 @@ elif st.session_state.view == "Steward_Panel":
                 if isinstance(geb_datum, pd.Timestamp):
                     geb_datum = geb_datum.strftime('%d.%m.%Y')
                 
+                # DAUERHAFTE INITIALISIERUNG: Verhindert den Absturz bei leeren Daten
                 if k not in store.data or not isinstance(store.data[k], dict) or "flags" not in store.data[k]: 
                     store.data[k] = {
                         "flags": {"Zum Richten": False, "BIV": False, "NOM": False, "Gerichtet": False},
@@ -633,7 +632,6 @@ elif st.session_state.view == "Steward_Panel":
                 flags = store.data[k]["flags"]
                 card_class = "steward-card gerichtet" if flags.get("Gerichtet") else "steward-card"
                 
-                # HTML Infokarte für den Steward
                 st.markdown(f"""
                 <div class="{card_class}">
                     <div class="card-header-row">
@@ -651,7 +649,7 @@ elif st.session_state.view == "Steward_Panel":
                 
                 c1, c2, c3, c4 = st.columns(4)
                 
-                # BUTTON 1: AUFRUFEN (Erstrichter-Aufruf)
+                # BUTTON 1: AUFRUFEN
                 type_rich = "primary" if flags.get("Zum Richten") else "secondary"
                 label_rich = "[ AKTIV ] AUFGERUFEN" if flags.get("Zum Richten") else "AUFRUFEN"
                 if c1.button(label_rich, key=f"btn_rich_{k}", type=type_rich):
@@ -661,7 +659,7 @@ elif st.session_state.view == "Steward_Panel":
                         store.data[k]["timestamp"] = time.time()
                     st.rerun()
                 
-                # BUTTON 2: BEST IN VARIETY (BIV)
+                # BUTTON 2: BIV
                 type_biv = "primary" if flags.get("BIV") else "secondary"
                 label_biv = "[ GEWONNEN ] BIV" if flags.get("BIV") else "BIV VERGEBEN"
                 if c2.button(label_biv, key=f"btn_biv_{k}", type=type_biv):
@@ -669,7 +667,7 @@ elif st.session_state.view == "Steward_Panel":
                     store.data[k]["timestamp"] = time.time()
                     st.rerun()
                 
-                # BUTTON 3: NOMINIEREN (Für die BIS-Endrunde)
+                # BUTTON 3: NOMINIEREN
                 type_nom = "primary" if flags.get("NOM") else "secondary"
                 label_nom = "[ NOMINIERT ] BIS" if flags.get("NOM") else "NOMINIEREN"
                 if c3.button(label_nom, key=f"btn_nom_{k}", type=type_nom):
@@ -678,7 +676,7 @@ elif st.session_state.view == "Steward_Panel":
                         store.data[k]["timestamp"] = time.time()
                     st.rerun()
                 
-                # BUTTON 4: GERICHTET (Archivierung / Ausblenden)
+                # BUTTON 4: GERICHTET
                 type_done = "primary" if flags.get("Gerichtet") else "secondary"
                 label_done = "[ ERLEDIGT ] GERICHTET" if flags.get("Gerichtet") else "GERICHTET"
                 if c4.button(label_done, key=f"btn_done_{k}", type=type_done):
@@ -691,7 +689,7 @@ elif st.session_state.view == "Steward_Panel":
                 
                 st.markdown("<div style='margin-bottom: 25px;'></div>", unsafe_allow_html=True)
 
-# RICHTER VOTING VIEW (MIT DIRECT-ACCESS FILTER & LOCK)
+# RICHTER VOTING VIEW
 elif st.session_state.view == "Judge_Voting":
     display_header_with_logo("🗳️ Richter Abstimmung/Judges Votes")
     df_full = load_labels()
@@ -701,7 +699,6 @@ elif st.session_state.view == "Judge_Voting":
         all_judges = sorted([r for r in df_full[r_col].unique() if str(r) != "nan"])
         
         c1, c2 = st.columns(2)
-        
         if st.session_state.assigned_judge:
             active_j = st.session_state.assigned_judge
             c1.markdown(f"<div style='padding: 10px; background-color: #e9ecef; border-radius: 5px; font-weight: bold;'>Richter: {active_j} 🔒</div>", unsafe_allow_html=True)
