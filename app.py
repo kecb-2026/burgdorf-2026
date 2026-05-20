@@ -81,12 +81,12 @@ st.markdown("""
     div.stButton > button {
         width: 100%;
         height: 25px;
-        border-radius: 6px !important;
+        padding: 0px 5px !important;
         font-weight: bold !important;
         text-transform: uppercase !important;
         font-size: 8px !important;
         transition: all 0.2s ease;
-        margin-bottom: 5px;
+        line-hight: 1px;
         color: white !important;
     }
 
