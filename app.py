@@ -4,6 +4,8 @@ import re
 import time
 from streamlit_autorefresh import st_autorefresh
 
+
+
 # --- 1. SETUP & STYLING ---
 st.set_page_config(layout="wide", page_title="KECB Burgdorf 2026", page_icon="🐾")
 
@@ -12,7 +14,7 @@ LOGO_URL = "logo.GIF"
 
 st.markdown("""
     <style>
-    @keyframes blinker { 50% { opacity: 0.2; } }
+    @keyframes blinker { 50% { opacity: 0.1; } }
     
     /* Login Container */
     .login-container {
@@ -27,106 +29,118 @@ st.markdown("""
         max-width: 400px;
         margin: 5% auto;
     }
-    
-    /* Professionelles Steward Card UI */
-    .steward-card {
-        background-color: #ffffff;
-        border: 1px solid #dcdcdc;
-        border-radius: 8px;
-        padding: 16px;
-        margin-bottom: 12px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-    }
-    .steward-card.gerichtet {
-        background-color: #f8f9fa;
-        border: 1px dashed #cccccc;
-        opacity: 0.6;
-    }
-    .card-header-row {
+    /* Erzeugt einheitliche Höhen für alle Boxen in einer Zeile */
+    .grid-wrapper {
         display: flex;
-        justify-content: space-between;
+        flex-direction: column;
+        height: 100%;
+    }
+
+
+    /* Die spezifischen Boxen nutzen nun alle den Flex-Container */
+    .class-label-box { background-color: #e9ecef; border: 2px solid #1a4a9e; color: #1a4a9e; font-weight: 800; }
+    .cat-card { background-color: #ffffff; border: 2px solid #1a4a9e; }
+    .placeholder-box { background-color: #f8f9fa !important; border: 1px solid #d1d1d1; color: #cccccc; }
+    .winner-card { background-color: #ffcccc !important; border: 3px solid #ff4d4d !important; }
+
+
+
+    /* Overlay als zentrierte Box (80% Größe) */
+    .winner-overlay {
+        position: fixed;
+        top: 10%; left: 10%; 
+        width: 80vw; height: 80vh;
+        background-color: white;
+        z-index: 9999999;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        text-align: center;
+        border-radius: 40px;
+        box-shadow: 0px 0px 100px rgba(0,0,0,0.5);
+        border: 15px solid #1a4a9e;
+        animation: fadeIn 0.5s ease-out;
+        padding: 40px;
+    }
+    
+        /* Initialen Kreise */
+    .judge-initials-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 4px;
+        margin-top: 8px;
+        padding-top: 6px;
+        border-top: 1px solid #eee;
+    }
+
+    .judge-circle {
+        width: 24px;
+        height: 24px;
+        background-color: #1a4a9e;
+        color: white;
+        border-radius: 50%;
+        display: flex;
         align-items: center;
-        border-bottom: 2px solid #1a4a9e;
-        padding-bottom: 6px;
-        margin-bottom: 12px;
+        justify-content: center;
+        font-size: 10px;
+        font-weight: bold;
+        cursor: help; /* Zeigt an, dass man drüberfahren kann */
     }
-    .card-cat-number {
-        font-size: 22px !important;
-        font-weight: 800;
-        color: #1a4a9e;
+
+    
+    .overlay-backdrop {
+        position: fixed;
+        top: 0; left: 0; width: 100vw; height: 100vh;
+        background-color: rgba(0,0,0,0.7);
+        z-index: 9999998;
     }
-    .card-meta-main {
-        font-size: 15px !important;
-        font-weight: 700;
-        color: #222;
-    }
-    .grid-container {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 6px 12px;
-    }
-    .card-meta-sub {
-        font-size: 13px !important;
-        color: #555;
-    }
-    .meta-label {
-        font-weight: 600;
-        color: #666;
+
+    /* TITEL ANPASSUNGEN */
+    .ov-header {
+        font-size: 24px !important; font-weight: 500; color: #333;
         text-transform: uppercase;
-        font-size: 11px !important;
-        letter-spacing: 0.5px;
+        border-bottom: 2px solid #ccc; width: 80%;
+        padding-bottom: 15px; margin-bottom: 30px;
     }
-
-    /* --- VOLLSTÄNDIG GEFÜLLTE BUTTONS OHNE ROT & MIT BLINKEN --- */
-    div.stButton > button {
-        width: 100%;
-        height: 50px;
-        border-radius: 12px !important;
-        font-weight: bold !important;
+    
+    .ov-cat-name {
+        font-size: 45px !important; font-weight: 900;
+        text-transform: uppercase; color: #000;
+        margin-bottom: 20px; line-height: 1.1;
+        width: 90%; word-wrap: break-word;
+    }
+    
+    .ov-owner {
+        font-size: 30px !important; font-style: italic; color: #444;
+    }
+    
+    /* NEU: Klasse für die Hauptüberschriften neben dem Logo */
+    .header-text {
         text-transform: uppercase !important;
-        font-size: 12px !important;
-        transition: all 0.2s ease;
-        margin-bottom: 5px;
-        color: white !important;
+        font-size: 26px !important;
+        font-weight: bold;
+        color: #1a4a9e;
+        margin: 0 !important;
     }
 
-    /* 1. Spalte: Aufgerufen (Kräftiges Blau) */
-    div[data-testid="stHorizontalBlock"] > div:nth-child(1) button {
-        background-color: #007bff !important;
-        border: 2px solid #0056b3 !important;
+    @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+
+    .stButton button { width: 100%; height: 50px; font-size: 13px !important; font-weight: bold !important; border-radius: 12px !important; margin-bottom: 5px; border: 2px solid #1a4a9e !important; }
+    
+    .judge-header-box { 
+        background-color: #1a4a9e; color: white; padding: 8px; border-radius: 10px; text-align: center; 
+        font-size: 12px !important; text-transform: uppercase; font-weight: bold; 
+        margin-bottom: 10px; border: 2px solid #0d2a5e; height: 60px; 
+        display: flex; align-items: center; justify-content: center; 
     }
-    /* 2. Spalte: BIV (Kräftiges Grün) */
-    div[data-testid="stHorizontalBlock"] > div:nth-child(2) button {
-        background-color: #28a745 !important;
-        border: 2px solid #1e7e34 !important;
-    }
-    /* 3. Spalte: NOM (Kräftiges Gelb/Orange mit dunkler Schrift für Lesbarkeit) */
-    div[data-testid="stHorizontalBlock"] > div:nth-child(3) button {
-        background-color: #ffc107 !important;
-        border: 2px solid #d39e00 !important;
-        color: black !important;
-    }
-    /* 4. Spalte: Gerichtet (Dezentes Grau) */
-    div[data-testid="stHorizontalBlock"] > div:nth-child(4) button {
-        background-color: #6c757d !important;
-        border: 2px solid #545b62 !important;
+    
+    .class-label-box { 
+        background-color: #e9ecef; color: #1a4a9e; padding: 5px; border-radius: 10px; text-align: center; 
+        font-size: 11px !important; text-transform: uppercase; font-weight: 800; 
+        border: 2px solid #1a4a9e; display: flex; align-items: center; justify-content: center; 
+        height: 80px; width: 100%; line-height: 1.1; 
     }
 
-    /* HOVER EFFEKTE (Leichtes Abdunkeln beim Drüberfahren) */
-    div[data-testid="stHorizontalBlock"] > div:nth-child(1) button:hover { background-color: #0069d9 !important; }
-    div[data-testid="stHorizontalBlock"] > div:nth-child(2) button:hover { background-color: #218838 !important; }
-    div[data-testid="stHorizontalBlock"] > div:nth-child(3) button:hover { background-color: #e0a800 !important; }
-    div[data-testid="stHorizontalBlock"] > div:nth-child(4) button:hover { background-color: #5a6268 !important; }
-
-    /* BLINK-ANIMATION FÜR AKTIVE BUTTONS (Stoppt das Streamlit-Rot) */
-    .st-blink-btn button {
-        animation: blinker 1.3s linear infinite !important;
-        box-shadow: 0 0 15px rgba(0,0,0,0.2) !important;
-    }
-
-    /* Dashboard Styles */
-    .judge-header-box { background-color: #1a4a9e; color: white; padding: 8px; border-radius: 10px; text-align: center; font-size: 12px !important; text-transform: uppercase; font-weight: bold; margin-bottom: 10px; border: 2px solid #0d2a5e; height: 60px; display: flex; align-items: center; justify-content: center; }
-    .class-label-box { background-color: #e9ecef; color: #1a4a9e; padding: 5px; border-radius: 10px; text-align: center; font-size: 11px !important; text-transform: uppercase; font-weight: 800; border: 2px solid #1a4a9e; display: flex; align-items: center; justify-content: center; height: 80px; width: 100%; line-height: 1.1; }
     .cat-card, .placeholder-box { padding: 5px; border: 2px solid #1a4a9e; text-align: center; background-color: #ffffff; border-radius: 14px; margin-bottom: 5px; min-height: 80px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
     .placeholder-box { border: 1px solid #d1d1d1; background-color: #f2f2f2 !important; color: #999999; }
     .winner-card { border: 3px solid #ff4d4d !important; background-color: #ffcccc !important; color: #b21f2d !important; }
@@ -138,6 +152,38 @@ st.markdown("""
     .tag-zumrichten { background-color: #007bff; }
     .tag-biv { background-color: #28a745; animation: blinker 1.5s linear infinite; }
     .tag-nom { background-color: #ffc107; color: black; animation: blinker 1s linear infinite; }
+
+    /* --- EXKLUSIV NEUE KLASSEN FÜR DAS STEWARD PANEL --- */
+    .steward-box {
+        background-color: #ffffff;
+        border: 2px solid #1a4a9e;
+        border-radius: 14px;
+        padding: 12px;
+        margin-bottom: 10px;
+    }
+    .steward-title {
+        font-size: 16px;
+        font-weight: bold;
+        margin-bottom: 8px;
+    }
+    .steward-btn-row div.stButton > button {
+        height: 38px !important;
+        font-size: 12px !important;
+        text-transform: uppercase !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 8px !important;
+    }
+    /* Buttons in den Spalten farblich kodieren */
+    .steward-btn-row div[data-testid="stHorizontalBlock"] > div:nth-child(1) button { background-color: #007bff !important; }
+    .steward-btn-row div[data-testid="stHorizontalBlock"] > div:nth-child(2) button { background-color: #28a745 !important; }
+    .steward-btn-row div[data-testid="stHorizontalBlock"] > div:nth-child(3) button { background-color: #ffc107 !important; color: black !important; }
+    
+    /* Blinken für aktive Steward-Zustände ohne Streamlit-Rot */
+    .steward-active button {
+        animation: blinker 1.3s linear infinite !important;
+        box-shadow: 0 0 8px rgba(0,0,0,0.2) !important;
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -165,14 +211,18 @@ if "view" not in st.session_state:
 q_params = st.query_params
 if "view" in q_params:
     v_param = q_params["view"].lower()
+    
+    # NEU: Wenn 'auth' in der URL steht, logge den User automatisch wieder ein
     if q_params.get("auth") == "true":
         st.session_state.authenticated = True
         st.session_state.user_role = q_params.get("role", "Public")
+
     if v_param == "katzenaufruf": st.session_state.view = "Dashboard"
     elif v_param == "bis": st.session_state.view = "BIS_Public"
     elif v_param in ["admin", "steward", "richter", "bis-admin"]:
         st.session_state.view = "Login"
         st.session_state.target_role = v_param
+
 
 def logout():
     st.session_state.authenticated = False
@@ -181,7 +231,29 @@ def logout():
     st.rerun()
 
 # --- 4. HILFSFUNKTIONEN ---
+
+def custom_autorefresh(interval_ms):
+    """A simple autorefresh using modern Streamlit commands."""
+    import streamlit.components.v1 as components
+    # This creates a tiny invisible piece of Javascript that clicks a button
+    # or triggers a rerun every X milliseconds.
+    components.html(
+        f"""
+        <script>
+            window.parent.postMessage({{
+                type: 'streamlit:set_component_value',
+                value: Date.now()
+            }}, '*');
+        </script>
+        """,
+        height=0,
+    )
+    time.sleep(interval_ms / 1000)
+    st.rerun()
+
+
 def display_header_with_logo(text):
+    """Zeigt die Überschrift links und das Logo rechtsbündig an"""
     col_text, col_logo = st.columns([5, 1]) 
     with col_text:
         st.markdown(f"<p class='header-text'>{text}</p>", unsafe_allow_html=True)
@@ -196,6 +268,7 @@ def render_overlay_html(row):
     farbe = row.get('FARBE', '')
     name_gross = str(row.get('NAME', '')).upper()
     besitzer = f"{row.get('BESITZER VORNAME', '')} {row.get('BESITZER NACHNAME', '')}"
+    
     return f"""
         <div class="overlay-backdrop"></div>
         <div class="winner-overlay">
@@ -231,14 +304,12 @@ def load_labels():
 
 def get_full_label(row):
     r = row.get('RASSE_KURZ', row.get('RASSE', ''))
-    fg_col = [c for c in row.index if "FARBGRUPPE" in c or "FARB-GRUPPE" in c]
-    fg_val = row[fg_col[0]] if fg_col else row.get('FARBGRUPPE', '')
-    g = roman_to_numeric(fg_val)
+    g = roman_to_numeric(row.get('FARBGRUPPE', ''))
     e = row.get('FARBE', '')
-    return f"{r} {g} ({e})".strip() if g else f"{r} ({e})".strip()
+    return f"{r} {g} ({e})".strip()
 
 def set_view(name):
-    store.active_overlay = None   
+    store.active_overlay = None   # FIX: Overlay beim Viewwechsel löschen
     st.session_state.view = name
     st.rerun()
 
@@ -256,6 +327,8 @@ st.sidebar.image(LOGO_URL, width=100)
 st.session_state.view = st.sidebar.radio("Menü:", available_views, 
     index=available_views.index(st.session_state.view) if st.session_state.view in available_views else 0)
 	
+# FIX: Overlay reset wenn NICHT BIS View
+
 if st.session_state.view != "BIS_Public":
     store.active_overlay = None	
 
@@ -283,21 +356,22 @@ if st.session_state.view == "Login":
     if st.button("Anmelden"):
         if role_input == "Admin" and password == "admin2026":
             st.session_state.user_role, st.session_state.authenticated = "Admin", True
-            st.query_params.update(auth="true", role="Admin") 
+            st.query_params.update(auth="true", role="Admin") # URL FIX
             set_view("Home")
         elif role_input == "Steward" and password == "steward2026":
             st.session_state.user_role, st.session_state.authenticated = "Steward", True
-            st.query_params.update(auth="true", role="Steward") 
+            st.query_params.update(auth="true", role="Steward") # URL FIX
             set_view("Steward_Panel")
         elif role_input == "Richter" and password == "judge2026":
             st.session_state.user_role, st.session_state.authenticated = "Richter", True
-            st.query_params.update(auth="true", role="Richter") 
+            st.query_params.update(auth="true", role="Richter") # URL FIX
             set_view("Judge_Voting")
         else:
             st.error("Passwort ungültig.")
     
     if st.button("Abbrechen"): set_view("Dashboard")
     st.markdown("</div>", unsafe_allow_html=True)
+
 
 # HOME (ADMIN NUR)
 elif st.session_state.view == "Home":
@@ -343,10 +417,13 @@ elif st.session_state.view == "BIS_Admin_Control":
                         if not w_match.empty:
                             store.active_overlay = w_match.iloc[0].to_dict()
                             store.overlay_start_time = time.time()
+                            # Reset des lokalen Timers für alle Public-Instanzen
                             if "local_overlay_end" in st.session_state:
                                 st.session_state.local_overlay_end = 0
                         st.success(f"Overlay für #{final_nr} wurde gestartet!")
         
+                            
+                            
                 with c_votes:
                     st.markdown("**Stimmen-Details**")
                     if "votes" in store.data:
@@ -367,6 +444,7 @@ elif st.session_state.view == "BIS_Public":
         else: store.active_overlay = None; st.rerun()
 
     def get_initials(name):
+        """Erzeugt Initialen aus Vor- und Nachnamen (z.B. Martti Peltonen -> MP)"""
         parts = str(name).split()
         if len(parts) >= 2:
             return (parts[0][0] + parts[-1][0]).upper()
@@ -388,6 +466,7 @@ elif st.session_state.view == "BIS_Public":
         r_col = f"RICHTER {tag}"
         judges = sorted([r for r in df_full[df_full[tag].astype(str).str.upper() == 'X'][r_col].unique() if str(r) != "nan"])
         
+        # Header
         cols = st.columns([0.8] + [1.2]*len(judges) + [0.8])
         for i, j in enumerate(judges): 
             cols[i+1].markdown(f"<div class='judge-header-box'>{j}</div>", unsafe_allow_html=True)
@@ -440,6 +519,7 @@ elif st.session_state.view == "BIS_Public":
                     else: 
                         st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
             
+            # BIS GEWINNER SPALTE
             with r_cols[-1]:
                 if winner_revealed:
                     prefix = f"v_{sel_cat}_{label}_"
@@ -465,6 +545,7 @@ elif st.session_state.view == "BIS_Public":
     time.sleep(3)
     st.rerun()
 
+
 # LIVE DASHBOARD
 elif st.session_state.view == "Dashboard":
     display_header_with_logo("📢 Live-Aufruf & Status")
@@ -479,38 +560,17 @@ elif st.session_state.view == "Dashboard":
             for i, j in enumerate(judges):
                 with cols[i]:
                     st.markdown(f"<div class='judge-header-box'>{j}</div>", unsafe_allow_html=True)
-                    
-                    judge_entries = []
                     for k, v in store.data.items():
-                        if "|" in k and k.split("|")[1] == j:
-                            flags = v.get("flags", {}) if isinstance(v, dict) else {}
-                            beim_richten = flags.get("Zum Richten", False) and not flags.get("Gerichtet", False)
-                            nominiert = flags.get("NOM", False)
-                            biv = flags.get("BIV", False)
-                            
-                            if beim_richten or nominiert or biv:
-                                judge_entries.append({"key": k, "data": v if isinstance(v, dict) else {"flags": {}}})
-                    
-                    judge_entries.sort(key=lambda x: x["data"].get("timestamp", 0))
-                    
-                    for entry in judge_entries:
-                        kat_nr = entry["key"].split("|")[0]
-                        flags = entry["data"].get("flags", {})
-                        m = df_tag[df_tag['KAT_STR'] == kat_nr]
-                        if not m.empty:
-                            tags = "".join([f"<span class='tag tag-{t.lower().replace(' ', '')}'>{t}</span> " for t, val in flags.items() if val and t != "Gerichtet"])
-                            if tags: 
-                                st.markdown(f"""
-                                    <div class='cat-card'>
-                                        <div class='cat-number'>{kat_nr}</div>
-                                        <div class='cat-details'>{get_full_label(m.iloc[0])}</div>
-                                        <div class='tag-container'>{tags}</div>
-                                    </div>
-                                """, unsafe_allow_html=True)
-                            
+                        if "|" in k and k.split("|")[1] == j and any(v.values()):
+                            m = df_tag[df_tag['KAT_STR'] == k.split("|")[0]]
+                            if not m.empty:
+                                tags = "".join([f"<span class='tag tag-{t.lower().replace(' ', '')}'>{t}</span> " for t, val in v.items() if val])
+                                st.markdown(f"<div class='cat-card'><div class='cat-number'>{k.split('|')[0]}</div><div class='cat-details'>{get_full_label(m.iloc[0])}</div><div class='tag-container'>{tags}</div></div>", unsafe_allow_html=True)
     st_autorefresh(interval=10000, key="dash_refresh")
+	#time.sleep(3); st.rerun()
+	
 
-# STEWARD PANEL
+# STEWARD PANEL (MODIFIZIERTE ANSICHT MIT KOMPAKTEN FARBBUTTONS)
 elif st.session_state.view == "Steward_Panel":
     display_header_with_logo("📝 Steward-Pult")
     tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"]).upper()
@@ -519,102 +579,52 @@ elif st.session_state.view == "Steward_Panel":
         r_col = f"RICHTER {tag}"
         all_j = sorted([r for r in df_full[df_full[tag].astype(str).str.upper() == 'X'][r_col].unique() if str(r) != "nan"])
         mein_richter = st.selectbox("Richter wählen:", ["--"] + all_j)
-        
         if mein_richter != "--":
-            df_richter_alle = df_full[(df_full[tag].astype(str).str.upper() == 'X') & (df_full[r_col] == mein_richter)]
-            verfuegbare_kategorien = sorted(list(set([str(cat).replace('.0', '') for cat in df_richter_alle['KATEGORIE'].unique() if pd.notna(cat)])))
-            meine_kategorie = st.selectbox("Kategorie wählen:", verfuegbare_kategorien)
-            
-            df_j = df_richter_alle[df_richter_alle['KATEGORIE'].astype(str).str.replace('.0', '') == meine_kategorie].sort_values('KATALOG-NR')
-            st.divider()
+            df_j = df_full[(df_full[tag].astype(str).str.upper() == 'X') & (df_full[r_col] == mein_richter)].sort_values('KATALOG-NR')
             
             for _, row in df_j.iterrows():
                 nr = row['KAT_STR']
                 k = f"{nr}|{mein_richter}"
                 
-                # Spalten flexibel auslesen
-                klasse = row.get('KLASSE_INTERNAL', row.get('AUSSTELLUNGSKLASSE', row.get('KLASSE', 'N/A')))
-                fg_cols = [c for c in row.index if "FARBGRUPPE" in c or "FARB-GRUPPE" in c]
-                farbgruppe = row[fg_cols[0]] if fg_cols else row.get('FARBGRUPPE', 'N/A')
-                if pd.isna(farbgruppe) or str(farbgruppe).strip().lower() == "nan": farbgruppe = "N/A"
+                if k not in store.data: 
+                    store.data[k] = {"Zum Richten": False, "BIV": False, "NOM": False}
                 
-                geschlecht = row.get('GESCHLECHT', 'N/A')
-                geb_cols = [c for c in row.index if "GEB" in c or "GEBURT" in c]
-                geb_datum = row[geb_cols[0]] if geb_cols else row.get('GEB_DATUM', 'N/A')
-                if isinstance(geb_datum, pd.Timestamp): geb_datum = geb_datum.strftime('%d.%m.%Y')
-                elif pd.isna(geb_datum) or str(geb_datum).strip().lower() == "nan": geb_datum = "N/A"
-                
-                if k not in store.data or not isinstance(store.data[k], dict) or "flags" not in store.data[k]: 
-                    store.data[k] = {
-                        "flags": {"Zum Richten": False, "BIV": False, "NOM": False, "Gerichtet": False},
-                        "timestamp": 0
-                    }
-                
-                flags = store.data[k]["flags"]
-                card_class = "steward-card gerichtet" if flags.get("Gerichtet") else "steward-card"
-                
+                # Container-Box für die Katze erzeugen
                 st.markdown(f"""
-                <div class="{card_class}">
-                    <div class="card-header-row">
-                        <span class="card-cat-number">Nr. {nr}</span>
-                        <span class="card-meta-main">{get_full_label(row)}</span>
-                    </div>
-                    <div class="grid-container">
-                        <span class="card-meta-sub"><span class="meta-label">Klasse:</span> {klasse}</span>
-                        <span class="card-meta-sub"><span class="meta-label">Farbgruppe:</span> {farbgruppe}</span>
-                        <span class="card-meta-sub"><span class="meta-label">Geschlecht:</span> {geschlecht}</span>
-                        <span class="card-meta-sub"><span class="meta-label">Geboren:</span> {geb_datum}</span>
-                    </div>
-                </div>
+                <div class="steward-box">
+                    <div class="steward-title">🐾 #{nr} &nbsp;|&nbsp; {get_full_label(row)}</div>
                 """, unsafe_allow_html=True)
                 
-                c1, c2, c3, c4 = st.columns(4)
+                # Zeile für die Buttons initialisieren
+                st.markdown('<div class="steward-btn-row">', unsafe_allow_html=True)
+                c1, c2, c3 = st.columns(3)
                 
-                # BUTTON 1: AUFRUFEN (Blau + Blinken bei Aktivierung)
-                is_rich = flags.get("Zum Richten")
                 with c1:
-                    if is_rich: st.markdown('<div class="st-blink-btn">', unsafe_allow_html=True)
-                    if st.button("[ AKTIV ] AUFGERUFEN" if is_rich else "AUFRUFEN", key=f"btn_rich_{k}"):
-                        store.data[k]["flags"]["Zum Richten"] = not is_rich
-                        if store.data[k]["flags"]["Zum Richten"]:
-                            store.data[k]["flags"]["Gerichtet"] = False
-                            store.data[k]["timestamp"] = time.time()
+                    is_richten = store.data[k]["Zum Richten"]
+                    if is_richten: st.markdown('<div class="steward-active">', unsafe_allow_html=True)
+                    if st.button("[ AKTIV ] RICHTEN" if is_richten else "ZUM RICHTEN", key=f"auf{k}"):
+                        store.data[k]["Zum Richten"] = not is_richten
                         st.rerun()
-                    if is_rich: st.markdown('</div>', unsafe_allow_html=True)
-                
-                # BUTTON 2: BIV (Grün + Blinken bei Aktivierung)
-                is_biv = flags.get("BIV")
+                    if is_richten: st.markdown('</div>', unsafe_allow_html=True)
+                    
                 with c2:
-                    if is_biv: st.markdown('<div class="st-blink-btn">', unsafe_allow_html=True)
-                    if st.button("[ AKTIV ] BIV" if is_biv else "BIV", key=f"btn_biv_{k}"):
-                        store.data[k]["flags"]["BIV"] = not is_biv
-                        store.data[k]["timestamp"] = time.time()
+                    is_biv = store.data[k]["BIV"]
+                    if is_biv: st.markdown('<div class="steward-active">', unsafe_allow_html=True)
+                    if st.button("[ AKTIV ] BIV" if is_biv else "BIV", key=f"biv{k}"):
+                        store.data[k]["BIV"] = not is_biv
                         st.rerun()
                     if is_biv: st.markdown('</div>', unsafe_allow_html=True)
-                
-                # BUTTON 3: NOMINIEREN (Gelb + Blinken bei Aktivierung)
-                is_nom = flags.get("NOM")
+                    
                 with c3:
-                    if is_nom: st.markdown('<div class="st-blink-btn">', unsafe_allow_html=True)
-                    if st.button("[ AKTIV ] NOM" if is_nom else "NOM", key=f"btn_nom_{k}"):
-                        store.data[k]["flags"]["NOM"] = not is_nom
-                        if store.data[k]["flags"]["NOM"]:
-                            store.data[k]["timestamp"] = time.time()
+                    is_nom = store.data[k]["NOM"]
+                    if is_nom: st.markdown('<div class="steward-active">', unsafe_allow_html=True)
+                    if st.button("[ AKTIV ] NOM" if is_nom else "NOM", key=f"nom{k}"):
+                        store.data[k]["NOM"] = not is_nom
                         st.rerun()
                     if is_nom: st.markdown('</div>', unsafe_allow_html=True)
-                
-                # BUTTON 4: GERICHTET (Grau - kein Blinken nötig da erledigt)
-                is_done = flags.get("Gerichtet")
-                with c4:
-                    if st.button("[ ERLEDIGT ] GERICHTET" if is_done else "GERICHTET", key=f"btn_done_{k}"):
-                        if not is_done:
-                            store.data[k]["flags"]["Zum Richten"] = False
-                            store.data[k]["flags"]["Gerichtet"] = True
-                        else:
-                            store.data[k]["flags"]["Gerichtet"] = False
-                        st.rerun()
-                
-                st.markdown("<div style='margin-bottom: 25px;'></div>", unsafe_allow_html=True)
+                    
+                st.markdown('</div>', unsafe_allow_html=True) # Schließt steward-btn-row
+                st.markdown('</div>', unsafe_allow_html=True) # Schließt steward-box
 
 # JUDGE VOTING
 elif st.session_state.view == "Judge_Voting":
