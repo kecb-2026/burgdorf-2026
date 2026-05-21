@@ -605,25 +605,35 @@ elif st.session_state.view == "BIS_Public":
         r_col = f"RICHTER {tag}"
         judges = sorted([r for r in df_full[df_full[tag].astype(str).str.upper() == 'X'][r_col].unique() if str(r) != "nan"])
 
-        cols = st.columns([0.8] + [1.2]*len(judges) + [0.8])
-        for i, j in enumerate(judges): 
-            cols[i+1].markdown(f"<div class='judge-header-box'>{j}</div>", unsafe_allow_html=True)
-        cols[-1].markdown("<div class='judge-header-box' style='background-color:#b21f2d;'>BIS</div>", unsafe_allow_html=True)
-            # ... (dein bestehender Code der Schleife endet hier, 
-            # bevor die nächste Klasse gerendert wird)
+                for label, klassen, geschl in bis_defs:
+            r_cols = st.columns([0.8] + [1.2]*len(judges) + [0.8])
+            r_cols[0].markdown(f"<div class='class-label-box'>{label}</div>", unsafe_allow_html=True)
+            
+            # ... (hier kommt dein bestehender Code, der die Spalten füllt) ...
+            
+            for i, j in enumerate(judges):
+                with r_cols[i+1]:
+                    # ... dein bestehender Code für die Richter-Spalten ...
+            
+            with r_cols[-1]:
+                # ... dein bestehender Code für die BIS-Spalte ...
 
-            # --- HIER DEN CODE EINFÜGEN ---
-                prefix = f"v_{sel_cat}_{label}_"
-                abgestimmte_richter = [
-                    key.replace(prefix, "") 
-                    for key, val in store.data.get("votes", {}).items() 
-                    if key.startswith(prefix) and val != "Keine Wahl/Not chosen yet"
-                ]
+            # --- AB HIER EINFÜGEN (Eingerückt wie die r_cols oben) ---
+            prefix = f"v_{sel_cat}_{label}_"
+            abgestimmte_richter = [
+                key.replace(prefix, "") 
+                for key, val in store.data.get("votes", {}).items() 
+                if key.startswith(prefix) and val != "Keine Wahl/Not chosen yet"
+            ]
 
             if abgestimmte_richter:
-                # Zeigt die Richter unter der Tabellenzeile an
-                st.markdown("<div style='margin-top: 5px; margin-bottom: 20px; font-size: 14px; color: #1a4a9e; font-weight: bold;'>Abgestimmt: ✅ " + " ✅ ".join(abgestimmte_richter) + "</div>", unsafe_allow_html=True)
-            # -------------------------------
+                st.markdown(f"""
+                    <div style='margin-bottom: 20px; text-align: center; font-size: 14px; color: #1a4a9e; font-weight: bold;'>
+                        Abgestimmt: ✅ {" ✅ ".join(abgestimmte_richter)}
+                    </div>
+                """, unsafe_allow_html=True)
+            # ---------------------------------------------------------
+
 
         for label, klassen, geschl in bis_defs:
             r_cols = st.columns([0.8] + [1.2]*len(judges) + [0.8])
