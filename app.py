@@ -886,7 +886,9 @@ elif st.session_state.view == "Judge_Voting":
     display_header_with_logo("🗳️ Richter Abstimmung/Judges Votes")
     df_full = load_labels()
     if df_full is not None:
-        tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"]).upper()
+        url_day = st.query_params.get("day", "1")
+        day_idx = 1 if url_day == "2" else 0
+        tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"], index=day_idx, key="judge_day_selector").upper()
         r_col = f"RICHTER {tag}"
         all_judges = sorted([r for r in df_full[r_col].unique() if str(r) != "nan"])
         
