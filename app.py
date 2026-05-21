@@ -527,7 +527,25 @@ elif st.session_state.view == "Home":
             set_view("QR_Codes")
             st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
+    
+    st.divider()
+    st.subheader("⚙️ System-Einstellungen (Admin-Steuerung)")
+    
+    # 1. Richter-Fixierung
+    if "steward_lock" not in st.session_state:
+        st.session_state.steward_lock = True
+    st.session_state.steward_lock = st.toggle(
+        "Richter-Auswahl für Stewards sperren (Lockdown)", 
+        value=st.session_state.steward_lock
+    )
 
+    # 2. Navigation-Sichtbarkeit
+    if "show_nav" not in st.session_state:
+        st.session_state.show_nav = True
+    st.session_state.show_nav = st.toggle(
+        "Haupt-Navigation für Stewards/Richter anzeigen", 
+        value=st.session_state.show_nav
+    )
 
 # BIS ADMIN CONTROL
 elif st.session_state.view == "BIS_Admin_Control":
