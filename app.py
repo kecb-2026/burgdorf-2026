@@ -602,7 +602,7 @@ elif st.session_state.view == "BIS_Public":
             ("Kitten 4-8 Male", [12], "M"), ("Kitten 4-8 Female", [12], "W")
         ]
         
-                r_col = f"RICHTER {tag}"
+        r_col = f"RICHTER {tag}"
 
         # FILTERT JETZT NUR NOCH RICHTER, DIE DIESE KATEGORIE AM GEWÄHLTEN TAG GERICHTET HABEN:
         df_kategorie_tag = df_full[
