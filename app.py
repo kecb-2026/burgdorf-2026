@@ -912,7 +912,7 @@ elif st.session_state.view == "QR_Codes":
         img.save(buf, format="PNG")
         return buf.getvalue()
 
-    # ---------------- TAB 1: STEWARDS & ADMINS ----------------
+        # ---------------- TAB 1: STEWARDS & ADMINS ----------------
     with tab1:
         st.subheader("Allgemeine Logins")
         col_adm, _ = st.columns(2)
@@ -923,27 +923,50 @@ elif st.session_state.view == "QR_Codes":
             st.caption(f"[Link kopieren]({adm_url})")
             
         st.divider()
-        st.subheader("Steward-Direkt-Links pro Richter")
-        st.write("Scannt ein Steward seinen Code, sieht er im Dashboard nur noch die Auswahl seines Richters.")
         
         if df_full is not None:
-            # Eindeutige Liste aller Richter aus beiden Tagen für die Stewards generieren
-            j_t1 = [r for r in df_full['RICHTER TAG 1'].unique() if str(r) != "nan"] if 'RICHTER TAG 1' in df_full.columns else []
-            j_t2 = [r for r in df_full['RICHTER TAG 2'].unique() if str(r) != "nan"] if 'RICHTER TAG 2' in df_full.columns else []
-            all_steward_judges = sorted(list(set(j_t1 + j_t2)))
+            # --- SEKTION: TAG 1 ---
+            st.markdown("### 📝 Steward-Links für TAG 1 (Samstag)")
+            st.write("Diese QR-Codes filtern fest auf die Richter von Tag 1:")
             
-            if all_steward_judges:
-                # Erstellt das exakt gleiche 3-Spalten-Raster wie in Tab 2
-                s_cols = st.columns(3)
-                for idx, judge in enumerate(all_steward_judges):
-                    with s_cols[idx % 3]:
-                        st.info(f"Steward für: {judge}")
-                        # Verlinkt auf das Steward-Pult, filtert aber direkt über den 'judge' URL-Parameter
-                        stew_url = f"{base_url}?view=steward&auth=true&role=Steward&judge={judge.replace(' ', '+')}"
-                        st.image(generate_qr_image(stew_url), width=200)
-                        st.write("---")
+            if 'RICHTER TAG 1' in df_full.columns:
+                judges_t1 = sorted([r for r in df_full['RICHTER TAG 1'].unique() if str(r) != "nan"])
+                if judges_t1:
+                    s_cols_t1 = st.columns(3)
+                    for idx, judge in enumerate(judges_t1):
+                        with s_cols_t1[idx % 3]:
+                            st.info(f"Steward für: {judge}")
+                            stew_url_t1 = f"{base_url}?view=steward&auth=true&role=Steward&judge={judge.replace(' ', '+')}"
+                            st.image(generate_qr_image(stew_url_t1), width=200)
+                            st.write("---")
+                else:
+                    st.write("Keine Richter für Tag 1 gefunden.")
             else:
-                st.write("Keine Richter für Stewards gefunden.")
+                st.error("Spalte 'RICHTER TAG 1' fehlt in den Daten!")
+                
+            st.write("") # Abstandhalter
+            st.divider()
+            st.write("") # Abstandhalter
+            
+            # --- SEKTION: TAG 2 ---
+            st.markdown("### 📝 Steward-Links für TAG 2 (Sonntag)")
+            st.write("Diese QR-Codes filtern fest auf die Richter von Tag 2:")
+            
+            if 'RICHTER TAG 2' in df_full.columns:
+                judges_t2 = sorted([r for r in df_full['RICHTER TAG 2'].unique() if str(r) != "nan"])
+                if judges_t2:
+                    s_cols_t2 = st.columns(3)
+                    for idx, judge in enumerate(judges_t2):
+                        with s_cols_t2[idx % 3]:
+                            st.info(f"Steward für: {judge}")
+                            stew_url_t2 = f"{base_url}?view=steward&auth=true&role=Steward&judge={judge.replace(' ', '+')}"
+                            st.image(generate_qr_image(stew_url_t2), width=200)
+                            st.write("---")
+                else:
+                    st.write("Keine Richter für Tag 2 gefunden.")
+            else:
+                st.error("Spalte 'RICHTER TAG 2' fehlt in den Daten!")
+
 
     # ---------------- TAB 2: RICHTER TAG 1 ----------------
     with tab2:
