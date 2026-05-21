@@ -680,12 +680,13 @@ elif st.session_state.view == "BIS_Public":
                     st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
 
             # >>> NEU: ABGESTIMMTE RICHTER PRO KLASSE ANZEIGEN
-            prefix = f"v_{sel_cat}_{label}_"
-            abgestimmte_richter = [
-                key.replace(prefix, "") 
-                for key, val in store.data.get("votes", {}).items() 
-                if key.startswith(prefix) and val != "Keine Wahl" and val != "Keine Wahl/Not chosen yet"
-            ]
+            if not winner_revealed:  # Nur anzeigen, wenn der Gewinner noch GEHEIM ist!
+                prefix = f"v_{sel_cat}_{label}_"
+                abgestimmte_richter = [
+                    key.replace(prefix, "") 
+                    for key, val in store.data.get("votes", {}).items() 
+                    if key.startswith(prefix) and val != "Keine Wahl" and val != "Keine Wahl/Not chosen yet"
+                ]
 
             if abgestimmte_richter:
                 st.markdown(f"""
