@@ -415,19 +415,29 @@ access_map = {
     "Admin": ["Home", "Dashboard", "BIS_Public", "Judge_Voting", "Steward_Panel", "BIS_Admin_Control", "Admin_Panel", "QR_Codes"]
 }
 
-available_views = access_map.get(st.session_state.user_role, ["Dashboard"])
-st.sidebar.image(LOGO_URL, width=100)
+# NEU: Wir prüfen den Admin-Status ODER den Schalter aus dem Home-Menü
+# Administratoren sehen die Nav IMMER (sonst sperren sie sich selbst aus)
+show_nav = st.session_state.get("show_nav", True)
+is_admin = st.session_state.get("user_role") == "Admin"
 
-st.session_state.view = st.sidebar.radio("Menü:", available_views, 
-    index=available_views.index(st.session_state.view) if st.session_state.view in available_views else 0)
-	
-if st.session_state.view != "BIS_Public":
-    store.active_overlay = None	
+if show_nav or is_admin:
+    with st.sidebar:
+        st.image(LOGO_URL, width=100)
+        available_views = access_map.get(st.session_state.user_role, ["Dashboard"])
+        
+        # Sicherstellen, dass die aktuelle View in der Liste ist
+        current_view = st.session_state.view
+        if current_view not in available_views:
+            current_view = available_views[0]
+            
+        st.session_state.view = st.radio("Menü:", available_views, 
+            index=available_views.index(current_view))
 
-if st.session_state.authenticated:
-    if st.sidebar.button("Abmelden"): logout()
-elif st.session_state.view != "Login":
-    if st.sidebar.button("🔒 Interner Login"): set_view("Login")
+    # Logik für Abmelden / Login Buttons in der Sidebar (nur wenn sie angezeigt wird)
+    if st.session_state.authenticated:
+        if st.sidebar.button("Abmelden"): logout()
+    elif st.session_state.view != "Login":
+        if st.sidebar.button("🔒 Interner Login"): set_view("Login")
 
 # --- 6. VIEWS ---
 
