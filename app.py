@@ -757,7 +757,9 @@ elif st.session_state.view == "Steward_Panel":
         url_judge_name = st.session_state.get("url_judge", "--")
         
         # 2. Automatisch ermitteln, an welchem Tag dieser Richter arbeitet
-        default_tag_idx = 0 # Standard: Tag 1
+        url_day = st.query_params.get("day", "1")
+        default_tag_idx = 1 if url_day == "2" else 0
+        
         if url_judge_name != "--":
             # Wenn der Richter nicht in Tag 1, aber in Tag 2 existiert -> Umschalten auf Tag 2
             j_t1 = [r for r in df_full['RICHTER TAG 1'].unique() if str(r) != "nan"] if 'RICHTER TAG 1' in df_full.columns else []
