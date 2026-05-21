@@ -729,22 +729,38 @@ elif st.session_state.view == "Dashboard":
 
 
 # --- CORRECTIONS ONLY IN THE STEWARD PANEL ---
+# --- CORRECTIONS ONLY IN THE STEWARD PANEL ---
 elif st.session_state.view == "Steward_Panel":
     display_header_with_logo("📝 Steward-Pult")
-    tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"]).upper()
     df_full = load_labels()
+    
     if df_full is not None:
-        r_col = f"RICHTER {tag}"
-        all_j = sorted([r for r in df_full[df_full[tag].astype(str).str.upper() == 'X'][r_col].unique() if str(r) != "nan"])
-         # Holen des übergebenen Richters aus dem QR-Code-Login
+        # 1. Prüfen, ob ein Richter via QR-Code übergeben wurde
         url_judge_name = st.session_state.get("url_judge", "--")
         
-        # Berechnen des Default-Index für die Selectbox, falls der Richter am gewählten Tag existiert
+        # 2. Automatisch ermitteln, an welchem Tag dieser Richter arbeitet
+        default_tag_idx = 0 # Standard: Tag 1
+        if url_judge_name != "--":
+            # Wenn der Richter nicht in Tag 1, aber in Tag 2 existiert -> Umschalten auf Tag 2
+            j_t1 = [r for r in df_full['RICHTER TAG 1'].unique() if str(r) != "nan"] if 'RICHTER TAG 1' in df_full.columns else []
+            j_t2 = [r for r in df_full['RICHTER TAG 2'].unique() if str(r) != "nan"] if 'RICHTER TAG 2' in df_full.columns else []
+            
+            if url_judge_name in j_t2 and url_judge_name not in j_t1:
+                default_tag_idx = 1 # Setzt den Radio-Button auf "Tag 2"
+        
+        # Sidebar Radio-Button mit dem dynamischen Default-Index
+        tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"], index=default_tag_idx).upper()
+        
+        r_col = f"RICHTER {tag}"
+        all_j = sorted([r for r in df_full[df_full[tag].astype(str).str.upper() == 'X'][r_col].unique() if str(r) != "nan"])
+        
+        # Berechnen des Default-Index für die Richter-Selectbox
         default_idx = 0
         if url_judge_name in all_j:
             default_idx = all_j.index(url_judge_name) + 1 # +1 wegen dem "--" Eintrag
             
         mein_richter = st.selectbox("Richter wählen:", ["--"] + all_j, index=default_idx)
+
         if mein_richter != "--":
             df_richter_alle = df_full[(df_full[tag].astype(str).str.upper() == 'X') & (df_full[r_col] == mein_richter)]
             verfuegbare_kategorien = sorted(list(set([str(cat).replace('.0', '') for cat in df_richter_alle['KATEGORIE'].unique() if pd.notna(cat)])))
