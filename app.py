@@ -613,12 +613,12 @@ elif st.session_state.view == "BIS_Public":
             # bevor die nächste Klasse gerendert wird)
 
             # --- HIER DEN CODE EINFÜGEN ---
-            prefix = f"v_{sel_cat}_{label}_"
-            abgestimmte_richter = [
-                key.replace(prefix, "") 
-                for key, val in store.data.get("votes", {}).items() 
-                if key.startswith(prefix) and val != "Keine Wahl/Not chosen yet"
-            ]
+                prefix = f"v_{sel_cat}_{label}_"
+                abgestimmte_richter = [
+                    key.replace(prefix, "") 
+                    for key, val in store.data.get("votes", {}).items() 
+                    if key.startswith(prefix) and val != "Keine Wahl/Not chosen yet"
+                ]
 
             if abgestimmte_richter:
                 # Zeigt die Richter unter der Tabellenzeile an
