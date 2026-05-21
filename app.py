@@ -905,22 +905,38 @@ elif st.session_state.view == "QR_Codes":
         img.save(buf, format="PNG")
         return buf.getvalue()
 
-    # ---------------- TAB 1: ALLGEMEINE ROLLEN ----------------
+    # ---------------- TAB 1: STEWARDS & ADMINS ----------------
     with tab1:
         st.subheader("Allgemeine Logins")
-        col_stew, col_adm = st.columns(2)
-        
-        with col_stew:
-            st.info("📝 STEWARD-PULT")
-            stew_url = f"{base_url}?view=steward&auth=true&role=Steward"
-            st.image(generate_qr_image(stew_url), width=230)
-            st.caption(f"[Link kopieren]({stew_url})")
-            
+        col_adm, _ = st.columns(2)
         with col_adm:
             st.warning("⚙️ ADMIN MAIN HOME")
             adm_url = f"{base_url}?view=admin&auth=true&role=Admin"
             st.image(generate_qr_image(adm_url), width=230)
             st.caption(f"[Link kopieren]({adm_url})")
+            
+        st.divider()
+        st.subheader("Steward-Direkt-Links pro Richter")
+        st.write("Scannt ein Steward seinen Code, sieht er im Dashboard nur noch die Auswahl seines Richters.")
+        
+        if df_full is not None:
+            # Eindeutige Liste aller Richter aus beiden Tagen für die Stewards generieren
+            j_t1 = [r for r in df_full['RICHTER TAG 1'].unique() if str(r) != "nan"] if 'RICHTER TAG 1' in df_full.columns else []
+            j_t2 = [r for r in df_full['RICHTER TAG 2'].unique() if str(r) != "nan"] if 'RICHTER TAG 2' in df_full.columns else []
+            all_steward_judges = sorted(list(set(j_t1 + j_t2)))
+            
+            if all_steward_judges:
+                # Erstellt das exakt gleiche 3-Spalten-Raster wie in Tab 2
+                s_cols = st.columns(3)
+                for idx, judge in enumerate(all_steward_judges):
+                    with s_cols[idx % 3]:
+                        st.info(f"Steward für: {judge}")
+                        # Verlinkt auf das Steward-Pult, filtert aber direkt über den 'judge' URL-Parameter
+                        stew_url = f"{base_url}?view=steward&auth=true&role=Steward&judge={judge.replace(' ', '+')}"
+                        st.image(generate_qr_image(stew_url), width=200)
+                        st.write("---")
+            else:
+                st.write("Keine Richter für Stewards gefunden.")
 
     # ---------------- TAB 2: RICHTER TAG 1 ----------------
     with tab2:
@@ -959,7 +975,6 @@ elif st.session_state.view == "QR_Codes":
                         st.write("---")
             else:
                 st.write("Keine Richter für Tag 2 gefunden.")
-
 
 # ADMIN PANEL
 elif st.session_state.view == "Admin_Panel":
