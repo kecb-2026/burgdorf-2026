@@ -1,4 +1,5 @@
 import streamlit as st
+st.sidebar.write(f"DEBUG: Navigation ist {'AN' if st.session_state.get('show_nav', True) else 'AUS'}")
 import pandas as pd
 import re
 import time
