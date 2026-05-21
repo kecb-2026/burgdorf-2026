@@ -326,8 +326,10 @@ if "view" in q_params and not st.session_state.authenticated:
         
 
 # NEU: Richter-Parameter aus der URL sichern, falls übergeben
-if "judge" in q_params: st.session_state.url_judge = q_params["judge"]
-	elif "url_judge" not in st.session_state: st.session_state.url_judge = "--"
+if "judge" in q_params: 
+    st.session_state.url_judge = q_params["judge"]
+elif "url_judge" not in st.session_state: 
+    st.session_state.url_judge = "--"
 
 
 def logout():
