@@ -736,8 +736,15 @@ elif st.session_state.view == "Steward_Panel":
     if df_full is not None:
         r_col = f"RICHTER {tag}"
         all_j = sorted([r for r in df_full[df_full[tag].astype(str).str.upper() == 'X'][r_col].unique() if str(r) != "nan"])
-        mein_richter = st.selectbox("Richter wählen:", ["--"] + all_j)
+         # Holen des übergebenen Richters aus dem QR-Code-Login
+        url_judge_name = st.session_state.get("url_judge", "--")
         
+        # Berechnen des Default-Index für die Selectbox, falls der Richter am gewählten Tag existiert
+        default_idx = 0
+        if url_judge_name in all_j:
+            default_idx = all_j.index(url_judge_name) + 1 # +1 wegen dem "--" Eintrag
+            
+        mein_richter = st.selectbox("Richter wählen:", ["--"] + all_j, index=default_idx)
         if mein_richter != "--":
             df_richter_alle = df_full[(df_full[tag].astype(str).str.upper() == 'X') & (df_full[r_col] == mein_richter)]
             verfuegbare_kategorien = sorted(list(set([str(cat).replace('.0', '') for cat in df_richter_alle['KATEGORIE'].unique() if pd.notna(cat)])))
