@@ -3,6 +3,8 @@ import pandas as pd
 import re
 import time
 from streamlit_autorefresh import st_autorefresh
+import qrcode
+from io import BytesIO
 
 # --- 1. SETUP & STYLING ---
 st.set_page_config(layout="wide", page_title="KECB Burgdorf 2026", page_icon="🐾")
@@ -306,6 +308,8 @@ if "auth" in q_params and q_params["auth"] == "true":
         elif v_param == "richter": st.session_state.view = "Judge_Voting"
         elif v_param == "admin": st.session_state.view = "Home"
         elif v_param == "bis-admin": st.session_state.view = "BIS_Admin_Control"
+		elif v_param == "qr": st.session_state.view = "QR_Codes"
+
 
 # 2. Standard-Fallbacks, falls nichts in der URL steht
 if "authenticated" not in st.session_state:
@@ -407,7 +411,7 @@ access_map = {
     "Public": ["Dashboard", "BIS_Public", "Login"],
     "Richter": ["Judge_Voting", "Dashboard", "BIS_Public"],
     "Steward": ["Steward_Panel", "Dashboard", "BIS_Public"],
-    "Admin": ["Home", "Dashboard", "BIS_Public", "Judge_Voting", "Steward_Panel", "BIS_Admin_Control", "Admin_Panel"]
+    "Admin": ["Home", "Dashboard", "BIS_Public", "Judge_Voting", "Steward_Panel", "BIS_Admin_Control", "Admin_Panel", "QR_Codes"]
 }
 
 available_views = access_map.get(st.session_state.user_role, ["Dashboard"])
@@ -515,6 +519,11 @@ elif st.session_state.view == "Home":
         if st.button("⚙️ ADMIN-KONSOLE (RESET)"):
             st.query_params.update({"view": "admin", "auth": "true", "role": "Admin"})
             set_view("Admin_Panel")
+            st.rerun()
+            # NEU: Der Button für die QR-Zentrale direkt im Admin-Menü
+        if st.button("📱 QR-CODE ZENTRALE"):
+            st.query_params.update({"view": "qr", "auth": "true", "role": "Admin"})
+            set_view("QR_Codes")
             st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
@@ -868,6 +877,88 @@ elif st.session_state.view == "Judge_Voting":
                         curr = store.data["votes"].get(v_key, "Keine Wahl")
                         sel = st.radio("Favorit:", ["Keine Wahl/Not chosen yet"] + list(opts.keys()), index=(list(opts.values()).index(curr)+1) if curr in opts.values() else 0, key=f"r_{v_key}")
                         store.data["votes"][v_key] = opts[sel] if sel != "Keine Wahl/Not chosen yet" else "Keine Wahl/Not chosen yet"
+
+
+
+
+# --- NEUER MENÜPUNKT: QR CODES ---
+elif st.session_state.view == "QR_Codes":
+    display_header_with_logo("📱 QR-Code Login Zentrale")
+    st.write("Lass die Richter und Mitarbeiter diesen QR-Code scannen, um sich sofort ohne Passwort einzuloggen.")
+    
+    df_full = load_labels()
+    
+    # Basis-URL deiner App
+    base_url = "https://burgdorf-2026-ykralltanrq8aabhwrarmf.streamlit.app/"
+    
+    # Registerkarten für die Übersichtlichkeit
+    tab1, tab2, tab3 = st.tabs(["🤵 Stewards & Admins", "👨‍⚖️ Richter (Tag 1)", "👨‍⚖️ Richter (Tag 2)"])
+    
+    # Hilfsfunktion zum Zeichnen der QR-Codes
+    def generate_qr_image(url_to_encode):
+        qr = qrcode.QRCode(version=1, box_size=10, border=2)
+        qr.add_data(url_to_encode)
+        qr.make(fit=True)
+        img = qr.make_image(fill_color="black", back_color="white")
+        buf = BytesIO()
+        img.save(buf, format="PNG")
+        return buf.getvalue()
+
+    # ---------------- TAB 1: ALLGEMEINE ROLLEN ----------------
+    with tab1:
+        st.subheader("Allgemeine Logins")
+        col_stew, col_adm = st.columns(2)
+        
+        with col_stew:
+            st.info("📝 STEWARD-PULT")
+            stew_url = f"{base_url}?view=steward&auth=true&role=Steward"
+            st.image(generate_qr_image(stew_url), width=230)
+            st.caption(f"[Link kopieren]({stew_url})")
+            
+        with col_adm:
+            st.warning("⚙️ ADMIN MAIN HOME")
+            adm_url = f"{base_url}?view=admin&auth=true&role=Admin"
+            st.image(generate_qr_image(adm_url), width=230)
+            st.caption(f"[Link kopieren]({adm_url})")
+
+    # ---------------- TAB 2: RICHTER TAG 1 ----------------
+    with tab2:
+        st.subheader("Richter-Direkt-Links für TAG 1")
+        if df_full is not None:
+            # Alle Richter für Tag 1 aus der Excel holen
+            judges_t1 = sorted([r for r in df_full['RICHTER TAG 1'].unique() if str(r) != "nan"])
+            
+            if judges_t1:
+                # Erstellt ein Raster (3 Spalten nebeneinander) für die QR-Codes
+                j_cols = st.columns(3)
+                for idx, judge in enumerate(judges_t1):
+                    with j_cols[idx % 3]:
+                        st.success(f"Richter: {judge}")
+                        # URL sicher zusammenbauen (Leerzeichen durch + ersetzen)
+                        j_url = f"{base_url}?view=richter&auth=true&role=Richter&judge={judge.replace(' ', '+')}"
+                        st.image(generate_qr_image(j_url), width=200)
+                        st.write("---")
+            else:
+                st.write("Keine Richter für Tag 1 gefunden.")
+
+    # ---------------- TAB 3: RICHTER TAG 2 ----------------
+    with tab3:
+        st.subheader("Richter-Direkt-Links für TAG 2")
+        if df_full is not None:
+            # Alle Richter für Tag 2 aus der Excel holen
+            judges_t2 = sorted([r for r in df_full['RICHTER TAG 2'].unique() if str(r) != "nan"])
+            
+            if judges_t2:
+                j_cols = st.columns(3)
+                for idx, judge in enumerate(judges_t2):
+                    with j_cols[idx % 3]:
+                        st.success(f"Richter: {judge}")
+                        j_url = f"{base_url}?view=richter&auth=true&role=Richter&judge={judge.replace(' ', '+')}"
+                        st.image(generate_qr_image(j_url), width=200)
+                        st.write("---")
+            else:
+                st.write("Keine Richter für Tag 2 gefunden.")
+
 
 # ADMIN PANEL
 elif st.session_state.view == "Admin_Panel":
