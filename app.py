@@ -603,14 +603,8 @@ elif st.session_state.view == "BIS_Public":
         ]
         
         r_col = f"RICHTER {tag}"
+		judges = sorted([r for r in df_full[df_full[tag].astype(str).str.upper() == 'X'][r_col].unique() if str(r) != "nan"])
 
-        # FILTERT JETZT NUR NOCH RICHTER, DIE DIESE KATEGORIE AM GEWÄHLTEN TAG GERICHTET HABEN:
-        df_kategorie_tag = df_full[
-            (df_full[tag].astype(str).str.upper() == 'X') & 
-            (df_full['KATEGORIE'] == sel_cat)
-        ]
-        judges = sorted([r for r in df_kategorie_tag[r_col].unique() if str(r) != "nan" and str(r).strip() != ""])
-        
         cols = st.columns([0.8] + [1.2]*len(judges) + [0.8])
         for i, j in enumerate(judges): 
             cols[i+1].markdown(f"<div class='judge-header-box'>{j}</div>", unsafe_allow_html=True)
