@@ -602,20 +602,20 @@ elif st.session_state.view == "BIS_Public":
             ("Kitten 4-8 Male", [12], "M"), ("Kitten 4-8 Female", [12], "W")
         ]
         
-        r_col = f"RICHTER {tag}"
+                r_col = f"RICHTER {tag}"
 
-# FILTERT JETZT NUR NOCH RICHTER, DIE DIESE KATEGORIE AM GEWÄHLTEN TAG GERICHTET HABEN:
-df_kategorie_tag = df_full[
-    (df_full[tag].astype(str).str.upper() == 'X') & 
-    (df_full['KATEGORIE'] == sel_cat)
-]
-judges = sorted([r for r in df_kategorie_tag[r_col].unique() if str(r) != "nan" and str(r).strip() != ""])
-
+        # FILTERT JETZT NUR NOCH RICHTER, DIE DIESE KATEGORIE AM GEWÄHLTEN TAG GERICHTET HABEN:
+        df_kategorie_tag = df_full[
+            (df_full[tag].astype(str).str.upper() == 'X') & 
+            (df_full['KATEGORIE'] == sel_cat)
+        ]
+        judges = sorted([r for r in df_kategorie_tag[r_col].unique() if str(r) != "nan" and str(r).strip() != ""])
+        
         cols = st.columns([0.8] + [1.2]*len(judges) + [0.8])
         for i, j in enumerate(judges): 
             cols[i+1].markdown(f"<div class='judge-header-box'>{j}</div>", unsafe_allow_html=True)
         cols[-1].markdown("<div class='judge-header-box' style='background-color:#b21f2d;'>BIS</div>", unsafe_allow_html=True)
-        
+
         for label, klassen, geschl in bis_defs:
             r_cols = st.columns([0.8] + [1.2]*len(judges) + [0.8])
             r_cols[0].markdown(f"<div class='class-label-box'>{label}</div>", unsafe_allow_html=True)
