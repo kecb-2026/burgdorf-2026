@@ -609,6 +609,21 @@ elif st.session_state.view == "BIS_Public":
         for i, j in enumerate(judges): 
             cols[i+1].markdown(f"<div class='judge-header-box'>{j}</div>", unsafe_allow_html=True)
         cols[-1].markdown("<div class='judge-header-box' style='background-color:#b21f2d;'>BIS</div>", unsafe_allow_html=True)
+            # ... (dein bestehender Code der Schleife endet hier, 
+            # bevor die nächste Klasse gerendert wird)
+
+            # --- HIER DEN CODE EINFÜGEN ---
+            prefix = f"v_{sel_cat}_{label}_"
+            abgestimmte_richter = [
+                key.replace(prefix, "") 
+                for key, val in store.data.get("votes", {}).items() 
+                if key.startswith(prefix) and val != "Keine Wahl/Not chosen yet"
+            ]
+
+            if abgestimmte_richter:
+                # Zeigt die Richter unter der Tabellenzeile an
+                st.markdown("<div style='margin-top: 5px; margin-bottom: 20px; font-size: 14px; color: #1a4a9e; font-weight: bold;'>Abgestimmt: ✅ " + " ✅ ".join(abgestimmte_richter) + "</div>", unsafe_allow_html=True)
+            # -------------------------------
 
         for label, klassen, geschl in bis_defs:
             r_cols = st.columns([0.8] + [1.2]*len(judges) + [0.8])
