@@ -891,17 +891,17 @@ elif st.session_state.view == "Judge_Voting":
         
         c1, c2 = st.columns(2)
         
-        # PRÜFUNG: Wurde ein Richter in der URL mitgegeben?
+                # PRÜFUNG: Wurde ein Richter in der URL mitgegeben? (Ignorieren, wenn Admin am Werk ist)
         url_judge_name = st.session_state.get("url_judge", "--")
         
-        if url_judge_name in all_judges:
-            # Der Richter ist in der URL -> Wir fixieren ihn fest im Code und zeigen nur Text statt einer Selectbox
+        if url_judge_name in all_judges and st.session_state.user_role != "Admin":
+            # Fixierung NUR für echte Richter-Direktlinks
             active_j = url_judge_name
             c1.markdown(f"<div style='padding-top:25px;'><b>Eingeloggt als Richter:</b> <span style='color:#1a4a9e; font-size:18px;'>{active_j}</span></div>", unsafe_allow_html=True)
         else:
-            # Kein Richter in der URL -> Normales Auswahlmenü für Admins/Tests
+            # Admins (oder wenn kein Richter in URL steht) sehen immer die volle Auswahlbox!
             active_j = c1.selectbox("Identität/Identity:", ["--"] + all_judges)
-            
+
         active_cat = c2.selectbox("Kategorie/Category:", sorted(df_full['KATEGORIE'].unique()))
         
         # ... ab hier läuft dein originaler Code für das Voting unverändert weiter ...
