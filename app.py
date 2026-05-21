@@ -555,7 +555,7 @@ elif st.session_state.view == "BIS_Admin_Control":
                     elif "votes" in store.data:
                         vts = [v for k, v in store.data["votes"].items() if k.startswith(v_prefix) and v != "Keine Wahl"]
                         if vts: final_nr = pd.Series(vts).value_counts().index[0]
-                    if final_nr and st.button(f"🏆 PUBLIC OVERLAY STARTEN (#{final_nr})", key=f"btn_ov_{sel_cat}_{label}"):
+                    if final_nr and st.button(f"🏆 OVERLAY ZEIGEN (#{final_nr})", key=f"btn_ov_{sel_cat}_{label}"):
                         w_match = df_full[df_full['KAT_STR'] == str(final_nr)]
                         if not w_match.empty:
                             store.active_overlay = m_w = w_match.iloc[0].to_dict()
