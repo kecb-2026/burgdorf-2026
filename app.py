@@ -408,6 +408,7 @@ def set_view(name):
     st.session_state.view = name
     st.rerun()
 
+
 # --- 5. NAVIGATION & ZUGRIFF ---
 access_map = {
     "Public": ["Dashboard", "BIS_Public", "Login"],
@@ -416,30 +417,31 @@ access_map = {
     "Admin": ["Home", "Dashboard", "BIS_Public", "Judge_Voting", "Steward_Panel", "BIS_Admin_Control", "Admin_Panel", "QR_Codes"]
 }
 
-# NEU: Wir prüfen den Admin-Status ODER den Schalter aus dem Home-Menü
-# Administratoren sehen die Nav IMMER (sonst sperren sie sich selbst aus)
-show_nav = st.session_state.get("show_nav", True)
-is_admin = st.session_state.get("user_role") == "Admin"
+# Container für die Sidebar erstellen
+sidebar_container = st.sidebar.empty()
 
-if show_nav or is_admin:
-    with st.sidebar:
+# Logik: Sidebar nur rendern, wenn erlaubt
+if st.session_state.get("show_nav", True) or st.session_state.get("user_role") == "Admin":
+    with sidebar_container.container():
         st.image(LOGO_URL, width=100)
         available_views = access_map.get(st.session_state.user_role, ["Dashboard"])
         
-        # Sicherstellen, dass die aktuelle View in der Liste ist
-        current_view = st.session_state.view
-        if current_view not in available_views:
-            current_view = available_views[0]
+        # Sicherstellen, dass die Ansicht existiert
+        if st.session_state.view not in available_views:
+            st.session_state.view = available_views[0]
             
         st.session_state.view = st.radio("Menü:", available_views, 
-            index=available_views.index(current_view))
+            index=available_views.index(st.session_state.view))
 
-    # Logik für Abmelden / Login Buttons in der Sidebar (nur wenn sie angezeigt wird)
-    if st.session_state.authenticated:
-        if st.sidebar.button("Abmelden"): logout()
-    elif st.session_state.view != "Login":
-        if st.sidebar.button("🔒 Interner Login"): set_view("Login")
-
+        if st.session_state.authenticated:
+            if st.button("Abmelden"): logout()
+        elif st.session_state.view != "Login":
+            if st.button("🔒 Interner Login"): set_view("Login")
+else:
+    # Wenn der Zugriff verweigert wird, leeren wir den Container explizit
+    sidebar_container.empty()
+    
+    
 # --- 6. VIEWS ---
 
 # LOGIN VIEW
