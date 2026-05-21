@@ -323,6 +323,12 @@ if "view" in q_params and not st.session_state.authenticated:
     elif v_param in ["admin", "steward", "richter", "bis-admin"]:
         st.session_state.view = "Login"
         st.session_state.target_role = v_param
+        
+
+# NEU: Richter-Parameter aus der URL sichern, falls übergeben
+if "judge" in q_params: st.session_state.url_judge = q_params["judge"]
+	elif "url_judge" not in st.session_state: st.session_state.url_judge = "--"
+
 
 def logout():
     st.session_state.authenticated = False
