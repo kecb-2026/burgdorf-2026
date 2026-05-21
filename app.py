@@ -970,7 +970,7 @@ elif st.session_state.view == "QR_Codes":
                     for idx, judge in enumerate(judges_t1):
                         with s_cols_t1[idx % 3]:
                             st.info(f"Steward für: {judge}")
-                            stew_url_t1 = f"{base_url}?view=steward&auth=true&role=Steward&judge={judge.replace(' ', '+')}"
+                            stew_url_t1 = f"{base_url}?view=steward&auth=true&role=Steward&judge={judge.replace(' ', '+')}&day=1"
                             st.image(generate_qr_image(stew_url_t1), width=200)
                             st.write("---")
                 else:
@@ -993,7 +993,7 @@ elif st.session_state.view == "QR_Codes":
                     for idx, judge in enumerate(judges_t2):
                         with s_cols_t2[idx % 3]:
                             st.info(f"Steward für: {judge}")
-                            stew_url_t2 = f"{base_url}?view=steward&auth=true&role=Steward&judge={judge.replace(' ', '+')}&day=1"
+                            stew_url_t2 = f"{base_url}?view=steward&auth=true&role=Steward&judge={judge.replace(' ', '+')}&day=2"
                             st.image(generate_qr_image(stew_url_t2), width=200)
                             st.write("---")
                 else:
@@ -1016,7 +1016,7 @@ elif st.session_state.view == "QR_Codes":
                     with j_cols[idx % 3]:
                         st.success(f"Richter: {judge}")
                         # URL sicher zusammenbauen (Leerzeichen durch + ersetzen)
-                        j_url = f"{base_url}?view=richter&auth=true&role=Richter&judge={judge.replace(' ', '+')}&day=2"
+                        j_url = f"{base_url}?view=richter&auth=true&role=Richter&judge={judge.replace(' ', '+')}&day=1"
                         st.image(generate_qr_image(j_url), width=200)
                         st.write("---")
             else:
@@ -1034,7 +1034,7 @@ elif st.session_state.view == "QR_Codes":
                 for idx, judge in enumerate(judges_t2):
                     with j_cols[idx % 3]:
                         st.success(f"Richter: {judge}")
-                        j_url = f"{base_url}?view=richter&auth=true&role=Richter&judge={judge.replace(' ', '+')}"
+                        j_url = f"{base_url}?view=richter&auth=true&role=Richter&judge={judge.replace(' ', '+')}&day=2"
                         st.image(generate_qr_image(j_url), width=200)
                         st.write("---")
             else:
