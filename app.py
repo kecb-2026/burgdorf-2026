@@ -602,8 +602,8 @@ elif st.session_state.view == "BIS_Public":
             ("Kitten 4-8 Male", [12], "M"), ("Kitten 4-8 Female", [12], "W")
         ]
         
-        r_col = f"RICHTER {tag}"
-		judges = sorted([r for r in df_full[df_full[tag].astype(str).str.upper() == 'X'][r_col].unique() if str(r) != "nan"])
+                r_col = f"RICHTER {tag}"
+        judges = sorted([r for r in df_full[df_full[tag].astype(str).str.upper() == 'X'][r_col].unique() if str(r) != "nan"])
 
         cols = st.columns([0.8] + [1.2]*len(judges) + [0.8])
         for i, j in enumerate(judges): 
