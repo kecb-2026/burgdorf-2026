@@ -611,8 +611,8 @@ elif st.session_state.view == "BIS_Public":
             
             # ... (hier kommt dein bestehender Code, der die Spalten füllt) ...
             
-            for i, j in enumerate(judges):
-                with r_cols[i+1]:
+        for i, j in enumerate(judges):
+            with r_cols[i+1]:
                     # ... dein bestehender Code für die Richter-Spalten ...
             
             with r_cols[-1]:
