@@ -450,6 +450,17 @@ if st.session_state.authenticated:
 elif st.session_state.view != "Login":
     if st.sidebar.button("🔒 Interner Login"): set_view("Login")
 
+# --- Copyright Bereich ---
+st.sidebar.markdown("---") # Trennlinie für saubere Optik
+st.sidebar.markdown(
+    """
+    <div style="font-size: 0.8em; color: gray; text-align: center;">
+        © 2026 Brigitte Portner<br>
+        Alle Rechte vorbehalten.
+    </div>
+    """, 
+    unsafe_allow_html=True
+)
     
 # --- 6. VIEWS ---
 
