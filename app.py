@@ -388,7 +388,7 @@ def render_overlay_html(row):
             <div class="ov-cat-name">{name_gross}</div>
             <div class="ov-owner">{besitzer}</div>
             <div style="margin-top: 50px;">
-                <img src="{LOGO_URL}" width="100">
+                <img src="https://burgdorf-2026-ykralltanrq8aabhwrarmf.streamlit.app/main/logo_kecb.png" width="200">
                 <div style="font-weight: bold; font-size: 22px; color: #1a4a9e; margin-top: 10px;">KECB BURGDORF 2026</div>
             </div>
         </div>
