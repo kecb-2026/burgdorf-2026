@@ -191,7 +191,7 @@ st.markdown("""
     .judge-circle {
         width: 24px;
         height: 24px;
-        background-color: #1a4a9e;
+        background-color: #008800;
         color: white;
         border-radius: 50%;
         display: flex;
