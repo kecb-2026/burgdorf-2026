@@ -657,12 +657,18 @@ elif st.session_state.view == "BIS_Public":
         r_col = f"RICHTER {tag}"
         judges = sorted([r for r in df_full[df_full[tag].astype(str).str.upper() == 'X'][r_col].unique() if str(r) != "nan"])
 
+        # Header Zeile - Diese bleibt fix oben!
+        header_cols = st.columns([0.8] + [1.2]*len(judges) + [0.8])
+        for i, j in enumerate(judges): 
+            header_cols[i+1].markdown(f"<div class='judge-header-box'>{j}</div>", unsafe_allow_html=True)
+        header_cols[-1].markdown("<div class='judge-header-box' style='background-color:#b21f2d;'>BIS</div>", unsafe_allow_html=True)
+
         for label, klassen, geschl in bis_defs:
             show_noms = store.data.get(f"reveal_{sel_cat}_{label}", False)
             winner_revealed = store.data.get(f"winner_reveal_{sel_cat}_{label}", False)
             prefix = f"v_{sel_cat}_{label}_"
             
-            # Richter bestimmen, die in DIESER Klasse abgestimmt haben
+            # Liste wer in DIESER Klasse abgestimmt hat
             abgestimmte_richter = [
                 key.replace(prefix, "") 
                 for key, val in store.data.get("votes", {}).items() 
@@ -674,10 +680,10 @@ elif st.session_state.view == "BIS_Public":
             
             for i, j in enumerate(judges):
                 with r_cols[i+1]:
-                    # Hintergrundfarbe der Richter-Kachel: Grün bei Abstimmung (wenn nicht revealed)
-                    bg_color = "#28a745" if (j in abgestimmte_richter and not winner_revealed) else "#1a4a9e"
-                    st.markdown(f"<div class='judge-header-box' style='background-color: {bg_color};'>{j}</div>", unsafe_allow_html=True)
-
+                    # NEU: Nur wenn abgestimmt und noch kein Reveal, färben wir den "Marker"
+                    # Hierfür nutzen wir eine kleine Box unter der Katze oder ändern den border
+                    # Damit das Layout nicht springt, geben wir hier nur die Katze aus:
+                    
                     if show_noms:
                         m = df_full[
                             (df_full['SELECTION'].astype(str).str.upper() == 'X') & 
@@ -698,8 +704,11 @@ elif st.session_state.view == "BIS_Public":
                                     circles = "".join([f"<div class='judge-circle' title='{v}'>{get_initials(v)}</div>" for v in voters])
                                     circles_html = f"<div class='judge-initials-container'>{circles}</div>"
 
+                            # Dynamischer Border-Style für die Kachel bei Abstimmung
+                            border_style = "border: 3px solid #28a745;" if (j in abgestimmte_richter and not winner_revealed) else ""
+                            
                             st.markdown(f"""
-                                <div class='cat-card'>
+                                <div class='cat-card' style='{border_style}'>
                                     <div class='cat-number'>{kat_nr}</div>
                                     <div class='cat-details'>{get_full_label(m.iloc[0])}</div>
                                     {circles_html}
