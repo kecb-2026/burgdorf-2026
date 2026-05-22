@@ -637,7 +637,8 @@ elif st.session_state.view == "BIS_Public":
 
     def get_initials(name):
         parts = str(name).split()
-        if len(parts) >= 2: return (parts[0][0] + parts[-1][0]).upper()
+        if len(parts) >= 2:
+            return (parts[0][0] + parts[-1][0]).upper()
         return str(name)[:2].upper()
 
     display_header_with_logo("🏆 Best in Show")
@@ -655,29 +656,35 @@ elif st.session_state.view == "BIS_Public":
         
         r_col = f"RICHTER {tag}"
         judges = sorted([r for r in df_full[df_full[tag].astype(str).str.upper() == 'X'][r_col].unique() if str(r) != "nan"])
-        
-        # Spalten-Konfiguration als Konstante
-        col_config = [0.8] + [1.2] * len(judges) + [0.8]
 
+        # --- CSS-LOGIK FÜR GRÜNE RICHTER IM HEADER ---
+        style_rules = ""
         for label, klassen, geschl in bis_defs:
+            if not store.data.get(f"winner_reveal_{sel_cat}_{label}", False):
+                prefix = f"v_{sel_cat}_{label}_"
+                abgestimmte = [key.replace(prefix, "") for key, val in store.data.get("votes", {}).items() 
+                               if key.startswith(prefix) and val != "Keine Wahl" and val != "Keine Wahl/Not chosen yet"]
+                for j in abgestimmte:
+                    style_rules += f".judge-{str(j).replace(' ', '_')} {{ background-color: #28a745 !important; }}"
+        
+        if style_rules:
+            st.markdown(f"<style>{style_rules}</style>", unsafe_allow_html=True)
+
+        # --- STATISCHER HEADER (oben, einmalig) ---
+        cols = st.columns([0.8] + [1.2]*len(judges) + [0.8])
+        for i, j in enumerate(judges):
+            clean_id = str(j).replace(" ", "_")
+            cols[i+1].markdown(f"<div class='judge-header-box judge-{clean_id}'>{j}</div>", unsafe_allow_html=True)
+        cols[-1].markdown("<div class='judge-header-box' style='background-color:#b21f2d;'>BIS</div>", unsafe_allow_html=True)
+
+        # --- KATZEN-ZEILEN ---
+        for label, klassen, geschl in bis_defs:
+            r_cols = st.columns([0.8] + [1.2]*len(judges) + [0.8])
+            r_cols[0].markdown(f"<div class='class-label-box'>{label}</div>", unsafe_allow_html=True)
+            
             show_noms = store.data.get(f"reveal_{sel_cat}_{label}", False)
             winner_revealed = store.data.get(f"winner_reveal_{sel_cat}_{label}", False)
-            prefix = f"v_{sel_cat}_{label}_"
             
-            # 1. HEADER (Dynamisch grün)
-            h_cols = st.columns(col_config)
-            h_cols[0].markdown(f"<div class='class-label-box'>{label}</div>", unsafe_allow_html=True)
-            
-            abgestimmte = [key.replace(prefix, "") for key, val in store.data.get("votes", {}).items() 
-                           if key.startswith(prefix) and val != "Keine Wahl" and val != "Keine Wahl/Not chosen yet"]
-            
-            for i, j in enumerate(judges):
-                bg = "#28a745" if (j in abgestimmte and not winner_revealed) else "#1a4a9e"
-                h_cols[i+1].markdown(f"<div class='judge-header-box' style='background-color: {bg};'>{j}</div>", unsafe_allow_html=True)
-            h_cols[-1].markdown("<div class='judge-header-box' style='background-color:#b21f2d;'>BIS</div>", unsafe_allow_html=True)
-
-            # 2. KATZEN-ZEILE
-            r_cols = st.columns(col_config)
             for i, j in enumerate(judges):
                 with r_cols[i+1]:
                     if show_noms:
@@ -686,16 +693,20 @@ elif st.session_state.view == "BIS_Public":
                             kat_nr = m.iloc[0]['KAT_STR']
                             circles_html = ""
                             if winner_revealed:
-                                voters = [v_key.replace(prefix, "") for v_key, v_val in store.data.get("votes", {}).items() if v_key.startswith(prefix) and str(v_val) == str(kat_nr)]
+                                prefix = f"v_{sel_cat}_{label}_"
+                                all_votes = store.data.get("votes", {})
+                                voters = [v_key.replace(prefix, "") for v_key, v_val in all_votes.items() if v_key.startswith(prefix) and str(v_val) == str(kat_nr)]
                                 if voters:
                                     circles = "".join([f"<div class='judge-circle' title='{v}'>{get_initials(v)}</div>" for v in voters])
                                     circles_html = f"<div class='judge-initials-container'>{circles}</div>"
+
                             st.markdown(f"<div class='cat-card'><div class='cat-number'>{kat_nr}</div><div class='cat-details'>{get_full_label(m.iloc[0])}</div>{circles_html}</div>", unsafe_allow_html=True)
                         else: st.markdown("<div class='placeholder-box'>–</div>", unsafe_allow_html=True)
                     else: st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
             
             with r_cols[-1]:
                 if winner_revealed:
+                    prefix = f"v_{sel_cat}_{label}_"
                     winner_nr = store.data.get(f"override_{sel_cat}_{label}", "Automatisch (Stimmen)")
                     if winner_nr == "Automatisch (Stimmen)" and "votes" in store.data:
                         vts = [v for k, v in store.data["votes"].items() if k.startswith(prefix) and v != "Keine Wahl"]
@@ -706,7 +717,6 @@ elif st.session_state.view == "BIS_Public":
                 else: st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
 
     time.sleep(3); st.rerun()
-
 
 # LIVE DASHBOARD
 elif st.session_state.view == "Dashboard":
