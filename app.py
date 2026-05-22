@@ -169,7 +169,7 @@ st.markdown("""
         background-color: #e9ecef; color: #1a4a9e; padding: 5px; border-radius: 10px; text-align: center; 
         font-size: 11px !important; text-transform: uppercase; font-weight: 800; 
         border: 2px solid #1a4a9e; display: flex; align-items: center; justify-content: center; 
-        height: 80px; width: 100%; line-height: 1.1; 
+        height: 100px; width: 100%; line-height: 1.1; 
     }
 
     .cat-card, .placeholder-box { padding: 5px; border: 2px solid #1a4a9e; text-align: center; background-color: #f0f0f0; border-radius: 14px; margin-bottom: 5px; min-height: 80px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
