@@ -870,13 +870,14 @@ elif st.session_state.view == "Steward_Panel":
                     <div style="border-top: 1px solid #e2e2e2; padding-top: 10px; margin-top: 12px; margin-bottom: 8px;"></div>
                 """, unsafe_allow_html=True)
                 
-                # Die originalen Spalten für die Buttons (damit dein CSS nth-child(1) bis (4) greift!)
+                # Die originalen Spalten für die Buttons
                 c1, c2, c3, c4 = st.columns(4)
                 
-                # BUTTON 1: AUFRUFEN
+                # BUTTON 1: AUFRUFEN (Blau)
                 is_rich = flags.get("Zum Richten")
                 with c1:
-                    if is_rich: st.markdown('<div class="button-class">', unsafe_allow_html=True)
+                    # Hier nutzen wir nun auch die blinkende Klasse, wenn aktiv
+                    if is_rich: st.markdown('<div class="st-blink-btn">', unsafe_allow_html=True)
                     if st.button("[ AKTIV ] AUFGERUFEN" if is_rich else "AUFRUFEN", key=f"btn_rich_{k}"):
                         store.data[k]["flags"]["Zum Richten"] = not is_rich
                         if store.data[k]["flags"]["Zum Richten"]:
@@ -885,7 +886,7 @@ elif st.session_state.view == "Steward_Panel":
                         st.rerun()
                     if is_rich: st.markdown('</div>', unsafe_allow_html=True)
                 
-                # BUTTON 2: BIV
+                # BUTTON 2: BIV (Grün)
                 is_biv = flags.get("BIV")
                 with c2:
                     if is_biv: st.markdown('<div class="st-blink-btn">', unsafe_allow_html=True)
@@ -895,7 +896,7 @@ elif st.session_state.view == "Steward_Panel":
                         st.rerun()
                     if is_biv: st.markdown('</div>', unsafe_allow_html=True)
                 
-                # BUTTON 3: NOMINIEREN
+                # BUTTON 3: NOMINIEREN (Gelb)
                 is_nom = flags.get("NOM")
                 with c3:
                     if is_nom: st.markdown('<div class="st-blink-btn">', unsafe_allow_html=True)
@@ -906,7 +907,7 @@ elif st.session_state.view == "Steward_Panel":
                         st.rerun()
                     if is_nom: st.markdown('</div>', unsafe_allow_html=True)
                 
-                # BUTTON 4: GERICHTET
+                # BUTTON 4: GERICHTET (Grau - bleibt stabil ohne Blinken)
                 is_done = flags.get("Gerichtet")
                 with c4:
                     if st.button("[ ERLEDIGT ] GERICHTET" if is_done else "GERICHTET", key=f"btn_done_{k}"):
@@ -916,7 +917,7 @@ elif st.session_state.view == "Steward_Panel":
                         else:
                             store.data[k]["flags"]["Gerichtet"] = False
                         st.rerun()
-                
+                                
                 # --- ENDE DES GRAUEN RECHTECKS ---
                 # Erst nachdem die Buttons gerendert wurden, schließen wir das umschließende HTML-Kasten-Div.
                 st.markdown("</div>", unsafe_allow_html=True)
