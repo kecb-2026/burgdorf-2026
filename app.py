@@ -629,88 +629,87 @@ elif st.session_state.view == "BIS_Admin_Control":
 # BIS PUBLIC VIEW
 # BIS PUBLIC VIEW
 elif st.session_state.view == "BIS_Public":
-    # 1. Overlay-Logik bleibt unangetastet, aber wir bereinigen das Rerun
     if hasattr(store, 'active_overlay') and store.active_overlay:
         if time.time() - store.overlay_start_time < 20:
             st.markdown(render_overlay_html(store.active_overlay), unsafe_allow_html=True)
-            time.sleep(1)
-            st.rerun() 
-        else: 
-            store.active_overlay = None
-            st.rerun()
+            time.sleep(1); st.rerun() 
+        else: store.active_overlay = None; st.rerun()
 
     def get_initials(name):
         parts = str(name).split()
-        return (parts[0][0] + parts[-1][0]).upper() if len(parts) >= 2 else str(name)[:2].upper()
+        if len(parts) >= 2:
+            return (parts[0][0] + parts[-1][0]).upper()
+        return str(name)[:2].upper()
 
-    display_header_with_logo("🏆 Best in Show")
+    # Wir laden die Daten VOR dem Rendering, um leere Zustände beim Rerun zu verhindern
     df_full = load_labels()
     
-    if df_full is not None:
-        tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"]).upper()
-        sel_cat = st.selectbox("Kategorie:", sorted(df_full['KATEGORIE'].unique()))
-        
-        bis_defs = [
-            ("Adult Male", [1,3,5,7,9], "M"), ("Adult Female", [1,3,5,7,9], "W"), 
-            ("Neuter Male", [2,4,6,8,10], "M"), ("Neuter Female", [2,4,6,8,10], "W"), 
-            ("Junior 8-12 Male", [11], "M"), ("Junior 8-12 Female", [11], "W"), 
-            ("Kitten 4-8 Male", [12], "M"), ("Kitten 4-8 Female", [12], "W")
-        ]
-        
-        r_col = f"RICHTER {tag}"
-        judges = sorted([r for r in df_full[df_full[tag].astype(str).str.upper() == 'X'][r_col].unique() if str(r) != "nan"])
-
-        # Header nur einmal zeichnen
-        cols = st.columns([0.8] + [1.2]*len(judges) + [0.8])
-        for i, j in enumerate(judges): 
-            cols[i+1].markdown(f"<div class='judge-header-box'>{j}</div>", unsafe_allow_html=True)
-        cols[-1].markdown("<div class='judge-header-box' style='background-color:#b21f2d;'>BIS</div>", unsafe_allow_html=True)
-
-        for label, klassen, geschl in bis_defs:
-            r_cols = st.columns([0.8] + [1.2]*len(judges) + [0.8])
-            r_cols[0].markdown(f"<div class='class-label-box'>{label}</div>", unsafe_allow_html=True)
+    # Wir benutzen einen Container, um das Flackern/Geisterzeilen bei st.rerun() zu unterbinden
+    ui_container = st.container()
+    with ui_container:
+        display_header_with_logo("🏆 Best in Show")
+        if df_full is not None:
+            tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"]).upper()
+            sel_cat = st.selectbox("Kategorie:", sorted(df_full['KATEGORIE'].unique()))
             
-            show_noms = store.data.get(f"reveal_{sel_cat}_{label}", False)
-            winner_revealed = store.data.get(f"winner_reveal_{sel_cat}_{label}", False)
+            bis_defs = [
+                ("Adult Male", [1,3,5,7,9], "M"), ("Adult Female", [1,3,5,7,9], "W"), 
+                ("Neuter Male", [2,4,6,8,10], "M"), ("Neuter Female", [2,4,6,8,10], "W"), 
+                ("Junior 8-12 Male", [11], "M"), ("Junior 8-12 Female", [11], "W"), 
+                ("Kitten 4-8 Male", [12], "M"), ("Kitten 4-8 Female", [12], "W")
+            ]
             
-            for i, j in enumerate(judges):
-                with r_cols[i+1]:
-                    if show_noms:
-                        m = df_full[(df_full['SELECTION'].astype(str).str.upper() == 'X') & (df_full[r_col] == j) & (df_full['KATEGORIE'] == sel_cat) & (df_full['KLASSE_INTERNAL'].isin(klassen)) & (df_full['GESCHLECHT'].astype(str).str.upper() == geschl)]
-                        if not m.empty:
-                            kat_nr = m.iloc[0]['KAT_STR']
-                            circles_html = ""
-                            if winner_revealed:
-                                prefix = f"v_{sel_cat}_{label}_"
-                                voters = [v_key.replace(prefix, "") for v_key, v_val in store.data.get("votes", {}).items() if v_key.startswith(prefix) and str(v_val) == str(kat_nr)]
-                                if voters:
-                                    circles = "".join([f"<div class='judge-circle' title='{v}'>{get_initials(v)}</div>" for v in voters])
-                                    circles_html = f"<div class='judge-initials-container'>{circles}</div>"
-                            st.markdown(f"<div class='cat-card'><div class='cat-number'>{kat_nr}</div><div class='cat-details'>{get_full_label(m.iloc[0])}</div>{circles_html}</div>", unsafe_allow_html=True)
-                        else: st.markdown("<div class='placeholder-box'>–</div>", unsafe_allow_html=True)
+            r_col = f"RICHTER {tag}"
+            judges = sorted([r for r in df_full[df_full[tag].astype(str).str.upper() == 'X'][r_col].unique() if str(r) != "nan"])
+
+            cols = st.columns([0.8] + [1.2]*len(judges) + [0.8])
+            for i, j in enumerate(judges): 
+                cols[i+1].markdown(f"<div class='judge-header-box'>{j}</div>", unsafe_allow_html=True)
+            cols[-1].markdown("<div class='judge-header-box' style='background-color:#b21f2d;'>BIS</div>", unsafe_allow_html=True)
+
+            for label, klassen, geschl in bis_defs:
+                r_cols = st.columns([0.8] + [1.2]*len(judges) + [0.8])
+                r_cols[0].markdown(f"<div class='class-label-box'>{label}</div>", unsafe_allow_html=True)
+                
+                show_noms = store.data.get(f"reveal_{sel_cat}_{label}", False)
+                winner_revealed = store.data.get(f"winner_reveal_{sel_cat}_{label}", False)
+                
+                for i, j in enumerate(judges):
+                    with r_cols[i+1]:
+                        if show_noms:
+                            m = df_full[(df_full['SELECTION'].astype(str).str.upper() == 'X') & (df_full[r_col] == j) & (df_full['KATEGORIE'] == sel_cat) & (df_full['KLASSE_INTERNAL'].isin(klassen)) & (df_full['GESCHLECHT'].astype(str).str.upper() == geschl)]
+                            if not m.empty:
+                                kat_nr = m.iloc[0]['KAT_STR']
+                                circles_html = ""
+                                if winner_revealed:
+                                    prefix = f"v_{sel_cat}_{label}_"
+                                    all_votes = store.data.get("votes", {})
+                                    voters = [v_key.replace(prefix, "") for v_key, v_val in all_votes.items() if v_key.startswith(prefix) and str(v_val) == str(kat_nr)]
+                                    if voters:
+                                        circles = "".join([f"<div class='judge-circle' title='{v}'>{get_initials(v)}</div>" for v in voters])
+                                        circles_html = f"<div class='judge-initials-container'>{circles}</div>"
+                                st.markdown(f"<div class='cat-card'><div class='cat-number'>{kat_nr}</div><div class='cat-details'>{get_full_label(m.iloc[0])}</div>{circles_html}</div>", unsafe_allow_html=True)
+                            else: st.markdown("<div class='placeholder-box'>–</div>", unsafe_allow_html=True)
+                        else: st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
+                
+                with r_cols[-1]:
+                    if winner_revealed:
+                        prefix = f"v_{sel_cat}_{label}_"
+                        winner_nr = store.data.get(f"override_{sel_cat}_{label}", "Automatisch (Stimmen)")
+                        if winner_nr == "Automatisch (Stimmen)" and "votes" in store.data:
+                            vts = [v for k, v in store.data["votes"].items() if k.startswith(prefix) and v != "Keine Wahl"]
+                            if vts: winner_nr = pd.Series(vts).value_counts().index[0]
+                        if winner_nr and winner_nr != "Automatisch (Stimmen)":
+                            m_w = df_full[df_full['KAT_STR'] == str(winner_nr)]
+                            if not m_w.empty: st.markdown(f"<div class='cat-card winner-card'><div class='cat-number'>{winner_nr}</div><div class='cat-details'>{get_full_label(m_w.iloc[0])}</div></div>", unsafe_allow_html=True)
                     else: st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
-            
-            with r_cols[-1]:
-                if winner_revealed:
-                    prefix = f"v_{sel_cat}_{label}_"
-                    winner_nr = store.data.get(f"override_{sel_cat}_{label}", "Automatisch (Stimmen)")
-                    if winner_nr == "Automatisch (Stimmen)" and "votes" in store.data:
-                        vts = [v for k, v in store.data["votes"].items() if k.startswith(prefix) and v != "Keine Wahl"]
-                        if vts: winner_nr = pd.Series(vts).value_counts().index[0]
-                    if winner_nr and winner_nr != "Automatisch (Stimmen)":
-                        m_w = df_full[df_full['KAT_STR'] == str(winner_nr)]
-                        if not m_w.empty: st.markdown(f"<div class='cat-card winner-card'><div class='cat-number'>{winner_nr}</div><div class='cat-details'>{get_full_label(m_w.iloc[0])}</div></div>", unsafe_allow_html=True)
-                else: st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
 
-            # Deine Logik für die "Abgestimmt"-Anzeige
-            abgestimmte_richter = []
-            if not winner_revealed:
-                prefix = f"v_{sel_cat}_{label}_"
-                abgestimmte_richter = [key.replace(prefix, "") for key, val in store.data.get("votes", {}).items() 
-                                       if key.startswith(prefix) and val != "Keine Wahl" and val != "Keine Wahl/Not chosen yet"]
-            
-            if not winner_revealed and abgestimmte_richter:
-                st.markdown(f"<div style='margin-top: -5px; margin-bottom: 25px; text-align: center; font-size: 14px; color: #1a4a9e; font-weight: bold;'>Abgestimmt: ✅ {' ✅ '.join(abgestimmte_richter)}</div>", unsafe_allow_html=True)
+                abgestimmte_richter = []
+                if not winner_revealed:
+                    prefix = f"v_{sel_cat}_{label}_"
+                    abgestimmte_richter = [key.replace(prefix, "") for key, val in store.data.get("votes", {}).items() if key.startswith(prefix) and val != "Keine Wahl" and val != "Keine Wahl/Not chosen yet"]
+                if not winner_revealed and abgestimmte_richter:
+                    st.markdown(f"<div style='margin-top: -5px; margin-bottom: 25px; text-align: center; font-size: 14px; color: #1a4a9e; font-weight: bold;'>Abgestimmt: ✅ {' ✅ '.join(abgestimmte_richter)}</div>", unsafe_allow_html=True)
 
     time.sleep(3)
     st.rerun()
