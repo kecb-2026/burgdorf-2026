@@ -21,7 +21,7 @@ from io import BytesIO
 st.set_page_config(layout="wide", page_title="KECB Burgdorf 2026", page_icon="🐾")
 
 # Zentrale Logo URL
-LOGO_URL = "logo.GIF"
+LOGO_URL = "logo_kecb.png"
 
 st.markdown("""
     <style>
