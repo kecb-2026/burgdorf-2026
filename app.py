@@ -643,6 +643,11 @@ elif st.session_state.view == "BIS_Public":
 
     display_header_with_logo("🏆 Best in Show")
     df_full = load_labels()
+    
+    # Sicherstellen, dass der Store nicht beim Rerun flöten geht
+    if "data" not in store.__dict__:
+        store.data = {}
+        
     if df_full is not None:
         tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"]).upper()
         sel_cat = st.selectbox("Kategorie:", sorted(df_full['KATEGORIE'].unique()))
