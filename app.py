@@ -372,7 +372,7 @@ def display_header_with_logo(text):
         st.markdown(f"<p class='header-text'>{text}</p>", unsafe_allow_html=True)
     with col_logo:
         st.markdown("<div style='display: flex; justify-content: flex-end;'>", unsafe_allow_html=True)
-        st.image(LOGO_URL, width=100)
+        st.image(LOGO_URL, width=150)
         st.markdown("</div>", unsafe_allow_html=True)
 
 def render_overlay_html(row):
