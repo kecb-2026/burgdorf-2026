@@ -629,20 +629,23 @@ elif st.session_state.view == "BIS_Admin_Control":
 # BIS PUBLIC VIEW
 # BIS PUBLIC VIEW
 elif st.session_state.view == "BIS_Public":
+    # 1. Overlay-Logik bleibt unangetastet, aber wir bereinigen das Rerun
     if hasattr(store, 'active_overlay') and store.active_overlay:
         if time.time() - store.overlay_start_time < 20:
             st.markdown(render_overlay_html(store.active_overlay), unsafe_allow_html=True)
-            time.sleep(1); st.rerun() 
-        else: store.active_overlay = None; st.rerun()
+            time.sleep(1)
+            st.rerun() 
+        else: 
+            store.active_overlay = None
+            st.rerun()
 
     def get_initials(name):
         parts = str(name).split()
-        if len(parts) >= 2:
-            return (parts[0][0] + parts[-1][0]).upper()
-        return str(name)[:2].upper()
+        return (parts[0][0] + parts[-1][0]).upper() if len(parts) >= 2 else str(name)[:2].upper()
 
     display_header_with_logo("🏆 Best in Show")
     df_full = load_labels()
+    
     if df_full is not None:
         tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"]).upper()
         sel_cat = st.selectbox("Kategorie:", sorted(df_full['KATEGORIE'].unique()))
@@ -657,27 +660,12 @@ elif st.session_state.view == "BIS_Public":
         r_col = f"RICHTER {tag}"
         judges = sorted([r for r in df_full[df_full[tag].astype(str).str.upper() == 'X'][r_col].unique() if str(r) != "nan"])
 
-        # --- CSS-LOGIK FÜR GRÜNE RICHTER IM HEADER ---
-        style_rules = ""
-        for label, klassen, geschl in bis_defs:
-            if not store.data.get(f"winner_reveal_{sel_cat}_{label}", False):
-                prefix = f"v_{sel_cat}_{label}_"
-                abgestimmte = [key.replace(prefix, "") for key, val in store.data.get("votes", {}).items() 
-                               if key.startswith(prefix) and val != "Keine Wahl" and val != "Keine Wahl/Not chosen yet"]
-                for j in abgestimmte:
-                    style_rules += f".judge-{str(j).replace(' ', '_')} {{ background-color: #28a745 !important; }}"
-        
-        if style_rules:
-            st.markdown(f"<style>{style_rules}</style>", unsafe_allow_html=True)
-
-        # --- STATISCHER HEADER (oben, einmalig) ---
+        # Header nur einmal zeichnen
         cols = st.columns([0.8] + [1.2]*len(judges) + [0.8])
-        for i, j in enumerate(judges):
-            clean_id = str(j).replace(" ", "_")
-            cols[i+1].markdown(f"<div class='judge-header-box judge-{clean_id}'>{j}</div>", unsafe_allow_html=True)
+        for i, j in enumerate(judges): 
+            cols[i+1].markdown(f"<div class='judge-header-box'>{j}</div>", unsafe_allow_html=True)
         cols[-1].markdown("<div class='judge-header-box' style='background-color:#b21f2d;'>BIS</div>", unsafe_allow_html=True)
 
-        # --- KATZEN-ZEILEN ---
         for label, klassen, geschl in bis_defs:
             r_cols = st.columns([0.8] + [1.2]*len(judges) + [0.8])
             r_cols[0].markdown(f"<div class='class-label-box'>{label}</div>", unsafe_allow_html=True)
@@ -694,12 +682,10 @@ elif st.session_state.view == "BIS_Public":
                             circles_html = ""
                             if winner_revealed:
                                 prefix = f"v_{sel_cat}_{label}_"
-                                all_votes = store.data.get("votes", {})
-                                voters = [v_key.replace(prefix, "") for v_key, v_val in all_votes.items() if v_key.startswith(prefix) and str(v_val) == str(kat_nr)]
+                                voters = [v_key.replace(prefix, "") for v_key, v_val in store.data.get("votes", {}).items() if v_key.startswith(prefix) and str(v_val) == str(kat_nr)]
                                 if voters:
                                     circles = "".join([f"<div class='judge-circle' title='{v}'>{get_initials(v)}</div>" for v in voters])
                                     circles_html = f"<div class='judge-initials-container'>{circles}</div>"
-
                             st.markdown(f"<div class='cat-card'><div class='cat-number'>{kat_nr}</div><div class='cat-details'>{get_full_label(m.iloc[0])}</div>{circles_html}</div>", unsafe_allow_html=True)
                         else: st.markdown("<div class='placeholder-box'>–</div>", unsafe_allow_html=True)
                     else: st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
@@ -716,8 +702,18 @@ elif st.session_state.view == "BIS_Public":
                         if not m_w.empty: st.markdown(f"<div class='cat-card winner-card'><div class='cat-number'>{winner_nr}</div><div class='cat-details'>{get_full_label(m_w.iloc[0])}</div></div>", unsafe_allow_html=True)
                 else: st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
 
-    time.sleep(3); st.rerun()
+            # Deine Logik für die "Abgestimmt"-Anzeige
+            abgestimmte_richter = []
+            if not winner_revealed:
+                prefix = f"v_{sel_cat}_{label}_"
+                abgestimmte_richter = [key.replace(prefix, "") for key, val in store.data.get("votes", {}).items() 
+                                       if key.startswith(prefix) and val != "Keine Wahl" and val != "Keine Wahl/Not chosen yet"]
+            
+            if not winner_revealed and abgestimmte_richter:
+                st.markdown(f"<div style='margin-top: -5px; margin-bottom: 25px; text-align: center; font-size: 14px; color: #1a4a9e; font-weight: bold;'>Abgestimmt: ✅ {' ✅ '.join(abgestimmte_richter)}</div>", unsafe_allow_html=True)
 
+    # st.rerun() am Ende entfernt, da es Instabilität und Geisterzeilen erzeugt
+    
 # LIVE DASHBOARD
 elif st.session_state.view == "Dashboard":
     display_header_with_logo("📢 Live-Aufruf & Status")
