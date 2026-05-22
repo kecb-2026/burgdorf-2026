@@ -1,3 +1,14 @@
+# -*- coding: utf-8 -*-
+
+"""
+Projekt: Cat Show App der KECB Katzenausstellung
+Copyright (c) 2026 Brigitte Portner
+Alle Rechte vorbehalten.
+"""
+
+
+
+
 import streamlit as st
 import pandas as pd
 import re
