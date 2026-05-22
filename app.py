@@ -712,7 +712,8 @@ elif st.session_state.view == "BIS_Public":
             if not winner_revealed and abgestimmte_richter:
                 st.markdown(f"<div style='margin-top: -5px; margin-bottom: 25px; text-align: center; font-size: 14px; color: #1a4a9e; font-weight: bold;'>Abgestimmt: ✅ {' ✅ '.join(abgestimmte_richter)}</div>", unsafe_allow_html=True)
 
-    # st.rerun() am Ende entfernt, da es Instabilität und Geisterzeilen erzeugt
+    time.sleep(3)
+    st.rerun()
     
 # LIVE DASHBOARD
 elif st.session_state.view == "Dashboard":
