@@ -646,16 +646,8 @@ elif st.session_state.view == "BIS_Public":
     
         
     if df_full is not None:
-        if 'tag_key' not in st.session_state: st.session_state.tag_key = "TAG 1"
-        if 'cat_key' not in st.session_state: st.session_state.cat_key = sorted(df_full['KATEGORIE'].unique())[0]
-
-        tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"], 
-                               index=["TAG 1", "TAG 2"].index(st.session_state.tag_key))
-        st.session_state.tag_key = tag.upper()
-        
-        sel_cat = st.selectbox("Kategorie:", sorted(df_full['KATEGORIE'].unique()), 
-                               index=sorted(df_full['KATEGORIE'].unique()).index(st.session_state.cat_key))
-        st.session_state.cat_key = sel_cat
+        tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"]).upper()
+        sel_cat = st.selectbox("Kategorie:", sorted(df_full['KATEGORIE'].unique()))
         
         bis_defs = [
             ("Adult Male", [1,3,5,7,9], "M"), ("Adult Female", [1,3,5,7,9], "W"), 
