@@ -672,6 +672,7 @@ elif st.session_state.view == "BIS_Public":
 
         # --- STATISCHER HEADER (oben, einmalig) ---
         cols = st.columns([0.8] + [1.2]*len(judges) + [0.8])
+        cols[0].empty()
         for i, j in enumerate(judges):
             clean_id = str(j).replace(" ", "_")
             cols[i+1].markdown(f"<div class='judge-header-box judge-{clean_id}'>{j}</div>", unsafe_allow_html=True)
