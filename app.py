@@ -628,6 +628,7 @@ elif st.session_state.view == "BIS_Admin_Control":
 
 # BIS PUBLIC VIEW
 # BIS PUBLIC VIEW
+# BIS PUBLIC VIEW NEW
 elif st.session_state.view == "BIS_Public":
     if hasattr(store, 'active_overlay') and store.active_overlay:
         if time.time() - store.overlay_start_time < 20:
@@ -701,7 +702,8 @@ elif st.session_state.view == "BIS_Public":
                                     circles_html = f"<div class='judge-initials-container'>{circles}</div>"
 
                             st.markdown(f"<div class='cat-card'><div class='cat-number'>{kat_nr}</div><div class='cat-details'>{get_full_label(m.iloc[0])}</div>{circles_html}</div>", unsafe_allow_html=True)
-                        else: st.markdown("<div class='placeholder-box'>–</div>", unsafe_allow_html=True)
+                        else: 
+                            st.empty() # Entfernt die Geisterzelle
                     else: st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
             
             with r_cols[-1]:
