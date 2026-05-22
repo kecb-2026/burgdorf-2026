@@ -628,6 +628,7 @@ elif st.session_state.view == "BIS_Admin_Control":
 
 # BIS PUBLIC VIEW
 # BIS PUBLIC VIEW NEW
+# BIS PUBLIC VIEW NEW
 elif st.session_state.view == "BIS_Public":
     if hasattr(store, 'active_overlay') and store.active_overlay:
         if time.time() - store.overlay_start_time < 20:
@@ -644,11 +645,27 @@ elif st.session_state.view == "BIS_Public":
     display_header_with_logo("🏆 Best in Show")
     df_full = load_labels()
     
-        
     if df_full is not None:
-        tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"]).upper()
-        sel_cat = st.selectbox("Kategorie:", sorted(df_full['KATEGORIE'].unique()))
+        # --- STABILE WIDGET-INITIALISIERUNG ---
+        # Holt den exakten Zustand vor dem Rerun ab, damit nichts zurückspringt
+        current_tag = st.session_state.get('bis_stable_tag', 'TAG 1')
+        available_cats = sorted(df_full['KATEGORIE'].unique())
+        current_cat = st.session_state.get('bis_stable_cat', available_cats[0])
+
+        # Indices berechnen (Fallback auf 0, falls Werte beim Datenladen variieren)
+        tag_index = ["TAG 1", "TAG 2"].index(current_tag) if current_tag in ["TAG 1", "TAG 2"] else 0
+        cat_index = available_cats.index(current_cat) if current_cat in available_cats else 0
+
+        # Widgets erzwingen den Zustand über den Index
+        tag_selection = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"], index=tag_index)
+        tag = tag_selection.upper()
+        sel_cat = st.selectbox("Kategorie:", available_cats, index=cat_index)
         
+        # Zustand sofort für den nächsten Durchlauf einfrieren
+        st.session_state['bis_stable_tag'] = tag
+        st.session_state['bis_stable_cat'] = sel_cat
+        # --------------------------------------
+
         bis_defs = [
             ("Adult Male", [1,3,5,7,9], "M"), ("Adult Female", [1,3,5,7,9], "W"), 
             ("Neuter Male", [2,4,6,8,10], "M"), ("Neuter Female", [2,4,6,8,10], "W"), 
@@ -720,7 +737,6 @@ elif st.session_state.view == "BIS_Public":
                 else: st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
 
     time.sleep(3); st.rerun()
-
     
 # LIVE DASHBOARD
 elif st.session_state.view == "Dashboard":
