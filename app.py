@@ -1,5 +1,4 @@
 import streamlit as st
-st.sidebar.write(f"DEBUG: Navigation ist {'AN' if st.session_state.get('show_nav', True) else 'AUS'}")
 import pandas as pd
 import re
 import time
@@ -417,30 +416,20 @@ access_map = {
     "Admin": ["Home", "Dashboard", "BIS_Public", "Judge_Voting", "Steward_Panel", "BIS_Admin_Control", "Admin_Panel", "QR_Codes"]
 }
 
-# Container für die Sidebar erstellen
-sidebar_container = st.sidebar.empty()
+available_views = access_map.get(st.session_state.user_role, ["Dashboard"])
+st.sidebar.image(LOGO_URL, width=100)
 
-# Logik: Sidebar nur rendern, wenn erlaubt
-if st.session_state.get("show_nav", True) or st.session_state.get("user_role") == "Admin":
-    with sidebar_container.container():
-        st.image(LOGO_URL, width=100)
-        available_views = access_map.get(st.session_state.user_role, ["Dashboard"])
-        
-        # Sicherstellen, dass die Ansicht existiert
-        if st.session_state.view not in available_views:
-            st.session_state.view = available_views[0]
-            
-        st.session_state.view = st.radio("Menü:", available_views, 
-            index=available_views.index(st.session_state.view))
+st.session_state.view = st.sidebar.radio("Menü:", available_views, 
+    index=available_views.index(st.session_state.view) if st.session_state.view in available_views else 0)
+	
+if st.session_state.view != "BIS_Public":
+    store.active_overlay = None	
 
-        if st.session_state.authenticated:
-            if st.button("Abmelden"): logout()
-        elif st.session_state.view != "Login":
-            if st.button("🔒 Interner Login"): set_view("Login")
-else:
-    # Wenn der Zugriff verweigert wird, leeren wir den Container explizit
-    sidebar_container.empty()
-    
+if st.session_state.authenticated:
+    if st.sidebar.button("Abmelden"): logout()
+elif st.session_state.view != "Login":
+    if st.sidebar.button("🔒 Interner Login"): set_view("Login")
+
     
 # --- 6. VIEWS ---
 
