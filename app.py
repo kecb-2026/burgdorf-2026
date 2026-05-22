@@ -647,7 +647,7 @@ elif st.session_state.view == "BIS_Public":
         
     if df_full is not None:
         tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"]).upper()
-		sel_cat = st.selectbox("Kategorie:", sorted(df_full['KATEGORIE'].unique()))
+        sel_cat = st.selectbox("Kategorie:", sorted(df_full['KATEGORIE'].unique()))
         
         bis_defs = [
             ("Adult Male", [1,3,5,7,9], "M"), ("Adult Female", [1,3,5,7,9], "W"), 
