@@ -372,7 +372,7 @@ def display_header_with_logo(text):
         st.markdown(f"<p class='header-text'>{text}</p>", unsafe_allow_html=True)
     with col_logo:
         st.markdown("<div style='display: flex; justify-content: flex-end;'>", unsafe_allow_html=True)
-        st.image(LOGO_URL, width=65)
+        st.image(LOGO_URL, width=100)
         st.markdown("</div>", unsafe_allow_html=True)
 
 def render_overlay_html(row):
@@ -437,7 +437,7 @@ access_map = {
 }
 
 available_views = access_map.get(st.session_state.user_role, ["Dashboard"])
-st.sidebar.image(LOGO_URL, width=100)
+st.sidebar.image(LOGO_URL, width=150)
 
 st.session_state.view = st.sidebar.radio("Menü:", available_views, 
     index=available_views.index(st.session_state.view) if st.session_state.view in available_views else 0)
@@ -492,7 +492,7 @@ if st.session_state.view == "Login":
     """, unsafe_allow_html=True)
 
     st.markdown("<div class='login-container'>", unsafe_allow_html=True)
-    st.image(LOGO_URL, width=120)
+    st.image(LOGO_URL, width=150)
     st.markdown("<h2 style='text-align:center; color:#1a4a9e; text-transform: uppercase; font-size: 20px;'>Interner Bereich</h2>", unsafe_allow_html=True)
     
     role_map = {"admin": "Admin", "steward": "Steward", "richter": "Richter", "bis-admin": "Admin"}
