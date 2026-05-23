@@ -300,7 +300,7 @@ st.markdown("""
     /* Aktiv: Signal-Blau (heller) + weißer Rahmen + blaues Leuchten */
     .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(1) button:has(div[data-testid="stMarkdownContainer"] p:contains("AKTIV")),
     .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(1) button:has(p:contains("AKTIV")) {
-        background-color: #00bfff !important;
+        background-color: #e0ffff !important;
         border: 3px solid white !important;
         box-shadow: 0 0 15px rgba(0, 191, 255, 0.9) !important;
     }
