@@ -1,4 +1,5 @@
 
+
 # -*- coding: utf-8 -*-
 
 """
@@ -444,7 +445,31 @@ access_map = {
     "Steward": ["Steward_Panel", "Dashboard", "BIS_Public"],
     "Admin": ["Home", "Dashboard", "BIS_Public", "Judge_Voting", "Steward_Panel", "BIS_Admin_Control", "Admin_Panel", "QR_Codes"]
 }
-
+	st.markdown("""
+        <style>
+        div.stButton > button {
+            background-color: #ffffff !important;
+            color: #1a4a9e !important;
+            border: 2px solid #1a4a9e !important;
+            border-radius: 10px !important;
+            font-weight: bold !important;
+            width: 100% !important;
+            display: block !important;
+            transition: all 0.2s ease-in-out;
+        }
+        div.stButton > button:hover {
+            background-color: #1a4a9e !important;
+            color: #ffffff !important;
+        }
+        .login-container {
+            border: 2px solid #1a4a9e !important;
+            border-radius: 15px;
+            padding: 20px;
+            background-color: transparent;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+    
 available_views = access_map.get(st.session_state.user_role, ["Dashboard"])
 st.sidebar.image(LOGO_URL, width=150)
 
