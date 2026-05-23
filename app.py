@@ -878,7 +878,7 @@ elif st.session_state.view == "Steward_Panel":
                     <div style="border-top: 1px solid #e2e2e2; padding-top: 10px; margin-top: 12px; margin-bottom: 8px;"></div>
                 """, unsafe_allow_html=True)
                 
-                 st.markdown(f"""
+				st.markdown(f"""
                 <div class="{card_class}">
                 
                 # Die originalen Spalten für die Buttons
