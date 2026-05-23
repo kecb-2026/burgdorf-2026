@@ -888,7 +888,7 @@ elif st.session_state.view == "Steward_Panel":
                 with c1:
                     # Hier nutzen wir nun auch die blinkende Klasse, wenn aktiv
                     if is_rich: st.markdown('<div class="st-blink-btn">', unsafe_allow_html=True)
-                    if st.button("[ AKTIV ] AUFGERUFEN ⚠️" if is_rich else "AUFRUFEN", key=f"btn_rich_{k}"):
+                    if st.button("⚠️ [ AKTIV ] AUFGERUFEN ⚠️" if is_rich else "AUFRUFEN", key=f"btn_rich_{k}"):
                         store.data[k]["flags"]["Zum Richten"] = not is_rich
                         if store.data[k]["flags"]["Zum Richten"]:
                             store.data[k]["flags"]["Gerichtet"] = False
@@ -900,7 +900,7 @@ elif st.session_state.view == "Steward_Panel":
                 is_biv = flags.get("BIV")
                 with c2:
                     if is_biv: st.markdown('<div class="st-blink-btn">', unsafe_allow_html=True)
-                    if st.button("[ AKTIV ] BIV ⚠️" if is_biv else "BIV", key=f"btn_biv_{k}"):
+                    if st.button("⚠️ [ AKTIV ] BIV ⚠️" if is_biv else "BIV", key=f"btn_biv_{k}"):
                         store.data[k]["flags"]["BIV"] = not is_biv
                         store.data[k]["timestamp"] = time.time()
                         st.rerun()
@@ -910,7 +910,7 @@ elif st.session_state.view == "Steward_Panel":
                 is_nom = flags.get("NOM")
                 with c3:
                     if is_nom: st.markdown('<div class="st-blink-btn">', unsafe_allow_html=True)
-                    if st.button("[ AKTIV ] NOM ⚠️" if is_nom else "NOM", key=f"btn_nom_{k}"):
+                    if st.button("⚠️ [ AKTIV ] NOM ⚠️" if is_nom else "NOM", key=f"btn_nom_{k}"):
                         store.data[k]["flags"]["NOM"] = not is_nom
                         if store.data[k]["flags"]["NOM"]:
                             store.data[k]["timestamp"] = time.time()
