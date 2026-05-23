@@ -297,6 +297,12 @@ st.markdown("""
     .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(2) button:hover { background-color: #218838 !important; }
     .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(3) button:hover { background-color: #e0a800 !important; }
     .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(4) button:hover { background-color: #5a6268 !important; }
+    
+    
+    .st-blink-btn > div > button {
+    animation: blinker 1.3s linear infinite !important;
+    border: 3px solid white !important; /* Weißer Rahmen hilft beim Blinken-Erkennen */
+}
 </style>
     """, unsafe_allow_html=True)
 
