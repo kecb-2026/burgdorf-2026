@@ -879,7 +879,7 @@ elif st.session_state.view == "Steward_Panel":
                 """, unsafe_allow_html=True)
                 
                 # Die originalen Spalten für die Buttons
-                c1, c2, c3, c4 = st.columns(4)
+                c1, c2, c3, c4 = st.columns(4, vertical_alignment="center")
                 
                 # BUTTON 1: AUFRUFEN (Blau)
                 is_rich = flags.get("Zum Richten")
