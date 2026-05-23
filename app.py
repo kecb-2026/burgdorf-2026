@@ -289,62 +289,17 @@ st.markdown("""
         line-height: 1 !important;
         border-radius: 8px !important;
     }
-                /* ================= INAKTIVE GRUNDFARBEN ================= */
+                
+
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(1) button { background-color: #007bff !important; border: 2px solid #0056b3 !important; color: white !important; }
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(2) button { background-color: #28a745 !important; border: 2px solid #1e7e34 !important; color: white !important; }
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(3) button { background-color: #ffc107 !important; border: 2px solid #d39e00 !important; color: black !important; }
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(4) button { background-color: #6c757d !important; border: 2px solid #545b62 !important; color: white !important; }
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(1) button:hover { background-color: #0069d9 !important; }
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(2) button:hover { background-color: #218838 !important; }
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(3) button:hover { background-color: #e0a800 !important; }
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(4) button:hover { background-color: #5a6268 !important; }
     
-    /* Spalte 1: AUFRUFEN (Standard: Blau) */
-    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(1) button {
-        background-color: #007bff !important;
-        color: white !important;
-        border: 2px solid transparent !important;
-    }
-
-    /* Spalte 2: BIV (Standard: Grün) */
-    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(2) button {
-        background-color: #28a745 !important;
-        color: white !important;
-        border: 2px solid transparent !important;
-    }
-
-    /* Spalte 3: NOM (Standard: Gelb) */
-    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(3) button {
-        background-color: #ffc107 !important;
-        color: black !important;
-        border: 2px solid transparent !important;
-    }
-
-    /* Spalte 4: GERICHTET (Standard: Grau) */
-    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(4) button {
-        background-color: #6c757d !important;
-        color: white !important;
-        border: 2px solid transparent !important;
-    }
-
-
-    /* ================= AKTIVE ZUSTÄNDE (Heller + Rahmen + Glow) ================= */
-
-    /* Wenn Button 1 aktiv ist (Blau wird zu hellem Signal-Blau) */
-    .steward-card-wrapper button[aria-label*="AKTIV"][aria-label*="AUFGERUFEN"] {
-        background-color: #00bfff !important;
-        color: white !important;
-        border: 3px solid white !important;
-        box-shadow: 0 0 15px rgba(0, 191, 255, 0.9) !important;
-    }
-
-    /* Wenn Button 2 aktiv ist (Grün wird zu hellem Gift-Grün) */
-    .steward-card-wrapper button[aria-label*="AKTIV"][aria-label*="BIV"] {
-        background-color: #2ecc71 !important;
-        color: white !important;
-        border: 3px solid white !important;
-        box-shadow: 0 0 15px rgba(46, 204, 113, 0.9) !important;
-    }
-
-    /* Wenn Button 3 aktiv ist (Gelb wird zu hellem Neon-Gelb) */
-    .steward-card-wrapper button[aria-label*="AKTIV"][aria-label*="NOM"] {
-        background-color: #fff200 !important;
-        color: black !important;
-        border: 3px solid black !important;
-        box-shadow: 0 0 15px rgba(255, 242, 0, 0.9) !important;
-    }
     .lst-blink-btn > div > button {
     animation: blinker 1.3s linear infinite !important;
     border: 3px solid white !important; /* Weißer Rahmen hilft beim Blinken-Erkennen */
