@@ -934,7 +934,7 @@ elif st.session_state.view == "Steward_Panel":
                 # BUTTON 2: BIV (Grün)
                 is_biv = flags.get("BIV")
                 with c2:
-                    if is_biv: st.markdown('<div class="st-blink-btn">', unsafe_allow_html=True)
+                    if is_biv: st.markdown('<div class="tag-biv">', unsafe_allow_html=True)
                     if st.button("[ AKTIV ] BIV" if is_biv else "BIV", key=f"btn_biv_{k}"):
                         store.data[k]["flags"]["BIV"] = not is_biv
                         store.data[k]["timestamp"] = time.time()
