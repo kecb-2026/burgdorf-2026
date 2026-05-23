@@ -299,18 +299,33 @@ st.markdown("""
     .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(4) button:hover { background-color: #5a6268 !important; }
     
     
-          /* Sorgt dafür, dass die Keyframes global sauber laufen */
-    @keyframes blinker { 50% { opacity: 0.15; } }
+      /* Neue Keyframes, die die Hintergrundfarbe ins Transparente wechseln lassen */
+    @keyframes blink-blau { 50% { background-color: rgba(0, 123, 255, 0.2) !important; } }
+    @keyframes blink-gruen { 50% { background-color: rgba(40, 167, 69, 0.2) !important; } }
+    @keyframes blink-gelb { 50% { background-color: rgba(255, 193, 7, 0.2) !important; } }
 
-    /* Targetiert den direkt nachfolgenden Button in der Streamlit-Spaltenstruktur */
-    .st-blink-btn + div.stButton button,
-    .st-blink-btn + div[data-testid="stBaseButton-secondary"] button,
-    .steward-card-wrapper div[data-testid="stHorizontalBlock"] div:has(+ .st-blink-btn) button,
-    .st-blink-btn button {
-        animation: blinker 1.3s linear infinite !important;
+    /* Wenn der Button in Spalte 1 (Blau) aktiv ist und neben .st-blink-btn steht */
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(1):has(.st-blink-btn) button {
+        animation: blink-blau 1.3s linear infinite !important;
         border: 3px solid white !important;
-        box-shadow: 0 0 15px rgba(255, 255, 255, 0.8) !important;
+        box-shadow: 0 0 15px rgba(0, 123, 255, 0.6) !important;
     }
+
+    /* Wenn der Button in Spalte 2 (Grün) aktiv ist und neben .st-blink-btn steht */
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(2):has(.st-blink-btn) button {
+        animation: blink-gruen 1.3s linear infinite !important;
+        border: 3px solid white !important;
+        box-shadow: 0 0 15px rgba(40, 167, 69, 0.6) !important;
+    }
+
+    /* Wenn der Button in Spalte 3 (Gelb) aktiv ist und neben .st-blink-btn steht */
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(3):has(.st-blink-btn) button {
+        animation: blink-gelb 1.3s linear infinite !important;
+        border: 3px solid white !important;
+        box-shadow: 0 0 15px rgba(255, 193, 7, 0.6) !important;
+    }
+
+</style>
 
 
 </style>
