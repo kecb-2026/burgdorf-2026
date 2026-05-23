@@ -299,31 +299,41 @@ st.markdown("""
     .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(4) button:hover { background-color: #5a6268 !important; }
     
     
-      /* Neue Keyframes, die die Hintergrundfarbe ins Transparente wechseln lassen */
-    @keyframes blink-blau { 50% { background-color: rgba(0, 123, 255, 0.2) !important; } }
-    @keyframes blink-gruen { 50% { background-color: rgba(40, 167, 69, 0.2) !important; } }
-    @keyframes blink-gelb { 50% { background-color: rgba(255, 193, 7, 0.2) !important; } }
+          /* 1. Die Blink-Animationen fuer die jeweiligen Farben */
+    @keyframes blink-blau { 0%, 100% { background-color: #007bff !important; } 50% { background-color: rgba(0, 123, 255, 0.2) !important; } }
+    @keyframes blink-gruen { 0%, 100% { background-color: #28a745 !important; } 50% { background-color: rgba(40, 167, 69, 0.2) !important; } }
+    @keyframes blink-gelb { 0%, 100% { background-color: #ffc107 !important; } 50% { background-color: rgba(255, 193, 7, 0.2) !important; } }
 
-    /* Wenn der Button in Spalte 1 (Blau) aktiv ist und neben .st-blink-btn steht */
-    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(1):has(.st-blink-btn) button {
+    /* 2. Direkter Zugriff ueber die von dir vergebenen Button-Keys */
+    
+    /* Blau blinken, wenn der AUFRUFEN-Button aktiv ist */
+    .steward-card-wrapper button[key^="btn_rich_"],
+    .steward-card-wrapper div[data-testid*="btn_rich_"] button,
+    .steward-card-wrapper button:has(span:contains("[ AKTIV ]")) {
         animation: blink-blau 1.3s linear infinite !important;
         border: 3px solid white !important;
         box-shadow: 0 0 15px rgba(0, 123, 255, 0.6) !important;
     }
 
-    /* Wenn der Button in Spalte 2 (Grün) aktiv ist und neben .st-blink-btn steht */
-    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(2):has(.st-blink-btn) button {
+    /* Gruen blinken, wenn der BIV-Button aktiv ist */
+    .steward-card-wrapper button[key^="btn_biv_"],
+    .steward-card-wrapper div[data-testid*="btn_biv_"] button,
+    .steward-card-wrapper button:has(span:contains("BIV")) {
         animation: blink-gruen 1.3s linear infinite !important;
         border: 3px solid white !important;
         box-shadow: 0 0 15px rgba(40, 167, 69, 0.6) !important;
     }
 
-    /* Wenn der Button in Spalte 3 (Gelb) aktiv ist und neben .st-blink-btn steht */
-    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(3):has(.st-blink-btn) button {
+    /* Gelb blinken, wenn der NOM-Button aktiv ist */
+    .steward-card-wrapper button[key^="btn_nom_"],
+    .steward-card-wrapper div[data-testid*="btn_nom_"] button,
+    .steward-card-wrapper button:has(span:contains("NOM")) {
         animation: blink-gelb 1.3s linear infinite !important;
         border: 3px solid white !important;
         box-shadow: 0 0 15px rgba(255, 193, 7, 0.6) !important;
     }
+
+</style>
 
 </style>
 
