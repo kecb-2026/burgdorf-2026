@@ -417,6 +417,7 @@ def load_labels():
     try:
         df = pd.read_excel("LABELS.xlsx", engine='openpyxl', header=0)
         df.columns = [str(c).strip().upper() for c in df.columns]
+        df = df.fillna("-")
         df['KLASSE_INTERNAL'] = df['AUSSTELLUNGSKLASSE'] if 'AUSSTELLUNGSKLASSE' in df.columns else df.get('KLASSE', '')
         if 'KATALOG-NR' in df.columns:
             df['KAT_STR'] = df['KATALOG-NR'].astype(str).str.replace('.0', '', regex=False)
