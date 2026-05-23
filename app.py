@@ -300,10 +300,15 @@ st.markdown("""
     .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(3) button:hover { background-color: #e0a800 !important; }
     .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(4) button:hover { background-color: #5a6268 !important; }
     
-    .lst-blink-btn > div > button {
-    animation: blinker 1.3s linear infinite !important;
-    border: 3px solid white !important; /* Weißer Rahmen hilft beim Blinken-Erkennen */
-}
+        /* --- FIX: Kein Versatz mehr bei aktiven Buttons --- */
+    .lst-blink-btn > div > button,
+    .st-blink-btn > div > button {
+        animation: blinker 1.3s linear infinite !important;
+        /* Nutzt Box-Shadow statt Border, damit der Button exakt 25px hoch bleibt */
+        border: 2px solid white !important; 
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.6) !important;
+    }
+</style>
 
 
 </style>
