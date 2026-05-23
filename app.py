@@ -930,7 +930,7 @@ elif st.session_state.view == "Steward_Panel":
                                 
                 # --- ENDE DES GRAUEN RECHTECKS ---
                 # Erst nachdem die Buttons gerendert wurden, schließen wir das umschließende HTML-Kasten-Div.
-                st.markdown(" <div style="border-top: 1px solid e2e2e2; padding-top: 10px; margin-top: 12px; margin-bottom: 8px;"></div>", unsafe_allow_html=True)
+                st.markdown("</div>", unsafe_allow_html=True)
                 
                 
 
