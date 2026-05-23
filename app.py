@@ -445,7 +445,8 @@ access_map = {
     "Steward": ["Steward_Panel", "Dashboard", "BIS_Public"],
     "Admin": ["Home", "Dashboard", "BIS_Public", "Judge_Voting", "Steward_Panel", "BIS_Admin_Control", "Admin_Panel", "QR_Codes"]
 }
-	st.markdown("""
+
+st.markdown("""
         <style>
         div.stButton > button {
             background-color: #ffffff !important;
