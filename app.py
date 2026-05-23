@@ -4,7 +4,7 @@
 """
 Projekt: Cat Show App der KECB Katzenausstellung
 Copyright (c) 2026 Brigitte Portner
-Alle Rechte vorbehalten.
+Alle Rechte vorbehalten
 """
 
 
@@ -302,6 +302,23 @@ st.markdown("""
     .st-blink-btn > div > button {
     animation: blinker 1.3s linear infinite !important;
     border: 3px solid white !important; /* Weißer Rahmen hilft beim Blinken-Erkennen */
+}
+
+
+/* --- EXTRA-REGEL NUR FÜR DAS STEWARD PANEL (LÄSST DAS DASHBOARD IN RUHE) --- */
+
+/* Wir greifen die Buttons im Steward-Panel ab, WENN sie sich in deiner Blink-Box befinden */
+    .steward-card-wrapper .st-blink-btn div[data-testid="stBaseButton-secondary"] button,
+    .steward-card-wrapper .st-blink-btn button {
+    animation: blinker 1.3s linear infinite !important;
+    background-color: #dc3545 !important; /* Optional: Macht den blinkenden Button rot/auffällig */
+    border: 2px solid white !important;
+}
+
+/* Der absolute Sicherheits-Fallstrick, falls Streamlit die HTML-Boxen verschiebt:
+   Wenn der Button den Text "[ AKTIV ]" enthält, MUSS er im Steward-Panel blinken */
+    .steward-card-wrapper button[aria-label*="AKTIV"] {
+    animation: blinker 1.3s linear infinite !important;
 }
 </style>
     """, unsafe_allow_html=True)
