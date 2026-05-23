@@ -289,56 +289,64 @@ st.markdown("""
         line-height: 1 !important;
         border-radius: 8px !important;
     }
-    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(1) button { background-color: #007bff !important; border: 2px solid #0056b3 !important; color: white !important; }
-    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(2) button { background-color: #28a745 !important; border: 2px solid #1e7e34 !important; color: white !important; }
-    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(3) button { background-color: #ffc107 !important; border: 2px solid #d39e00 !important; color: black !important; }
-    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(4) button { background-color: #6c757d !important; border: 2px solid #545b62 !important; color: white !important; }
-    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(1) button:hover { background-color: #0069d9 !important; }
-    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(2) button:hover { background-color: #218838 !important; }
-    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(3) button:hover { background-color: #e0a800 !important; }
-    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(4) button:hover { background-color: #5a6268 !important; }
-    
-    
-              /* 1. Die Farbanimationen definieren */
-    @keyframes blink-steward-blau {
-        0%, 100% { background-color: #007bff !important; }
-        50% { background-color: rgba(0, 123, 255, 0.2) !important; }
+        /* ================= SPALTE 1: AUFRUFEN (BLAU) ================= */
+    /* Inaktiv: Normales Blau */
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(1) button {
+        background-color: #007bff !important;
+        border: 2px solid transparent !important;
+        color: white !important;
+        box-shadow: none !important;
     }
-    @keyframes blink-steward-gruen {
-        0%, 100% { background-color: #28a745 !important; }
-        50% { background-color: rgba(40, 167, 69, 0.2) !important; }
-    }
-    @keyframes blink-steward-gelb {
-        0%, 100% { background-color: #ffc107 !important; }
-        50% { background-color: rgba(255, 193, 7, 0.2) !important; }
-    }
-
-    /* 2. Brutale Spezifität über die Spalten erzwingen, wenn der Text aktiv ist */
-    
-    /* Spalte 1 (Blau) zum Blinken bringen */
-    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(1) button:has(div[data-testid="stMarkdownContainer"] p:contains("[ AKTIV ]")),
+    /* Aktiv: Signal-Blau (heller) + weißer Rahmen + blaues Leuchten */
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(1) button:has(div[data-testid="stMarkdownContainer"] p:contains("AKTIV")),
     .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(1) button:has(p:contains("AKTIV")) {
-        animation: blink-steward-blau 1.3s linear infinite !important;
+        background-color: #00bfff !important;
         border: 3px solid white !important;
-        box-shadow: 0 0 15px rgba(0, 123, 255, 0.6) !important;
+        box-shadow: 0 0 15px rgba(0, 191, 255, 0.9) !important;
     }
 
-    /* Spalte 2 (Grün) zum Blinken bringen */
-    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(2) button:has(div[data-testid="stMarkdownContainer"] p:contains("[ AKTIV ]")),
+    /* ================= SPALTE 2: BIV (GRÜN) ================= */
+    /* Inaktiv: Normales Grün */
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(2) button {
+        background-color: #28a745 !important;
+        border: 2px solid transparent !important;
+        color: white !important;
+        box-shadow: none !important;
+    }
+    /* Aktiv: Gift-Grün (heller) + weißer Rahmen + grünes Leuchten */
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(2) button:has(div[data-testid="stMarkdownContainer"] p:contains("AKTIV")),
     .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(2) button:has(p:contains("AKTIV")) {
-        animation: blink-steward-gruen 1.3s linear infinite !important;
+        background-color: #2ecc71 !important;
         border: 3px solid white !important;
-        box-shadow: 0 0 15px rgba(40, 167, 69, 0.6) !important;
+        box-shadow: 0 0 15px rgba(46, 204, 113, 0.9) !important;
     }
 
-    /* Spalte 3 (Gelb) zum Blinken bringen */
-    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(3) button:has(div[data-testid="stMarkdownContainer"] p:contains("[ AKTIV ]")),
-    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(3) button:has(p:contains("AKTIV")) {
-        animation: blink-steward-gelb 1.3s linear infinite !important;
-        border: 3px solid white !important;
-        box-shadow: 0 0 15px rgba(255, 193, 7, 0.6) !important;
+    /* ================= SPALTE 3: NOM (GELB) ================= */
+    /* Inaktiv: Dunkleres/Mattes Gelb */
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(3) button {
+        background-color: #d39e00 !important;
+        border: 2px solid transparent !important;
         color: black !important;
+        box-shadow: none !important;
     }
+    /* Aktiv: Knall-Gelb + schwarzer Rahmen + gelbes Leuchten */
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(3) button:has(div[data-testid="stMarkdownContainer"] p:contains("AKTIV")),
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(3) button:has(p:contains("AKTIV")) {
+        background-color: #ffc107 !important;
+        border: 3px solid #black !important;
+        box-shadow: 0 0 15px rgba(255, 193, 7, 0.9) !important;
+    }
+
+    /* ================= SPALTE 4: GERICHTET (GRAU) ================= */
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(4) button {
+        background-color: #6c757d !important;
+        color: white !important;
+    }
+    
+    .lst-blink-btn > div > button {
+    animation: blinker 1.3s linear infinite !important;
+    border: 3px solid white !important; /* Weißer Rahmen hilft beim Blinken-Erkennen */
+}
 
 
 </style>
