@@ -135,9 +135,9 @@ st.markdown("""
 
     /* --- BUTTONS SPEZIFISCH IM STEWARD PANEL VERKLEINERN --- */
     div[data-testid="stHorizontalBlock"] div.stButton > button {
-        height: 25px !important;
-        min-height: 25px !important;
-        min-width: 10px !important;
+        height: 35px !important;
+        min-height: 35px !important;
+        min-width: 50px !important;
         padding: 0px 5px !important;
         font-size: 8px !important;
         line-height: 1 !important;
