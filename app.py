@@ -933,7 +933,7 @@ elif st.session_state.view == "Steward_Panel":
                 st.markdown("</div>", unsafe_allow_html=True)
                 
                    # Zieht eine saubere Linie und schafft 30px Platz zur nächsten Karte
-                st.markdown('<hr style="border: none; border-top: 2px solid #dcdcdc; margin-top: 15px; margin-bottom: 30px;">', unsafe_allow_html=True)
+                st.markdown('<hr style="border: none; border-top: 2px solid #000; margin-top: 0px; margin-bottom: 30px;">', unsafe_allow_html=True)
 
 # JUDGE VOTING
 elif st.session_state.view == "Judge_Voting":
