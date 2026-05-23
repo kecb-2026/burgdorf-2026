@@ -299,43 +299,46 @@ st.markdown("""
     .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(4) button:hover { background-color: #5a6268 !important; }
     
     
-          /* 1. Die Blink-Animationen fuer die jeweiligen Farben */
-    @keyframes blink-blau { 0%, 100% { background-color: #007bff !important; } 50% { background-color: rgba(0, 123, 255, 0.2) !important; } }
-    @keyframes blink-gruen { 0%, 100% { background-color: #28a745 !important; } 50% { background-color: rgba(40, 167, 69, 0.2) !important; } }
-    @keyframes blink-gelb { 0%, 100% { background-color: #ffc107 !important; } 50% { background-color: rgba(255, 193, 7, 0.2) !important; } }
+              /* 1. Die Farbanimationen definieren */
+    @keyframes blink-steward-blau {
+        0%, 100% { background-color: #007bff !important; }
+        50% { background-color: rgba(0, 123, 255, 0.2) !important; }
+    }
+    @keyframes blink-steward-gruen {
+        0%, 100% { background-color: #28a745 !important; }
+        50% { background-color: rgba(40, 167, 69, 0.2) !important; }
+    }
+    @keyframes blink-steward-gelb {
+        0%, 100% { background-color: #ffc107 !important; }
+        50% { background-color: rgba(255, 193, 7, 0.2) !important; }
+    }
 
-    /* 2. Direkter Zugriff ueber die von dir vergebenen Button-Keys */
+    /* 2. Brutale Spezifität über die Spalten erzwingen, wenn der Text aktiv ist */
     
-    /* Blau blinken, wenn der AUFRUFEN-Button aktiv ist */
-    .steward-card-wrapper button[key^="btn_rich_"],
-    .steward-card-wrapper div[data-testid*="btn_rich_"] button,
-    .steward-card-wrapper button:has(span:contains("[ AKTIV ]")) {
-        animation: blink-blau 1.3s linear infinite !important;
+    /* Spalte 1 (Blau) zum Blinken bringen */
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(1) button:has(div[data-testid="stMarkdownContainer"] p:contains("[ AKTIV ]")),
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(1) button:has(p:contains("AKTIV")) {
+        animation: blink-steward-blau 1.3s linear infinite !important;
         border: 3px solid white !important;
         box-shadow: 0 0 15px rgba(0, 123, 255, 0.6) !important;
     }
 
-    /* Gruen blinken, wenn der BIV-Button aktiv ist */
-    .steward-card-wrapper button[key^="btn_biv_"],
-    .steward-card-wrapper div[data-testid*="btn_biv_"] button,
-    .steward-card-wrapper button:has(span:contains("BIV")) {
-        animation: blink-gruen 1.3s linear infinite !important;
+    /* Spalte 2 (Grün) zum Blinken bringen */
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(2) button:has(div[data-testid="stMarkdownContainer"] p:contains("[ AKTIV ]")),
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(2) button:has(p:contains("AKTIV")) {
+        animation: blink-steward-gruen 1.3s linear infinite !important;
         border: 3px solid white !important;
         box-shadow: 0 0 15px rgba(40, 167, 69, 0.6) !important;
     }
 
-    /* Gelb blinken, wenn der NOM-Button aktiv ist */
-    .steward-card-wrapper button[key^="btn_nom_"],
-    .steward-card-wrapper div[data-testid*="btn_nom_"] button,
-    .steward-card-wrapper button:has(span:contains("NOM")) {
-        animation: blink-gelb 1.3s linear infinite !important;
+    /* Spalte 3 (Gelb) zum Blinken bringen */
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(3) button:has(div[data-testid="stMarkdownContainer"] p:contains("[ AKTIV ]")),
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(3) button:has(p:contains("AKTIV")) {
+        animation: blink-steward-gelb 1.3s linear infinite !important;
         border: 3px solid white !important;
         box-shadow: 0 0 15px rgba(255, 193, 7, 0.6) !important;
+        color: black !important;
     }
-
-</style>
-
-</style>
 
 
 </style>
