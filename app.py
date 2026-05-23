@@ -299,20 +299,19 @@ st.markdown("""
     .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(4) button:hover { background-color: #5a6268 !important; }
     
     
-        /* Erhöhte Spezifität, um die fixen Hintergrundfarben der Steward-Cards zu überschreiben */
-    .steward-card-wrapper .st-blink-btn div[data-testid="stBaseButton-secondary"] button,
-    .steward-card-wrapper .st-blink-btn div.stButton > button,
-    .st-blink-btn > div > button {
+          /* Sorgt dafür, dass die Keyframes global sauber laufen */
+    @keyframes blinker { 50% { opacity: 0.15; } }
+
+    /* Targetiert den direkt nachfolgenden Button in der Streamlit-Spaltenstruktur */
+    .st-blink-btn + div.stButton button,
+    .st-blink-btn + div[data-testid="stBaseButton-secondary"] button,
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] div:has(+ .st-blink-btn) button,
+    .st-blink-btn button {
         animation: blinker 1.3s linear infinite !important;
-        box-shadow: 0 0 15px rgba(255, 255, 255, 0.7) !important;
+        border: 3px solid white !important;
+        box-shadow: 0 0 15px rgba(255, 255, 255, 0.8) !important;
     }
 
-    /* Fallback über das Aria-Label von Streamlit, falls die HTML-Verschachtelung bricht */
-    .steward-card-wrapper button[aria-label*="AKTIV"] {
-        animation: blinker 1.3s linear infinite !important;
-    }
-
-</style>
 
 </style>
 
