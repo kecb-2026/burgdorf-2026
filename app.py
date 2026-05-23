@@ -26,7 +26,11 @@ LOGO_URL = "logo_kecb.png"
 
 st.markdown("""
     <style>
-    @keyframes blinker { 50% { opacity: 0.1; } }
+    @keyframes blinker { 
+    0% { opacity: 1; }
+    50% { opacity: 0.3; transform: scale(0.95); }
+    100% { opacity: 1; }
+}
     @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
 
 @keyframes flashGreen {
