@@ -305,6 +305,9 @@ st.markdown("""
 }
 
 
+
+</style>
+
 /* --- EXTRA-REGEL NUR FÜR DAS STEWARD PANEL (LÄSST DAS DASHBOARD IN RUHE) --- */
 
 /* Wir greifen die Buttons im Steward-Panel ab, WENN sie sich in deiner Blink-Box befinden */
@@ -320,7 +323,7 @@ st.markdown("""
     .steward-card-wrapper button[aria-label*="AKTIV"] {
     animation: blinker 1.3s linear infinite !important;
 }
-</style>
+
     """, unsafe_allow_html=True)
 
 # --- 2. GLOBALER SPEICHER ---
