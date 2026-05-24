@@ -1292,6 +1292,10 @@ elif st.session_state.view == "Nominated_Cats":
         else:
             st.info("In der Excel-Datei (Spalte 'SELECTION') sind aktuell keine Katzen mit 'X' nominiert.")
             
+    if st.button("⬅️ Zurück zum Hauptmenü", key="back_from_nom"):
+        set_view("Home")
+        
+            
 # --- NEUER MENÜPUNKT: JUDGE LIST ---
 elif st.session_state.view == "Judge_List" or st.session_state.view == "Judge List":
     display_header_with_logo("📊 Judge List (Meldestatistik)")
@@ -1406,7 +1410,7 @@ elif st.session_state.view == "Judge_List" or st.session_state.view == "Judge Li
         else:
             st.info("Bitte wähle einen Richter aus der Liste aus, um die Judge List anzuzeigen.")
             
-    if st.button("⬅️ Zurück zum Hauptmenü", key="back_from_nom"):
+    if st.button("⬅️ Zurück zum Hauptmenü", key="back_from_judgebook"):
         set_view("Home")
 
 # --- EIGENSTÄNDIGE VIEW: NOMINATION LABELS DRUCK ---
