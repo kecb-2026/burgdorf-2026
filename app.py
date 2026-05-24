@@ -593,6 +593,11 @@ elif st.session_state.view == "Home":
             st.query_params.update({"view": "qr", "auth": "true", "role": "Admin"})
             set_view("QR_Codes")
             st.rerun()
+             # NEU: Button für die nominierten Katzen
+        if st.button("🐈 NOMINIERTE KATZEN LISTE"):
+            st.query_params.update({"view": "nominated", "auth": "true", "role": "Admin"})
+            set_view("Nominated_Cats")
+            st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
     
     st.divider()
