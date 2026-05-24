@@ -1142,8 +1142,8 @@ elif st.session_state.view == "QR_Codes":
             else:
                 st.write("Keine Richter für Tag 2 gefunden.")
                 
-        if st.button("⬅️ Zurück zum Hauptmenü", key="back_from_qrcode"):
-            set_view("Home")
+    if st.button("⬅️ Zurück zum Hauptmenü", key="back_from_qrcode"):
+        set_view("Home")
 	
                 
                 
