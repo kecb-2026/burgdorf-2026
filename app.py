@@ -1,5 +1,3 @@
-
-
 # -*- coding: utf-8 -*-
 
 """
@@ -1122,6 +1120,158 @@ elif st.session_state.view == "QR_Codes":
                         st.write("---")
             else:
                 st.write("Keine Richter für Tag 2 gefunden.")
+                
+                
+# --- NEUER MENÜPUNKT: NOMINIERTE KATZEN (VOLLE FILTER- & SORTIERFUNKTION) ---
+elif st.session_state.view == "Nominated_Cats":
+    display_header_with_logo("🏅 Nominierte Katzen (Admin-Zentrale)")
+    
+    df_full = load_labels()
+    
+    if df_full is not None:
+        df_nominierte = df_full[df_full['SELECTION'].astype(str).str.upper() == 'X'].copy()
+        
+        if not df_nominierte.empty:
+            nominated_data = []
+            
+            for _, row in df_nominierte.iterrows():
+                kat_nr = row.get('KAT_STR', str(row.get('KATALOG-NR', ''))).replace('.0', '')
+                
+                richter_t1 = row.get('RICHTER TAG 1', row.get('RICHTER 1', ''))
+                richter_t2 = row.get('RICHTER TAG 2', row.get('RICHTER 2', ''))
+                
+                is_tag1 = str(row.get('TAG 1', '')).upper() == 'X'
+                is_tag2 = str(row.get('TAG 2', '')).upper() == 'X'
+                
+                richter_name = "-"
+                ausstellungstag = "-"
+                if is_tag1 and pd.notna(richter_t1) and str(richter_t1) != "nan":
+                    richter_name = richter_t1
+                    ausstellungstag = "Tag 1 (Sa)"
+                elif is_tag2 and pd.notna(richter_t2) and str(richter_t2) != "nan":
+                    richter_name = richter_t2
+                    ausstellungstag = "Tag 2 (So)"
+                else:
+                    if pd.notna(richter_t1) and str(richter_t1) != "nan": richter_name = richter_t1; ausstellungstag = "Tag 1"
+                    elif pd.notna(richter_t2) and str(richter_t2) != "nan": richter_name = richter_t2; ausstellungstag = "Tag 2"
+
+                klasse = row.get('KLASSE_INTERNAL', row.get('AUSSTELLUNGSKLASSE', row.get('KLASSE', '-')))
+                fg_cols = [c for c in row.index if "FARBGRUPPE" in c or "FARB-GRUPPE" in c]
+                farbgruppe = row[fg_cols[0]] if fg_cols else row.get('FARBGRUPPE', '-')
+                
+                geb_cols = [c for c in row.index if "GEB" in c or "GEBURT" in c]
+                geb_datum = row[geb_cols[0]] if geb_cols else row.get('GEB_DATUM', '-')
+                if isinstance(geb_datum, pd.Timestamp): 
+                    geb_datum = geb_datum.strftime('%d.%m.%Y')
+                
+                nominated_data.append({
+                    "Katalog-Nr.": kat_nr,
+                    "Rasse": row.get('RASSE', '-'),
+                    "Farbcode": row.get('FARBE', '-'),
+                    "Geburtsdatum": geb_datum,
+                    "Geschlecht": row.get('GESCHLECHT', '-'),
+                    "Kategorie": row.get('KATEGORIE', '-'),
+                    "Klasse": klasse,
+                    "Richter": richter_name,
+                    "Tag": ausstellungstag
+                })
+            
+            df_nom_display = pd.DataFrame(nominated_data)
+            
+            # --- SEKTION: FILTER & SORTIERUNG (RASTER-LAYOUT) ---
+            st.markdown("### 🔍 Filter & Sortierung")
+            
+            # Erste Filterzeile (Richter & Kategorie)
+            c_f1, c_f2 = st.columns(2)
+            with c_f1:
+                richter_optionen = ["Alle Richter"] + sorted([r for r in df_nom_display['Richter'].unique() if r != "-"])
+                wahl_richter = st.selectbox("Nach Richter filtern:", richter_optionen)
+            with c_f2:
+                kat_optionen = ["Alle Kategorien"] + sorted([str(k) for k in df_nom_display['Kategorie'].unique() if k != "-"])
+                wahl_kategorie = st.selectbox("Nach Kategorie filtern:", kat_optionen)
+                
+            # Zweite Filterzeile (Klasse & Geschlecht)
+            c_f3, c_f4 = st.columns(2)
+            with c_f3:
+                klasse_optionen = ["Alle Klassen"] + sorted([str(kl) for kl in df_nom_display['Klasse'].unique() if kl != "-"])
+                wahl_klasse = st.selectbox("Nach Klasse filtern:", klasse_optionen)
+            with c_f4:
+                geschlecht_optionen = ["Alle Geschlechter"] + sorted([str(g) for g in df_nom_display['Geschlecht'].unique() if g != "-"])
+                wahl_geschlecht = st.selectbox("Nach Geschlecht filtern:", geschlecht_optionen)
+            
+            # Sortierzeile (Volle Breite darunten)
+            c_s, _ = st.columns([1, 1])
+            with c_s:
+                sort_options = {
+                    "Katalog-Nr.": "Katalog-Nr.",
+                    "Rasse": "Rasse",
+                    "Kategorie": "Kategorie",
+                    "Klasse": "Klasse",
+                    "Geschlecht": "Geschlecht",
+                    "Richter": "Richter"
+                }
+                wahl_sortierung = st.selectbox("Primär sortieren nach:", list(sort_options.keys()))
+            
+            # --- FILTER LOGIK ANWENDEN ---
+            if wahl_richter != "Alle Richter":
+                df_nom_display = df_nom_display[df_nom_display['Richter'] == wahl_richter]
+                
+            if wahl_kategorie != "Alle Kategorien":
+                df_nom_display = df_nom_display[df_nom_display['Kategorie'] == wahl_kategorie]
+                
+            if wahl_klasse != "Alle Klassen":
+                df_nom_display = df_nom_display[df_nom_display['Klasse'] == wahl_klasse]
+                
+            if wahl_geschlecht != "Alle Geschlechter":
+                df_nom_display = df_nom_display[df_nom_display['Geschlecht'] == wahl_geschlecht]
+                
+            # --- SORTIER LOGIK ANWENDEN ---
+            if wahl_sortierung == "Katalog-Nr.":
+                df_nom_display = df_nom_display.sort_values(by="Katalog-Nr.", key=lambda x: pd.to_numeric(x, errors='coerce'))
+            else:
+                df_nom_display = df_nom_display.sort_values(by=sort_options[wahl_sortierung])
+            # -------------------------------------
+
+            # Ergebnismeldung anpassen
+            st.success(f"Gefunden: {len(df_nom_display)} nominierte Katze(n) mit den gewählten Filtern.")
+            
+            # Registerkarten zur Anzeige
+            tab_alle, tab_t1, tab_t2 = st.tabs(["Alle anzeigen", "Tag 1 (Samstag)", "Tag 2 (Sonntag)"])
+            
+            with tab_alle:
+                if not df_nom_display.empty:
+                    st.dataframe(df_nom_display, use_container_width=True, hide_index=True)
+                else:
+                    st.info("Keine Einträge für diese Filterkombination.")
+            
+            with tab_t1:
+                df_t1 = df_nom_display[df_nom_display['Tag'].str.contains('Tag 1')]
+                if not df_t1.empty:
+                    st.dataframe(df_t1, use_container_width=True, hide_index=True)
+                else:
+                    st.info("Keine passenden Nominationen für Tag 1 vorhanden.")
+                    
+            with tab_t2:
+                df_t2 = df_nom_display[df_nom_display['Tag'].str.contains('Tag 2')]
+                if not df_t2.empty:
+                    st.dataframe(df_t2, use_container_width=True, hide_index=True)
+                else:
+                    st.info("Keine passenden Nominationen für Tag 2 vorhanden.")
+
+            # CSV Download (berücksichtigt alle aktiven Filter und Sortierungen!)
+            if not df_nom_display.empty:
+                csv = df_nom_display.to_csv(index=False).encode('utf-8-sig')
+                st.download_button(
+                    label="📥 Gefilterte Liste als CSV herunterladen",
+                    data=csv,
+                    file_name="nominierte_katzen_gefiltert.csv",
+                    mime="text/csv",
+                )
+        else:
+            st.info("In der Excel-Datei (Spalte 'SELECTION') sind aktuell keine Katzen mit 'X' nominiert.")
+            
+    if st.button("⬅️ Zurück zum Hauptmenü"):
+        set_view("Home")
 
 # ADMIN PANEL
 elif st.session_state.view == "Admin_Panel":
