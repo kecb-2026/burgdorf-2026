@@ -1409,7 +1409,7 @@ elif st.session_state.view == "Judge_List" or st.session_state.view == "Judge Li
 # --- EIGENSTÄNDIGE VIEW: NOMINATION LABELS DRUCK ---
 elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
     display_header_with_logo("🖨️ Nomination Labels Druckzentrale")
-    st.write("Generiere hier die exakten Druck-Labels (8 Stück pro A4-Seite) für alle nominierten Katzen.")
+    st.write("Generiere hier die exakten Druck-Labels (8 Stück pro A4-Seite). Jede Klasse beginnt ein neues Blatt.")
     
     df_full = load_labels()
     
@@ -1420,7 +1420,7 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
         if not df_nominierte.empty:
             st.info(f"Aktuell sind **{len(df_nominierte)}** Katzen für den Labeldruck bereit.")
             
-            # ABSOLUT STABILE IMPORTS FÜR STREAMLIT CLOUD
+            # ABSOLUT STABILE IMPORTS
             import reportlab
             from reportlab.lib.pagesizes import A4
             from reportlab.pdfgen import canvas
@@ -1431,138 +1431,174 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
                 buffer = BytesIO()
                 c = canvas.Canvas(buffer, pagesize=A4)
                 
-                # Avery J8165 exakte Maße (99.1 x 67.7 mm, Ränder: oben 13.1, links 5.9)
+                # Avery J8165 exakte Maße
                 mm = 2.83464
                 label_width = 99.1 * mm
                 label_height = 67.7 * mm
                 margin_left = 5.9 * mm
                 margin_top = 13.1 * mm
                 
-                # Farb-Mapping: Ohne Dubletten mit den neuen, klaren Farben
                 color_map = {
-                    "AM": colors.HexColor("#ffff00"),   # Gelb: Adult Male
-                    "AW": colors.HexColor("#ff99cc"),   # Rosa: Adult Female
-                    "KM": colors.HexColor("#99cc00"),   # Grün: Kastrat Male
-                    "KW": colors.HexColor("#33ccff"),   # Blau: Kastrat Female
-                    "JM": colors.HexColor("#cc99ff"),   # Pastell-Lila: Jugend 8-12 Male
-                    "JW": colors.HexColor("#e60073"),   # Kräftiges Beeren-Pink: Jugend 8-12 Female
-                    "KiM": colors.HexColor("#ffbf00"),  # Bernstein-Gelb: Kitten 4-8 Male
-                    "KiW": colors.HexColor("#ff6600")   # Orange: Kitten 4-8 Female
+                    "AM": colors.HexColor("#ffff00"),   # Gelb
+                    "AW": colors.HexColor("#ff99cc"),   # Rosa
+                    "KM": colors.HexColor("#99cc00"),   # Grün
+                    "KW": colors.HexColor("#33ccff"),   # Blau
+                    "JM": colors.HexColor("#cc99ff"),   # Pastell-Lila
+                    "JW": colors.HexColor("#e60073"),   # Kräftiges Beeren-Pink
+                    "KiM": colors.HexColor("#ffbf00"),  # Bernstein-Gelb
+                    "KiW": colors.HexColor("#ff6600")   # Orange
                 }
                 
-                count = 0
-                for _, row in df.iterrows():
-                    page_idx = count % 8
-                    if page_idx == 0 and count > 0:
-                        c.showPage()
-                        
-                    col = page_idx % 2
-                    row_idx = page_idx // 2
-                    
-                    # Platzierung berechnen
-                    x = margin_left + (col * label_width)
-                    y = (297 * mm) - margin_top - ((row_idx + 1) * label_height)
-                    
-                    # Daten auslesen
-                    kat_nr = str(row.get('KAT_STR', '')).replace('.0', '')
-                    kategorie = str(row.get('KATEGORIE', '')).replace('.0', '')
-                    klasse = str(row.get('KLASSE_INTERNAL', row.get('KLASSE', ''))).replace('.0', '')
+                # --- HILFSFELDER FÜR DIE SORTIERUNG ERZEUGEN ---
+                sorted_rows = []
+                for idx, row in df.iterrows():
+                    klasse_str = str(row.get('KLASSE_INTERNAL', row.get('KLASSE', ''))).replace('.0', '')
                     sex = str(row.get('GESCHLECHT', '')).strip().upper()
-                    rasse = str(row.get('RASSE', ''))
-                    farbe = str(row.get('FARBE', ''))
-                    ems_code = f"{rasse} {farbe}".strip()
+                    kat_nr_str = str(row.get('KAT_STR', '')).replace('.0', '')
                     
-                    geb_cols = [col for col in row.index if "GEB" in col or "GEBURT" in col]
-                    geb_datum = row[geb_cols[0]] if geb_cols else row.get('GEB_DATUM', '-')
-                    if isinstance(geb_datum, pd.Timestamp):
-                        geb_datum = geb_datum.strftime('%d.%m.%Y')
-                    
-                    # Badge-Ermittlung
-                    badge_text = "AM"
-                    badge_label = "Adult M"
                     try:
-                        kl_num = int(klasse)
+                        kat_nr_sort = int(kat_nr_str)
+                    except:
+                        kat_nr_sort = 9999
+                    
+                    badge_key = "AM"
+                    badge_label = "Adult M"
+                    sort_order = 0
+                    
+                    try:
+                        kl_num = int(klasse_str)
                         is_male = (sex in ["1,0", "M", "MALE"])
                         if kl_num in [1, 3, 5, 7, 9]:
-                            badge_text = "AM" if is_male else "AW"
+                            badge_key = "AM" if is_male else "AW"
                             badge_label = "Adult M" if is_male else "Adult W"
+                            sort_order = 0 if is_male else 1
                         elif kl_num in [2, 4, 6, 8, 10]:
-                            badge_text = "KM" if is_male else "KW"
+                            badge_key = "KM" if is_male else "KW"
                             badge_label = "Kastrat M" if is_male else "Kastrat W"
+                            sort_order = 2 if is_male else 3
                         elif kl_num == 11:
-                            badge_text = "JM" if is_male else "JW"
+                            badge_key = "JM" if is_male else "JW"
                             badge_label = "8-12 M" if is_male else "8-12 W"
+                            sort_order = 4 if is_male else 5
                         elif kl_num == 12:
-                            badge_text = "KiM" if is_male else "KiW"
+                            badge_key = "KiM" if is_male else "KiW"
                             badge_label = "4-8 M" if is_male else "4-8 W"
+                            sort_order = 6 if is_male else 7
                     except:
                         if "K" in sex or "N" in sex:
-                            badge_text = "KM" if "M" in sex else "KW"
+                            badge_key = "KM" if "M" in sex else "KW"
                             badge_label = "MN" if "M" in sex else "FN"
+                            sort_order = 2 if "M" in sex else 3
                         else:
-                            badge_text = "AM"
-                            badge_label = f"{klasse} {sex}"
+                            badge_key = "AM"
+                            badge_label = f"{klasse_str} {sex}"
+                            sort_order = 8
+                    
+                    row_data = row.to_dict()
+                    row_data['_sort_kat'] = str(row.get('KATEGORIE', '9')).replace('.0', '')
+                    row_data['_sort_class'] = sort_order
+                    row_data['_sort_kat_nr'] = kat_nr_sort
+                    row_data['_badge_key'] = badge_key
+                    row_data['_badge_label'] = badge_label
+                    row_data['_clean_kat_nr'] = kat_nr_str
+                    row_data['_clean_klasse'] = klasse_str
+                    sorted_rows.append(row_data)
+                
+                df_sorted = pd.DataFrame(sorted_rows)
+                df_sorted = df_sorted.sort_values(by=['_sort_kat', '_sort_class', '_sort_kat_nr']).reset_index(drop=True)
+                
+                # Gruppierung nach Kategorie und der berechneten Klasse
+                grouped = df_sorted.groupby(['_sort_kat', '_sort_class'])
+                
+                is_first_page = True
+                
+                for (kat_name, class_idx), group in grouped:
+                    if not is_first_page:
+                        c.showPage()
+                    is_first_page = False
+                    
+                    count = 0
+                    for _, row in group.iterrows():
+                        if count > 0 and count % 8 == 0:
+                            c.showPage()
+                            
+                        page_idx = count % 8
+                        col = page_idx % 2
+                        row_idx = page_idx // 2
                         
-                    badge_bg = color_map.get(badge_text, colors.HexColor("#99cc00"))
-                    
-                    # --- ZEICHNEN ---
-                    c.saveState()
-                    
-                    # Haardünner Rahmen als Schneidehilfe
-                    c.setStrokeColor(colors.HexColor("#e5e5e5"))
-                    c.setLineWidth(0.2)
-                    c.rect(x, y, label_width, label_height)
-                    
-                    # Oben Links: Kategorie (z.B. "3")
-                    c.setFont("Helvetica", 14)
-                    c.setFillColor(colors.black)
-                    c.drawString(x + 6*mm, y + label_height - 10*mm, kategorie)
-                    
-                    # Oben Rechts: Farbiger Badge-Kasten
-                    badge_w = 22 * mm
-                    badge_h = 6 * mm
-                    bx = x + label_width - badge_w - 6*mm
-                    by = y + label_height - 11*mm
-                    
-                    c.setFillColor(badge_bg)
-                    c.rect(bx, by, badge_w, badge_h, fill=1, stroke=0)
-                    
-                    # Text im Badge zentrieren
-                    c.setFillColor(colors.black)
-                    c.setFont("Helvetica-Bold", 11)
-                    c.drawCentredString(bx + (badge_w / 2), by + 1.8*mm, badge_label)
-                    
-                    # Mitte: Große Katalognummer
-                    c.setFont("Helvetica", 46)
-                    c.drawCentredString(x + (label_width / 2), y + (label_height / 2) - 4*mm, kat_nr)
-                    
-                    # Unten Links: Rasse / EMS (z.B. "BSH a")
-                    c.setFont("Helvetica", 12)
-                    c.drawString(x + 6*mm, y + 10*mm, ems_code)
-                    
-                    # Unten Rechts: Geburtsdatum (z.B. "08.08.2024")
-                    c.setFont("Helvetica", 12)
-                    c.drawRightString(x + label_width - 6*mm, y + 10*mm, str(geb_datum))
-                    
-                    c.restoreState()
-                    count += 1
+                        x = margin_left + (col * label_width)
+                        y = (297 * mm) - margin_top - ((row_idx + 1) * label_height)
+                        
+                        kat_nr = row['_clean_kat_nr']
+                        kategorie = row['_sort_kat']
+                        badge_label = row['_badge_label']
+                        badge_bg = color_map.get(row['_badge_key'], colors.HexColor("#99cc00"))
+                        
+                        rasse = str(row.get('RASSE', ''))
+                        farbe = str(row.get('FARBE', ''))
+                        ems_code = f"{rasse} {farbe}".strip()
+                        
+                        geb_cols = [col for col in row.index if "GEB" in col or "GEBURT" in col]
+                        geb_datum = row[geb_cols[0]] if geb_cols else row.get('GEB_DATUM', '-')
+                        if isinstance(geb_datum, pd.Timestamp):
+                            geb_datum = geb_datum.strftime('%d.%m.%Y')
+                        
+                        # --- ZEICHNEN ---
+                        c.saveState()
+                        
+                        # Haardünner Rahmen (Schneide-/Ablösehilfe)
+                        c.setStrokeColor(colors.HexColor("#e5e5e5"))
+                        c.setLineWidth(0.2)
+                        c.rect(x, y, label_width, label_height)
+                        
+                        # Oben Links: Kategorie
+                        c.setFont("Helvetica", 14)
+                        c.setFillColor(colors.black)
+                        c.drawString(x + 6*mm, y + label_height - 10*mm, kategorie)
+                        
+                        # Oben Rechts: Farbiger Badge
+                        badge_w = 22 * mm
+                        badge_h = 6 * mm
+                        bx = x + label_width - badge_w - 6*mm
+                        by = y + label_height - 11*mm
+                        
+                        c.setFillColor(badge_bg)
+                        c.rect(bx, by, badge_w, badge_h, fill=1, stroke=0)
+                        
+                        c.setFillColor(colors.black)
+                        c.setFont("Helvetica-Bold", 11)
+                        c.drawCentredString(bx + (badge_w / 2), by + 1.8*mm, badge_label)
+                        
+                        # Mitte: Große Katalognummer
+                        c.setFont("Helvetica", 46)
+                        c.drawCentredString(x + (label_width / 2), y + (label_height / 2) - 4*mm, kat_nr)
+                        
+                        # Unten Links: Rasse / EMS
+                        c.setFont("Helvetica", 12)
+                        c.drawString(x + 6*mm, y + 10*mm, ems_code)
+                        
+                        # Unten Rechts: Geburtsdatum
+                        c.setFont("Helvetica", 12)
+                        c.drawRightString(x + label_width - 6*mm, y + 10*mm, str(geb_datum))
+                        
+                        c.restoreState()
+                        count += 1
                 
                 c.save()
                 buffer.seek(0)
                 return buffer.getvalue()
 
-            # Download-Button
+            # PDF Download Button
             pdf_labels = generate_avery_labels(df_nominierte)
             st.download_button(
                 label="📥 Avery Zweckform PDF generieren & herunterladen",
                 data=pdf_labels,
-                file_name="KECB_Nomination_Labels.pdf",
+                file_name="KECB_Nomination_Labels_Sorted.pdf",
                 mime="application/pdf"
             )
             
-            st.write("### Vorschau der enthaltenen Katzen:")
-            st.dataframe(df_nominierte[['KAT_STR', 'KATEGORIE', 'KLASSE_INTERNAL', 'GESCHLECHT', 'RASSE', 'FARBE']], use_container_width=True, hide_index=True)
-
+            st.write("### Vorschau der sortierten Druck-Reihenfolge:")
+            st.dataframe(df_nominierte[['KAT_STR', 'KATEGORIE', 'KLASSE', 'GESCHLECHT', 'RASSE', 'FARBE']], use_container_width=True, hide_index=True)
 
 # ADMIN PANEL
 elif st.session_state.view == "Admin_Panel":
