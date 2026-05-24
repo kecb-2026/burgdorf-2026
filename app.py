@@ -608,6 +608,10 @@ elif st.session_state.view == "Home":
             st.query_params.update({"view": "judge-list", "auth": "true", "role": "Admin"})
             set_view("Judge_List")
             st.rerun()
+        if st.button("🖨️ NOMINATION LABELS DRUCK"):
+            st.query_params.update({"view": "nom-labels", "auth": "true", "role": "Admin"})
+            set_view("Nomination_Labels")
+            st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
     
     st.divider()
