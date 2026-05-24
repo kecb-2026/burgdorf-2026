@@ -1601,6 +1601,19 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
             # SAFE VORSCHAU: Holt nur die Spalten, die garantiert existieren
             st.write("### Vorschau der enthaltenen Katzen:")
             verfuegbare_spalten = [col for col in ['KAT_STR', 'KATEGORIE', 'KLASSE_INTERNAL', 'GESCHLECHT', 'RASSE', 'FARBE'] if col in df_nominierte.columns]
+            
+            # Schöne Namen für die Anzeige definieren
+            schoene_namen = {
+                "KAT_STR": "Kat.-Nr.",
+                "KATEGORIE": "Kategorie",
+                "KLASSE_INTERNAL": "Klasse",
+                "GESCHLECHT": "Geschlecht",
+                "RASSE": "Rasse",
+                "FARBE": "Farbe"
+            }
+            
+            # Nur die Konfigurationen übergeben, deren Spalten auch wirklich da sind
+            aktuelle_config = {col: schoene_namen[col] for col in verfuegbare_spalten if col in schoene_namen}
             st.dataframe(df_nominierte[verfuegbare_spalten], use_container_width=True, hide_index=True)
 
 
