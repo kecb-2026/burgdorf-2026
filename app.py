@@ -1313,6 +1313,11 @@ elif st.session_state.view == "Judge_List" or st.session_state.view == "Judge Li
             
             st.divider()
             
+            # --- NEU: ANZAHL DER KATZEN ANZEIGEN ---
+            anzahl_katzen = len(df_filtered)
+            st.metric(label="Gemeldete Katzen in dieser Auswahl", value=f"{anzahl_katzen} Katzen")
+            # ---------------------------------------
+            
             # Vorbereitung der Tabellendaten
             table_rows = []
             
