@@ -1639,6 +1639,9 @@ elif st.session_state.view == "Admin_Panel":
         store.active_overlay = None
         st.success("Speicher geleert!")
         
+    if st.button("⬅️ Zurück zum Hauptmenü", key="back_from_admin"):
+        set_view("Home")
+        
         
         
         
