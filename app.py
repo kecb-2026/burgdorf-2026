@@ -1617,7 +1617,7 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
             st.dataframe(df_nominierte[verfuegbare_spalten], column_config=aktuelle_config, use_container_width=True, hide_index=True)
             
         if st.button("⬅️ Zurück zum Hauptmenü", key="back_from_labels"):
-        set_view("Home")
+            set_view("Home")
 
 
 
