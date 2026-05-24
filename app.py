@@ -1141,6 +1141,9 @@ elif st.session_state.view == "QR_Codes":
                         st.write("---")
             else:
                 st.write("Keine Richter für Tag 2 gefunden.")
+                
+        if st.button("⬅️ Zurück zum Hauptmenü", key="back_from_qrcode"):
+            set_view("Home")
 	
                 
                 
@@ -1298,7 +1301,7 @@ elif st.session_state.view == "Nominated_Cats":
             
 # --- NEUER MENÜPUNKT: JUDGE LIST ---
 elif st.session_state.view == "Judge_List" or st.session_state.view == "Judge List":
-    display_header_with_logo("📊 Judge List (Meldestatistik)")
+    display_header_with_logo("📊 Judge Book")
     st.write("Sieh sofort, welche Katzen in den jeweiligen Klassen direkt gegeneinander antreten.")
     
     df_full = load_labels()
