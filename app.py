@@ -1405,6 +1405,9 @@ elif st.session_state.view == "Judge_List" or st.session_state.view == "Judge Li
                 st.info("Keine Katzen für diese Auswahl gemeldet.")
         else:
             st.info("Bitte wähle einen Richter aus der Liste aus, um die Judge List anzuzeigen.")
+            
+            if st.button("⬅️ Zurück zum Hauptmenü", key="back_from_nom"):
+            set_view("Home")
 
 # --- EIGENSTÄNDIGE VIEW: NOMINATION LABELS DRUCK ---
 elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
