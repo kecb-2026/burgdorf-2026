@@ -1315,7 +1315,7 @@ elif st.session_state.view == "Judge_List" or st.session_state.view == "Judge Li
             
             # --- NEU: ANZAHL DER KATZEN ANZEIGEN ---
             anzahl_katzen = len(df_filtered)
-            st.markdown(label="Gemeldete Katzen in dieser Auswahl", value=f"{anzahl_katzen} Katzen")
+            st.markdown(f"**Gemeldete Katzen in dieser Auswahl:** {anzahl_katzen}")
             # ---------------------------------------
             
             # Vorbereitung der Tabellendaten
