@@ -1445,9 +1445,9 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
                     "AW": colors.HexColor("#ff99cc"),   # Rosa
                     "KM": colors.HexColor("#99cc00"),   # Grün (z.B. Kat 40: MN / Kastrat)
                     "KW": colors.HexColor("#33ccff"),   # Blau
-                    "JM": colors.HexColor("#cc99ff"),   # Lila
+                    "JM": colors.HexColor("#e60730"),   # Magenta
                     "JW": colors.HexColor("#cc99ff"),   # Lila (z.B. Kat 5 / Kat 40: 8-12 W)
-                    "KiM": colors.HexColor("#ffff00"),  # Gelb
+                    "KiM": colors.HexColor("#ffbf00"),  # Bernstein
                     "KiW": colors.HexColor("#ff6600")   # Orange (z.B. Kat 1 / Kat 41: 4-8 W)
                 }
                 
