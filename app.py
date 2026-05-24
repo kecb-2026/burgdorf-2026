@@ -1429,7 +1429,6 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
 
             def generate_avery_labels(df):
                 buffer = BytesIO()
-                # Nutze direkt das großgeschriebene A4 Objekt
                 c = canvas.Canvas(buffer, pagesize=A4)
                 
                 # Avery J8165 exakte Maße (99.1 x 67.7 mm, Ränder: oben 13.1, links 5.9)
@@ -1439,16 +1438,16 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
                 margin_left = 5.9 * mm
                 margin_top = 13.1 * mm
                 
-                # Farb-Mapping exakt nach deinen hochgeladenen Screenshots:
+                # Farb-Mapping: Ohne Dubletten mit den neuen, klaren Farben
                 color_map = {
-                    "AM": colors.HexColor("#ffff00"),   # Gelb (z.B. Kat 1: 4-8 M)
-                    "AW": colors.HexColor("#ff99cc"),   # Rosa
-                    "KM": colors.HexColor("#99cc00"),   # Grün (z.B. Kat 40: MN / Kastrat)
-                    "KW": colors.HexColor("#33ccff"),   # Blau
-                    "JM": colors.HexColor("#e60730"),   # Magenta
-                    "JW": colors.HexColor("#cc99ff"),   # Lila (z.B. Kat 5 / Kat 40: 8-12 W)
-                    "KiM": colors.HexColor("#ffbf00"),  # Bernstein
-                    "KiW": colors.HexColor("#ff6600")   # Orange (z.B. Kat 1 / Kat 41: 4-8 W)
+                    "AM": colors.HexColor("#ffff00"),   # Gelb: Adult Male
+                    "AW": colors.HexColor("#ff99cc"),   # Rosa: Adult Female
+                    "KM": colors.HexColor("#99cc00"),   # Grün: Kastrat Male
+                    "KW": colors.HexColor("#33ccff"),   # Blau: Kastrat Female
+                    "JM": colors.HexColor("#cc99ff"),   # Pastell-Lila: Jugend 8-12 Male
+                    "JW": colors.HexColor("#e60073"),   # Kräftiges Beeren-Pink: Jugend 8-12 Female
+                    "KiM": colors.HexColor("#ffbf00"),  # Bernstein-Gelb: Kitten 4-8 Male
+                    "KiW": colors.HexColor("#ff6600")   # Orange: Kitten 4-8 Female
                 }
                 
                 count = 0
@@ -1478,7 +1477,7 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
                     if isinstance(geb_datum, pd.Timestamp):
                         geb_datum = geb_datum.strftime('%d.%m.%Y')
                     
-                    # Dynamische Badge-Ermittlung anhand deiner Vorlagen
+                    # Badge-Ermittlung
                     badge_text = "AM"
                     badge_label = "Adult M"
                     try:
@@ -1514,7 +1513,7 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
                     c.setLineWidth(0.2)
                     c.rect(x, y, label_width, label_height)
                     
-                    # Oben Links: Kategorie (z.B. "1")
+                    # Oben Links: Kategorie (z.B. "3")
                     c.setFont("Helvetica", 14)
                     c.setFillColor(colors.black)
                     c.drawString(x + 6*mm, y + label_height - 10*mm, kategorie)
@@ -1537,17 +1536,13 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
                     c.setFont("Helvetica", 46)
                     c.drawCentredString(x + (label_width / 2), y + (label_height / 2) - 4*mm, kat_nr)
                     
-                    # Unten Links: Rasse / EMS (z.B. "EXO w 62")
+                    # Unten Links: Rasse / EMS (z.B. "BSH a")
                     c.setFont("Helvetica", 12)
-                    c.drawString(x + 6*mm, y + 14*mm, ems_code)
+                    c.drawString(x + 6*mm, y + 10*mm, ems_code)
                     
-                    # Ganz unten links: Klasse nochmals als kleine Zahl
-                    c.setFont("Helvetica", 11)
-                    c.drawString(x + 6*mm, y + 6*mm, klasse)
-                    
-                    # Unten Rechts: Geburtsdatum
+                    # Unten Rechts: Geburtsdatum (z.B. "08.08.2024")
                     c.setFont("Helvetica", 12)
-                    c.drawRightString(x + label_width - 6*mm, y + 14*mm, str(geb_datum))
+                    c.drawRightString(x + label_width - 6*mm, y + 10*mm, str(geb_datum))
                     
                     c.restoreState()
                     count += 1
@@ -1567,6 +1562,7 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
             
             st.write("### Vorschau der enthaltenen Katzen:")
             st.dataframe(df_nominierte[['KAT_STR', 'KATEGORIE', 'KLASSE_INTERNAL', 'GESCHLECHT', 'RASSE', 'FARBE']], use_container_width=True, hide_index=True)
+
 
 # ADMIN PANEL
 elif st.session_state.view == "Admin_Panel":
