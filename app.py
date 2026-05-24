@@ -1279,8 +1279,7 @@ elif st.session_state.view == "Nominated_Cats":
         else:
             st.info("In der Excel-Datei (Spalte 'SELECTION') sind aktuell keine Katzen mit 'X' nominiert.")
             
-    if st.button("⬅️ Zurück zum Hauptmenü"):
-        set_view("Home")
+
 
 # ADMIN PANEL
 elif st.session_state.view == "Admin_Panel":
