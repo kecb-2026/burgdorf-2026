@@ -1600,7 +1600,7 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
             
             # SAFE VORSCHAU: Holt nur die Spalten, die garantiert existieren
             st.write("### Vorschau der enthaltenen Katzen:")
-            verfuegbare_spalten = [col for col in ['NUMMER', 'KATEGORIE', 'KLASSE', 'GESCHLECHT', 'RASSE', 'FARBE'] if col in df_nominierte.columns]
+            verfuegbare_spalten = [col for col in ['KAT_STR', 'KATEGORIE', 'KLASSE_INTERNAL', 'GESCHLECHT', 'RASSE', 'FARBE'] if col in df_nominierte.columns]
             st.dataframe(df_nominierte[verfuegbare_spalten], use_container_width=True, hide_index=True)
 
 
