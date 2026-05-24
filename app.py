@@ -1087,6 +1087,10 @@ elif st.session_state.view == "QR_Codes":
                     st.write("Keine Richter für Tag 2 gefunden.")
             else:
                 st.error("Spalte 'RICHTER TAG 2' fehlt in den Daten!")
+                
+    st.write("")
+    if st.button("⬅️ Zurück zum Hauptmenü", key="back_qr_code"):
+        set_view("Home")
 
 
     # ---------------- TAB 2: RICHTER TAG 1 ----------------
