@@ -1402,6 +1402,153 @@ elif st.session_state.view == "Judge_List" or st.session_state.view == "Judge Li
         else:
             st.info("Bitte wähle einen Richter aus der Liste aus, um die Judge List anzuzeigen.")
 
+# --- EIGENSTÄNDIGE VIEW: NOMINATION LABELS DRUCK ---
+elif st.session_state.view == "Nomination_Labels" or st.session_state.view == "Nomination Labels":
+    display_header_with_logo("🖨️ Nomination Labels Druckzentrale")
+    st.write("Generiere hier die exakten Druck-Labels (8 Stück pro A4-Seite) für alle nominierten Katzen.")
+    
+    df_full = load_labels()
+    
+    if df_full is not None:
+        # Nur Katzen filtern, die das Nominations-X haben
+        df_nominierte = df_full[df_full['SELECTION'].astype(str).str.upper() == 'X'].copy()
+        
+        if not df_nominierte.empty:
+            # Schnelle Kontrollübersicht, was gedruckt wird
+            st.info(f"Aktuell sind **{len(df_nominierte)}** Katzen für den Labeldruck bereit.")
+            
+            # --- PDF GENERATOR MIT REPORTLAB ---
+            from reportlab.lib.pagesizes import a4
+            from reportlab.pdfgen import canvas
+            from reportlab.lib import colors
+
+            def generate_avery_labels(df):
+                buffer = BytesIO()
+                c = canvas.Canvas(buffer, pagesize=a4)
+                
+                # Avery J8165 Maße (99.1 x 67.7 mm, Ränder: oben 13.1, links 5.9)
+                mm = 2.83464  # Umrechnung in PostScript-Points
+                label_width = 99.1 * mm
+                label_height = 67.7 * mm
+                margin_left = 5.9 * mm
+                margin_top = 13.1 * mm
+                
+                # Farb-Mapping für die Klassen/Geschlechter-Badges (exakt 8 Möglichkeiten)
+                color_map = {
+                    "AM": colors.HexColor("#ffff00"),   # Gelb: Adult Male
+                    "AW": colors.HexColor("#ff99cc"),   # Rosa: Adult Female
+                    "KM": colors.HexColor("#99cc00"),   # Grün: Kastrat Male
+                    "KW": colors.HexColor("#33ccff"),   # Blau: Kastrat Female
+                    "JM": colors.HexColor("#cc99ff"),   # Lila: Jugend 8-12 Male
+                    "JW": colors.HexColor("#cc99ff"),   # Lila: Jugend 8-12 Female
+                    "KiM": colors.HexColor("#ff6600"),  # Orange: Kitten 4-8 Male
+                    "KiW": colors.HexColor("#ff6600")   # Orange: Kitten 4-8 Female
+                }
+                
+                count = 0
+                for _, row in df.iterrows():
+                    # Seitenwechsel alle 8 Labels
+                    page_idx = count % 8
+                    if page_idx == 0 and count > 0:
+                        c.showPage()
+                        
+                    col = page_idx % 2
+                    row_idx = page_idx // 2
+                    
+                    # ReportLab startet (0,0) UNTEN LINKS. Avery misst von OBEN LINKS.
+                    x = margin_left + (col * label_width)
+                    y = (297 * mm) - margin_top - ((row_idx + 1) * label_height)
+                    
+                    # Daten extrahieren
+                    kat_nr = str(row.get('KAT_STR', '')).replace('.0', '')
+                    kategorie = str(row.get('KATEGORIE', ''))
+                    klasse = str(row.get('KLASSE_INTERNAL', row.get('KLASSE', ''))).replace('.0', '')
+                    sex = str(row.get('GESCHLECHT', '')).strip().upper()
+                    rasse = row.get('RASSE', '')
+                    farbe = row.get('FARBE', '')
+                    ems_code = f"{rasse} {farbe}".strip()
+                    
+                    geb_cols = [col for col in row.index if "GEB" in col or "GEBURT" in col]
+                    geb_datum = row[geb_cols[0]] if geb_cols else row.get('GEB_DATUM', '-')
+                    if isinstance(geb_datum, pd.Timestamp):
+                        geb_datum = geb_datum.strftime('%d.%m.%Y')
+                    
+                    # Automatisches Kürzel- & Farb-Mapping ermitteln
+                    badge_text = "AM"
+                    try:
+                        kl_num = int(klasse)
+                        is_male = (sex == "1,0" or sex == "M")
+                        if kl_num in [1, 3, 5, 7, 9]: badge_text = "AM" if is_male else "AW"
+                        elif kl_num in [2, 4, 6, 8, 10]: badge_text = "KM" if is_male else "KW"
+                        elif kl_num == 11: badge_text = "JM" if is_male else "JW"
+                        elif kl_num == 12: badge_text = "KiM" if is_male else "KiW"
+                    except:
+                        badge_text = f"{klasse} {sex}"
+                        
+                    badge_bg = color_map.get(badge_text, colors.HexColor("#e9ecef"))
+                    
+                    # --- JETZT ZEICHNEN ---
+                    c.saveState()
+                    
+                    # Dezente Hilfslinie zum Schneiden / zur Kontrolle
+                    c.setStrokeColor(colors.HexColor("#e2e2e2"))
+                    c.setLineWidth(0.5)
+                    c.rect(x, y, label_width, label_height)
+                    
+                    # Links Oben: Kategorie-Nummer
+                    c.setFont("Helvetica-Bold", 14)
+                    c.setFillColor(colors.black)
+                    c.drawString(x + 5*mm, y + label_height - 10*mm, kategorie)
+                    
+                    # Rechts Oben: Klasse & Geschlecht (Farbiger Kasten)
+                    badge_w = 18 * mm
+                    badge_h = 7 * mm
+                    c.setFillColor(badge_bg)
+                    c.rect(x + label_width - badge_w - 5*mm, y + label_height - 11*mm, badge_w, badge_h, fill=1, stroke=0)
+                    c.setFillColor(colors.black)
+                    c.setFont("Helvetica-Bold", 11)
+                    c.drawCentredString(x + label_width - (badge_w/2) - 5*mm, y + label_height - 9*mm, badge_text)
+                    
+                    # Mitte: Katalognummer (Extrem groß und fett)
+                    c.setFont("Helvetica-Bold", 42)
+                    c.drawCentredString(x + label_width/2, y + label_height/2 - 3*mm, kat_nr)
+                    
+                    # Unten Links: Rasse und Farbe
+                    c.setFont("Helvetica-Bold", 12)
+                    c.drawString(x + 5*mm, y + 6*mm, ems_code)
+                    
+                    # Unten Rechts: Geburtsdatum
+                    c.setFont("Helvetica", 11)
+                    c.drawRightString(x + label_width - 5*mm, y + 6*mm, str(geb_datum))
+                    
+                    c.restoreState()
+                    count += 1
+                
+                c.save()
+                buffer.seek(0)
+                return buffer.getvalue()
+
+            # Bereitstellen des PDFs
+            st.write("Klicke auf den Button, um das fertig formatierte PDF herunterzuladen:")
+            pdf_labels = generate_avery_labels(df_nominierte)
+            
+            st.download_button(
+                label="📥 Avery Zweckform PDF generieren & herunterladen",
+                data=pdf_labels,
+                file_name="KECB_Burgdorf_Nomination_Labels.pdf",
+                mime="application/pdf"
+            )
+            
+            # Kleine Liste zur visuellen Kontrolle in Streamlit darunter
+            st.write("### Folgende Katzen sind im PDF enthalten:")
+            control_list = df_nominierte[['KAT_STR', 'KATEGORIE', 'KLASSE_INTERNAL', 'GESCHLECHT', 'RASSE', 'FARBE']].copy()
+            control_list.columns = ['Kat-Nr.', 'Kategorie', 'Klasse', 'Geschlecht', 'Rasse', 'Farbe']
+            st.dataframe(control_list, use_container_width=True, hide_index=True)
+            
+        else:
+            st.warning("Aktuell sind keine Katzen nominiert (Spalte 'SELECTION' hat keine 'X'). Es kann kein PDF generiert werden.")
+
+
 # ADMIN PANEL
 elif st.session_state.view == "Admin_Panel":
     display_header_with_logo("⚙️ Admin-Konsole")
