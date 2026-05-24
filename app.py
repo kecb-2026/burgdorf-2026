@@ -1452,7 +1452,9 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
                 # --- HILFSFELDER FÜR DIE SORTIERUNG ERZEUGEN ---
                 sorted_rows = []
                 for idx, row in df.iterrows():
-                    klasse_str = str(row.get('KLASSE_INTERNAL', row.get('KLASSE', ''))).replace('.0', '')
+                    # Flexibler Check für die Klasse-Spalte
+                    klasse_val = row.get('KLASSE_INTERNAL', row.get('KLASSE', ''))
+                    klasse_str = str(klasse_val).replace('.0', '')
                     sex = str(row.get('GESCHLECHT', '')).strip().upper()
                     kat_nr_str = str(row.get('KAT_STR', '')).replace('.0', '')
                     
@@ -1507,7 +1509,6 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
                 df_sorted = pd.DataFrame(sorted_rows)
                 df_sorted = df_sorted.sort_values(by=['_sort_kat', '_sort_class', '_sort_kat_nr']).reset_index(drop=True)
                 
-                # Gruppierung nach Kategorie und der berechneten Klasse
                 grouped = df_sorted.groupby(['_sort_kat', '_sort_class'])
                 
                 is_first_page = True
@@ -1597,8 +1598,12 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
                 mime="application/pdf"
             )
             
-            st.write("### Vorschau der sortierten Druck-Reihenfolge:")
-            st.dataframe(df_nominierte[['KAT_STR', 'KATEGORIE', 'KLASSE', 'GESCHLECHT', 'RASSE', 'FARBE']], use_container_width=True, hide_index=True)
+            # SAFE VORSCHAU: Holt nur die Spalten, die garantiert existieren
+            st.write("### Vorschau der enthaltenen Katzen:")
+            verfuegbare_spalten = [col for col in ['KAT_STR', 'KATEGORIE', 'KLASSE', 'GESCHLECHT', 'RASSE', 'FARBE'] if col in df_nominierte.columns]
+            st.dataframe(df_nominierte[verfuegbare_spalten], use_container_width=True, hide_index=True)
+
+
 
 # ADMIN PANEL
 elif st.session_state.view == "Admin_Panel":
