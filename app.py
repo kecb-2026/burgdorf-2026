@@ -1371,6 +1371,7 @@ elif st.session_state.view == "Judge_List" or st.session_state.view == "Judge Li
                     df_display, 
                     use_container_width=True, 
                     hide_index=True,
+                    height=450,
                     column_config={
                         "Nr.": st.column_config.TextColumn(width="small"),
                         "Sex": st.column_config.TextColumn(width="small"),
