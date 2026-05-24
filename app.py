@@ -1279,7 +1279,110 @@ elif st.session_state.view == "Nominated_Cats":
         else:
             st.info("In der Excel-Datei (Spalte 'SELECTION') sind aktuell keine Katzen mit 'X' nominiert.")
             
-
+# --- NEUER MENÜPUNKT: JUDGE LIST ---
+elif st.session_state.view == "Judge_List" or st.session_state.view == "Judge List":
+    display_header_with_logo("📊 Judge List (Meldestatistik)")
+    st.write("Sieh sofort, welche Katzen in den jeweiligen Klassen direkt gegeneinander antreten.")
+    
+    df_full = load_labels()
+    
+    if df_full is not None:
+        # 1. Filter-Ebene: Tag & Richter
+        tag = st.sidebar.radio("Tag auswählen:", ["Tag 1", "Tag 2"], key="jl_tag_selector").upper()
+        r_col = f"RICHTER {tag}"
+        
+        # Alle Richter holen, die an diesem Tag aktiv sind
+        all_j = sorted([r for r in df_full[df_full[tag].astype(str).str.upper() == 'X'][r_col].unique() if str(r) != "nan"])
+        
+        c1, c2 = st.columns(2)
+        mein_richter = c1.selectbox("Richter filtern:", ["--"] + all_j, key="jl_judge")
+        
+        if mein_richter != "--":
+            # Kategorien für diesen Richter ermitteln
+            df_richter_alle = df_full[(df_full[tag].astype(str).str.upper() == 'X') & (df_full[r_col] == mein_richter)]
+            verfuegbare_kategorien = sorted(list(set([str(cat).replace('.0', '') for cat in df_richter_alle['KATEGORIE'].unique() if pd.notna(cat)])))
+            meine_kategorie = c2.selectbox("Kategorie filtern:", verfuegbare_kategorien, key="jl_cat")
+            
+            # Daten filtern und sortieren nach Katalog-Nr
+            df_filtered = df_richter_alle[df_richter_alle['KATEGORIE'].astype(str).str.replace('.0', '') == meine_kategorie].sort_values('KATALOG-NR')
+            
+            st.divider()
+            
+            # Vorbereitung der Tabellendaten
+            table_rows = []
+            
+            for _, row in df_filtered.iterrows():
+                nr = row['KAT_STR']
+                ems = row.get('RASSE_KURZ', row.get('RASSE', '')) + " " + row.get('FARBE', '')
+                sex = row.get('GESCHLECHT', 'N/A')
+                klasse = str(row.get('KLASSE_INTERNAL', row.get('AUSSTELLUNGSKLASSE', row.get('KLASSE', 'N/A')))).replace('.0', '')
+                
+                # Geburtsdatum formatieren
+                geb_cols = [c for c in row.index if "GEB" in c or "GEBURT" in c]
+                geb_datum = row[geb_cols[0]] if geb_cols else row.get('GEB_DATUM', 'N/A')
+                if isinstance(geb_datum, pd.Timestamp): 
+                    geb_datum = geb_datum.strftime('%d.%m.%Y')
+                elif pd.isna(geb_datum) or str(geb_datum).strip().lower() == "nan": 
+                    geb_datum = "–"
+                
+                # 8-Spalten Logik initialisieren
+                x_cols = {"Ad ♂": "", "Ad ♀": "", "K ♂": "", "K ♀": "", "11 ♂": "", "11 ♀": "", "12 ♂": "", "12 ♀": ""}
+                
+                # Automatische Zuordnung basierend auf Klasse und Geschlecht (Sex)
+                try:
+                    kl_num = int(klasse)
+                    is_male = (sex == "1,0")
+                    
+                    if kl_num in [1, 3, 5, 7, 9]:
+                        x_cols["Ad ♂" if is_male else "Ad ♀"] = "X"
+                    elif kl_num in [2, 4, 6, 8, 10]:
+                        x_cols["K ♂" if is_male else "K ♀"] = "X"
+                    elif kl_num == 11:
+                        x_cols["11 ♂" if is_male else "11 ♀"] = "X"
+                    elif kl_num == 12:
+                        x_cols["12 ♂" if is_male else "12 ♀"] = "X"
+                except ValueError:
+                    pass # Für den Fall, dass Klassen-Werte nicht konvertierbar sind
+                
+                # Zeile zusammensetzen
+                row_entry = {
+                    "Nr.": nr,
+                    "EMS-Code": ems,
+                    "Sex": sex,
+                    "Kl.": klasse,
+                    "Geboren": geb_datum,
+                    **x_cols
+                }
+                table_rows.append(row_entry)
+            
+            if table_rows:
+                df_display = pd.DataFrame(table_rows)
+                
+                # Darstellung als sortierbare Streamlit-Tabelle
+                st.dataframe(
+                    df_display, 
+                    use_container_width=True, 
+                    hide_index=True,
+                    column_config={
+                        "Nr.": st.column_config.TextColumn(width="small"),
+                        "Sex": st.column_config.TextColumn(width="small"),
+                        "Kl.": st.column_config.TextColumn(width="small"),
+                        "Ad ♂": st.column_config.TextColumn(alignment="center"),
+                        "Ad ♀": st.column_config.TextColumn(alignment="center"),
+                        "K ♂": st.column_config.TextColumn(alignment="center"),
+                        "K ♀": st.column_config.TextColumn(alignment="center"),
+                        "11 ♂": st.column_config.TextColumn(alignment="center"),
+                        "11 ♀": st.column_config.TextColumn(alignment="center"),
+                        "12 ♂": st.column_config.TextColumn(alignment="center"),
+                        "12 ♀": st.column_config.TextColumn(alignment="center"),
+                    }
+                )
+                
+                st.caption("💡 Tipp: Klicke auf die Spaltenköpfe (z.B. '12 ♀'), um die Katzen zu sortieren und Konkurrenten direkt im Blick zu haben!")
+            else:
+                st.info("Keine Katzen für diese Auswahl gemeldet.")
+        else:
+            st.info("Bitte wähle einen Richter aus der Liste aus, um die Judge List anzuzeigen.")
 
 # ADMIN PANEL
 elif st.session_state.view == "Admin_Panel":
