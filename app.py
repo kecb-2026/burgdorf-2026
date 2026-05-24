@@ -1128,9 +1128,7 @@ elif st.session_state.view == "QR_Codes":
                         st.write("---")
             else:
                 st.write("Keine Richter für Tag 2 gefunden.")
-	st.write("")
-    if st.button("⬅️ Zurück zum Hauptmenü", key="back_qr_code"):
-        set_view("Home")
+	
                 
                 
 # --- NEUER MENÜPUNKT: NOMINIERTE KATZEN (VOLLE FILTER- & SORTIERFUNKTION) ---
