@@ -443,7 +443,7 @@ access_map = {
     "Public": ["Dashboard", "BIS_Public", "Login"],
     "Richter": ["Judge_Voting", "Dashboard", "BIS_Public"],
     "Steward": ["Steward_Panel", "Dashboard", "BIS_Public"],
-    "Admin": ["Home", "Dashboard", "BIS_Public", "Judge_Voting", "Steward_Panel", "BIS_Admin_Control", "Admin_Panel", "QR_Codes", "Nominated_Cats", "Judge_List", "Nomination_Labels"]
+    "Admin": ["Home", "Dashboard", "BIS_Public", "Judge_Voting", "Steward_Panel", "BIS_Admin_Control", "QR_Codes", "Nominated_Cats", "Judge_List", "Nomination_Labels", "Admin_Panel"]
 }
 
 st.markdown("""
@@ -678,6 +678,9 @@ elif st.session_state.view == "BIS_Admin_Control":
                             summary = pd.Series(current_votes.values()).value_counts()
                             st.write("**Zwischenstand:**")
                             for nr, count in summary.items(): st.write(f"Katze #{nr}: {count} Stimme(n)")
+                                
+    if st.button("⬅️ Zurück zum Hauptmenü", key="back_from_bisadmin"):
+        set_view("Home")
 
 # BIS PUBLIC VIEW
 # BIS PUBLIC VIEW NEW
