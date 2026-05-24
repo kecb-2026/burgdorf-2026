@@ -1333,10 +1333,13 @@ elif st.session_state.view == "Judge_List" or st.session_state.view == "Judge Li
                 # 8-Spalten Logik initialisieren
                 x_cols = {"Ad ♂": "", "Ad ♀": "", "K ♂": "", "K ♀": "", "11 ♂": "", "11 ♀": "", "12 ♂": "", "12 ♀": ""}
                 
-                # Automatische Zuordnung basierend auf Klasse und Geschlecht (Sex)
+                                # Automatische Zuordnung basierend auf Klasse und Geschlecht (Sex)
                 try:
                     kl_num = int(klasse)
-                    is_male = (sex == "1,0")
+                    
+                    # KORREKTUR: Erkennt nun "1,0" sowie "m" und "M" zuverlässig als Kater
+                    sex_clean = str(sex).strip().lower()
+                    is_male = (sex_clean == "1,0" or sex_clean == "m")
                     
                     if kl_num in [1, 3, 5, 7, 9]:
                         x_cols["Ad ♂" if is_male else "Ad ♀"] = "X"
