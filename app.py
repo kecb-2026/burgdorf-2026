@@ -1614,7 +1614,7 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
             
             # Nur die Konfigurationen übergeben, deren Spalten auch wirklich da sind
             aktuelle_config = {col: schoene_namen[col] for col in verfuegbare_spalten if col in schoene_namen}
-            st.dataframe(df_nominierte[verfuegbare_spalten], use_container_width=True, hide_index=True)
+            st.dataframe(df_nominierte[verfuegbare_spalten], column_config=aktuelle_config, use_container_width=True, hide_index=True)
 
 
 
@@ -1625,3 +1625,22 @@ elif st.session_state.view == "Admin_Panel":
         store.data = {}
         store.active_overlay = None
         st.success("Speicher geleert!")
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
