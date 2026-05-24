@@ -443,7 +443,7 @@ access_map = {
     "Public": ["Dashboard", "BIS_Public", "Login"],
     "Richter": ["Judge_Voting", "Dashboard", "BIS_Public"],
     "Steward": ["Steward_Panel", "Dashboard", "BIS_Public"],
-    "Admin": ["Home", "Dashboard", "BIS_Public", "Judge_Voting", "Steward_Panel", "BIS_Admin_Control", "Admin_Panel", "QR_Codes", "Nominated_Cats"]
+    "Admin": ["Home", "Dashboard", "BIS_Public", "Judge_Voting", "Steward_Panel", "BIS_Admin_Control", "Admin_Panel", "QR_Codes", "Nominated_Cats", "Judge_List"]
 }
 
 st.markdown("""
@@ -598,6 +598,11 @@ elif st.session_state.view == "Home":
         if st.button("🐈 NOMINIERTE KATZEN LISTE"):
             st.query_params.update({"view": "nominated", "auth": "true", "role": "Admin"})
             set_view("Nominated_Cats")
+            st.rerun()
+            # NEU: Button für die Richter Liste
+        if st.button("🐈 RICHTER LISTE"):
+            st.query_params.update({"view": "judge-list", "auth": "true", "role": "Admin"})
+            set_view("Judge_List")
             st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
     
