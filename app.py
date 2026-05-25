@@ -16,6 +16,11 @@ import time
 from streamlit_autorefresh import st_autorefresh
 import qrcode
 from io import BytesIO
+# --- IMPORTS FÜR DIE PDF-GENERIERUNG ---
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib import colors
 
 # --- 1. SETUP & STYLING ---
 st.set_page_config(layout="wide", page_title="KECB Burgdorf 2026", page_icon="🐾")
@@ -1025,14 +1030,6 @@ elif st.session_state.view == "Judge_Voting":
 
 
 
-
-
-
-# --- IMPORTS FÜR DIE PDF-GENERIERUNG ---
-from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib import colors
 
 # --- NEUER MENÜPUNKT: QR CODES ---
 elif st.session_state.view == "QR_Codes":
