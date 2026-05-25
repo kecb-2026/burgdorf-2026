@@ -1051,7 +1051,7 @@ elif st.session_state.view == "QR_Codes":
         img.save(buf, format="PNG")
         return buf.getvalue()
 
-    # 2. PDF-Generierungsfunktion (Exakt auf deine URL-Struktur abgestimmt)
+    # 2. PDF-Generierungsfunktion (Komplett emoji-frei, um Quadrate beim Druck zu verhindern)
     def generate_pdf_download(df):
         pdf_buffer = BytesIO()
         doc = SimpleDocTemplate(
@@ -1066,38 +1066,48 @@ elif st.session_state.view == "QR_Codes":
         label_style = ParagraphStyle('DocLabel', parent=styles['Normal'], fontSize=9, leading=12, alignment=1, textColor=colors.HexColor("#2D3748"))
         
         story = []
-        story.append(Paragraph("📱 QR-Code Login Zentrale – Burgdorf 2026", title_style))
+        story.append(Paragraph("QR-Code Login Zentrale - Burgdorf 2026", title_style))
         story.append(Spacer(1, 10))
         
+        # --- Daten sammeln: Admin (Als separate Tabelle vorab) ---
+        story.append(Paragraph("1. Allgemeine Logins und Admins", section_style))
+        adm_url = f"{base_url}?view=admin&auth=true&role=Admin"
+        
+        qr = qrcode.QRCode(version=1, box_size=4, border=1)
+        qr.add_data(adm_url)
+        qr.make(fit=True)
+        img_pil = qr.make_image(fill_color="black", back_color="white")
+        img_buf = BytesIO()
+        img_pil.save(img_buf, format="PNG")
+        img_buf.seek(0)
+        
+        admin_table = Table([[Paragraph("<b>ADMIN MAIN HOME</b>", label_style)], [Image(img_buf, width=90, height=90)]], colWidths=[180])
+        admin_table.setStyle(TableStyle([('ALIGN', (0,0), (-1,-1), 'CENTER')]))
+        story.append(admin_table)
+        story.append(Spacer(1, 15))
+        
+        # --- Restliche Daten sammeln (Ohne Emojis für das PDF) ---
         all_qr_items = []
         
-        # --- Daten sammeln: Admin ---
-        adm_url = f"{base_url}?view=admin&auth=true&role=Admin"
-        all_qr_items.append(("⚙️ ADMIN MAIN HOME", adm_url, "1. Allgemeine Logins & Admins"))
-        
-        # --- Daten sammeln: Tag 1 ---
+        # Tag 1 (Samstag)
         if df is not None and 'RICHTER TAG 1' in df.columns:
             judges_t1 = sorted([r for r in df['RICHTER TAG 1'].unique() if str(r) != "nan"])
             for judge in judges_t1:
-                # Stewards Tag 1
                 stew_url = f"{base_url}?view=steward&auth=true&role=Steward&judge={judge.replace(' ', '+')}&day=1"
-                all_qr_items.append((f"Steward für: {judge}", stew_url, "2. Steward-Links für TAG 1 (Samstag)"))
+                all_qr_items.append((f"Steward fuer: {judge}", stew_url, "2. Steward-Links fuer TAG 1 (Samstag)"))
                 
-                # Richter Direkt Tag 1 (Hier korrigiert auf view=richter & role=Richter!)
                 j_url = f"{base_url}?view=richter&auth=true&role=Richter&judge={judge.replace(' ', '+')}&day=1"
-                all_qr_items.append((f"👨‍⚖️ Richter: {judge} (Tag 1)", j_url, "3. Richter-Direkt-Links für TAG 1 (Samstag)"))
+                all_qr_items.append((f"Richter: {judge} (Tag 1)", j_url, "3. Richter-Direkt-Links fuer TAG 1 (Samstag)"))
                 
-        # --- Daten sammeln: Tag 2 ---
+        # Tag 2 (Sonntag)
         if df is not None and 'RICHTER TAG 2' in df.columns:
             judges_t2 = sorted([r for r in df['RICHTER TAG 2'].unique() if str(r) != "nan"])
             for judge in judges_t2:
-                # Stewards Tag 2
                 stew_url = f"{base_url}?view=steward&auth=true&role=Steward&judge={judge.replace(' ', '+')}&day=2"
-                all_qr_items.append((f"Steward für: {judge}", stew_url, "4. Steward-Links für TAG 2 (Sonntag)"))
+                all_qr_items.append((f"Steward fuer: {judge}", stew_url, "4. Steward-Links fuer TAG 2 (Sonntag)"))
                 
-                # Richter Direkt Tag 2 (Hier korrigiert auf view=richter & role=Richter!)
                 j_url = f"{base_url}?view=richter&auth=true&role=Richter&judge={judge.replace(' ', '+')}&day=2"
-                all_qr_items.append((f"👨‍⚖️ Richter: {judge} (Tag 2)", j_url, "5. Richter-Direkt-Links für TAG 2 (Sonntag)"))
+                all_qr_items.append((f"Richter: {judge} (Tag 2)", j_url, "5. Richter-Direkt-Links fuer TAG 2 (Sonntag)"))
         
         # --- Grid im PDF generieren ---
         unique_sections = list(dict.fromkeys([item[2] for item in all_qr_items]))
@@ -1134,7 +1144,7 @@ elif st.session_state.view == "QR_Codes":
                 row.append(cell)
                 if (i + 1) % 3 == 0 or (i + 1) == len(cells):
                     while len(row) < 3:
-                        row.append("")
+                        row.append(Paragraph("", label_style))
                     grid_data.append(row)
                     row = []
             
@@ -1167,7 +1177,7 @@ elif st.session_state.view == "QR_Codes":
     
     st.divider()
 
-    # Registerkarten für die Übersichtlichkeit
+    # Registerkarten für die UI-Übersichtlichkeit
     tab1, tab2, tab3 = st.tabs(["🤵 Stewards & Admins", "👨‍⚖️ Richter (Tag 1)", "👨‍⚖️ Richter (Tag 2)"])
     
     # ---------------- TAB 1: STEWARDS & ADMINS ----------------
@@ -1264,50 +1274,10 @@ elif st.session_state.view == "QR_Codes":
                     st.write("Keine Richter für Tag 2 gefunden.")
             else:
                 st.error("Spalte 'RICHTER TAG 2' fehlt in den Daten!")
- 
-
-
-    # ---------------- TAB 2: RICHTER TAG 1 ----------------
-    with tab2:
-        st.subheader("Richter-Direkt-Links für TAG 1")
-        if df_full is not None:
-            # Alle Richter für Tag 1 aus der Excel holen
-            judges_t1 = sorted([r for r in df_full['RICHTER TAG 1'].unique() if str(r) != "nan"])
-            
-            if judges_t1:
-                # Erstellt ein Raster (3 Spalten nebeneinander) für die QR-Codes
-                j_cols = st.columns(3)
-                for idx, judge in enumerate(judges_t1):
-                    with j_cols[idx % 3]:
-                        st.success(f"Richter: {judge}")
-                        # URL sicher zusammenbauen (Leerzeichen durch + ersetzen)
-                        j_url = f"{base_url}?view=richter&auth=true&role=Richter&judge={judge.replace(' ', '+')}&day=1"
-                        st.image(generate_qr_image(j_url), width=200)
-                        st.write("---")
-            else:
-                st.write("Keine Richter für Tag 1 gefunden.")
-
-    # ---------------- TAB 3: RICHTER TAG 2 ----------------
-    with tab3:
-        st.subheader("Richter-Direkt-Links für TAG 2")
-        if df_full is not None:
-            # Alle Richter für Tag 2 aus der Excel holen
-            judges_t2 = sorted([r for r in df_full['RICHTER TAG 2'].unique() if str(r) != "nan"])
-            
-            if judges_t2:
-                j_cols = st.columns(3)
-                for idx, judge in enumerate(judges_t2):
-                    with j_cols[idx % 3]:
-                        st.success(f"Richter: {judge}")
-                        j_url = f"{base_url}?view=richter&auth=true&role=Richter&judge={judge.replace(' ', '+')}&day=2"
-                        st.image(generate_qr_image(j_url), width=200)
-                        st.write("---")
-            else:
-                st.write("Keine Richter für Tag 2 gefunden.")
                 
+    # ---------------- HAUPTMENÜ NAVI BUTTON ----------------
     if st.button("⬅️ Zurück zum Hauptmenü", key="back_from_qrcode"):
         set_view("Home")
-	
                 
                 
 # --- NEUER MENÜPUNKT: NOMINIERTE KATZEN (VOLLE FILTER- & SORTIERFUNKTION) ---
