@@ -1051,7 +1051,7 @@ elif st.session_state.view == "QR_Codes":
         img.save(buf, format="PNG")
         return buf.getvalue()
 
-    # 2. PDF-Generierungsfunktion (Komplett emoji-frei, um Quadrate beim Druck zu verhindern)
+    # 2. PDF-Generierungsfunktion (Getrennter Admin-Block & Emoji-frei)
     def generate_pdf_download(df):
         pdf_buffer = BytesIO()
         doc = SimpleDocTemplate(
@@ -1069,7 +1069,7 @@ elif st.session_state.view == "QR_Codes":
         story.append(Paragraph("QR-Code Login Zentrale - Burgdorf 2026", title_style))
         story.append(Spacer(1, 10))
         
-        # --- Daten sammeln: Admin (Als separate Tabelle vorab) ---
+        # --- FIX: ADMIN DIREKT ZEICHNEN (Nicht im 3er-Raster der Richter!) ---
         story.append(Paragraph("1. Allgemeine Logins und Admins", section_style))
         adm_url = f"{base_url}?view=admin&auth=true&role=Admin"
         
@@ -1081,31 +1081,36 @@ elif st.session_state.view == "QR_Codes":
         img_pil.save(img_buf, format="PNG")
         img_buf.seek(0)
         
+        # Platziert den Admin zentriert als Einzelelement
         admin_table = Table([[Paragraph("<b>ADMIN MAIN HOME</b>", label_style)], [Image(img_buf, width=90, height=90)]], colWidths=[180])
         admin_table.setStyle(TableStyle([('ALIGN', (0,0), (-1,-1), 'CENTER')]))
         story.append(admin_table)
         story.append(Spacer(1, 15))
         
-        # --- Restliche Daten sammeln (Ohne Emojis für das PDF) ---
+        # --- AB HIER NUR NOCH DIE LISTEN FÜR STUFENWEISE RASTER SAMMELN ---
         all_qr_items = []
         
-        # Tag 1 (Samstag)
+        # --- Daten sammeln: Tag 1 ---
         if df is not None and 'RICHTER TAG 1' in df.columns:
             judges_t1 = sorted([r for r in df['RICHTER TAG 1'].unique() if str(r) != "nan"])
             for judge in judges_t1:
+                # Stewards Tag 1
                 stew_url = f"{base_url}?view=steward&auth=true&role=Steward&judge={judge.replace(' ', '+')}&day=1"
                 all_qr_items.append((f"Steward fuer: {judge}", stew_url, "2. Steward-Links fuer TAG 1 (Samstag)"))
                 
+                # Richter Direkt Tag 1
                 j_url = f"{base_url}?view=richter&auth=true&role=Richter&judge={judge.replace(' ', '+')}&day=1"
                 all_qr_items.append((f"Richter: {judge} (Tag 1)", j_url, "3. Richter-Direkt-Links fuer TAG 1 (Samstag)"))
                 
-        # Tag 2 (Sonntag)
+        # --- Daten sammeln: Tag 2 ---
         if df is not None and 'RICHTER TAG 2' in df.columns:
             judges_t2 = sorted([r for r in df['RICHTER TAG 2'].unique() if str(r) != "nan"])
             for judge in judges_t2:
+                # Stewards Tag 2
                 stew_url = f"{base_url}?view=steward&auth=true&role=Steward&judge={judge.replace(' ', '+')}&day=2"
                 all_qr_items.append((f"Steward fuer: {judge}", stew_url, "4. Steward-Links fuer TAG 2 (Sonntag)"))
                 
+                # Richter Direkt Tag 2
                 j_url = f"{base_url}?view=richter&auth=true&role=Richter&judge={judge.replace(' ', '+')}&day=2"
                 all_qr_items.append((f"Richter: {judge} (Tag 2)", j_url, "5. Richter-Direkt-Links fuer TAG 2 (Sonntag)"))
         
@@ -1144,7 +1149,7 @@ elif st.session_state.view == "QR_Codes":
                 row.append(cell)
                 if (i + 1) % 3 == 0 or (i + 1) == len(cells):
                     while len(row) < 3:
-                        row.append(Paragraph("", label_style))
+                        row.append(Paragraph("", label_style)) # Saubere leere Zelle
                     grid_data.append(row)
                     row = []
             
@@ -1177,7 +1182,7 @@ elif st.session_state.view == "QR_Codes":
     
     st.divider()
 
-    # Registerkarten für die UI-Übersichtlichkeit
+    # Registerkarten für die Übersichtlichkeit (Web-Ansicht)
     tab1, tab2, tab3 = st.tabs(["🤵 Stewards & Admins", "👨‍⚖️ Richter (Tag 1)", "👨‍⚖️ Richter (Tag 2)"])
     
     # ---------------- TAB 1: STEWARDS & ADMINS ----------------
@@ -1241,7 +1246,6 @@ elif st.session_state.view == "QR_Codes":
         if df_full is not None:
             if 'RICHTER TAG 1' in df_full.columns:
                 judges_t1 = sorted([r for r in df_full['RICHTER TAG 1'].unique() if str(r) != "nan"])
-                
                 if judges_t1:
                     j_cols = st.columns(3)
                     for idx, judge in enumerate(judges_t1):
@@ -1261,7 +1265,6 @@ elif st.session_state.view == "QR_Codes":
         if df_full is not None:
             if 'RICHTER TAG 2' in df_full.columns:
                 judges_t2 = sorted([r for r in df_full['RICHTER TAG 2'].unique() if str(r) != "nan"])
-                
                 if judges_t2:
                     j_cols = st.columns(3)
                     for idx, judge in enumerate(judges_t2):
@@ -1275,7 +1278,7 @@ elif st.session_state.view == "QR_Codes":
             else:
                 st.error("Spalte 'RICHTER TAG 2' fehlt in den Daten!")
                 
-    # ---------------- HAUPTMENÜ NAVI BUTTON ----------------
+    # --- ZURÜCK NAVI ---
     if st.button("⬅️ Zurück zum Hauptmenü", key="back_from_qrcode"):
         set_view("Home")
                 
