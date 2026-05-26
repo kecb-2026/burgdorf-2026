@@ -1039,7 +1039,7 @@ elif st.session_state.view == "QR_Codes":
     df_full = load_labels()
     
     # Basis-URL deiner App
-    base_url = "https://burgdorf-2026-ykralltanrq8aabhwrarmf.streamlit.app/"
+    base_url = "https://kecb2026.streamlit.app/"
     
     # 1. Hilfsfunktion zum Zeichnen der QR-Codes für die Streamlit-UI
     def generate_qr_image(url_to_encode):
