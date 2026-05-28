@@ -1379,10 +1379,10 @@ elif st.session_state.view == "Nominated_Cats":
                 df_nom_display = df_nom_display[df_nom_display['Richter'] == wahl_richter]
                 
             if wahl_kategorie != "Alle Kategorien":
-                df_nom_display = df_nom_display[df_nom_display['Kategorie'] == wahl_kategorie]
+                df_nom_display = df_nom_display[df_nom_display['Kategorie'].astype(str) == wahl_kategorie]
                 
             if wahl_klasse != "Alle Klassen":
-                df_nom_display = df_nom_display[df_nom_display['Klasse'] == wahl_klasse]
+                df_nom_display = df_nom_display[df_nom_display['Klasse'].astype(str) == wahl_klasse]
                 
             if wahl_geschlecht != "Alle Geschlechter":
                 df_nom_display = df_nom_display[df_nom_display['Geschlecht'] == wahl_geschlecht]
