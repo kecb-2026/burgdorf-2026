@@ -1316,7 +1316,7 @@ elif st.session_state.view == "Nominated_Cats":
                     if pd.notna(richter_t1) and str(richter_t1) != "nan": richter_name = richter_t1; ausstellungstag = "Tag 1"
                     elif pd.notna(richter_t2) and str(richter_t2) != "nan": richter_name = richter_t2; ausstellungstag = "Tag 2"
 
-    			klasse = str(row.get('KLASSE_INTERNAL', row.get('AUSSTELLUNGSKLASSE', row.get('KLASSE', '-')))).replace('.0', '')
+    				klasse = row.get('KLASSE_INTERNAL', row.get('AUSSTELLUNGSKLASSE', row.get('KLASSE', '-')))
                 
                 fg_cols = [c for c in row.index if "FARBGRUPPE" in c or "FARB-GRUPPE" in c]
                 farbgruppe = row[fg_cols[0]] if fg_cols else row.get('FARBGRUPPE', '-')
