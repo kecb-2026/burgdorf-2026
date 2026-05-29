@@ -1340,41 +1340,7 @@ elif st.session_state.view == "Nominated_Cats":
             
             df_nom_display = pd.DataFrame(nominated_data)
 
-			# --- ADMIN-KONTROLLZENTRUM ---
-            st.markdown("### 🛡️ Admin-Kontrollzentrum")
-            
-            # Hilfs-Datenrahmen ohne die "leeren" Richter ("-") für die Berechnungen
-            df_valid = df_nom_display[df_nom_display['Richter'] != "-"].copy()
-
-            # 1. Dubletten-Check (alle)
-            dups = df_nom_display[df_nom_display.duplicated(subset=['Katalog-Nr.'], keep=False)]
-            if not dups.empty:
-                st.error(f"❌ {len(dups['Katalog-Nr.'].unique())} Katze(n) sind mehrfach nominiert!")
-                with st.expander("Details: Doppelte Katalog-Nummern"):
-                    st.dataframe(dups[['Katalog-Nr.', 'Rasse', 'Richter', 'Show-Klasse']], use_container_width=True, hide_index=True)
-            else:
-                st.success("✅ Katalog-Nummern sind eindeutig.")
-
-            # 2. Richter-Auslastung (nur gültige)
-            richter_load = df_valid.groupby(['Richter', 'Kategorie']).size().reset_index(name='Anzahl')
-            overloaded = richter_load[richter_load['Anzahl'] > 8]
-            if not overloaded.empty:
-                st.warning(f"⚠️ {len(overloaded)} Richter-Kategorie-Kombination(en) über Limit (8)!")
-                with st.expander("Details: Richter-Auslastung"):
-                    st.dataframe(overloaded, use_container_width=True, hide_index=True)
-            else:
-                st.success("✅ Richter-Kapazität (max. 8) eingehalten.")
-
-            # 3. Klassen-Exklusivität (nur gültige)
-            violation_groups = df_valid.groupby(['Richter', 'Kategorie', 'Show-Klasse']).filter(lambda x: len(x) > 1)
-            if not violation_groups.empty:
-                st.error(f"❌ {len(violation_groups['Richter'].unique())} Richter hat Mehrfach-Nominierungen in einer Klasse!")
-                with st.expander("Details: Klassen-Verstöße"):
-                    st.dataframe(violation_groups[['Katalog-Nr.', 'Richter', 'Kategorie', 'Show-Klasse']], use_container_width=True, hide_index=True)
-            else:
-                st.success("✅ Klassen-Regel (1 Katze pro Klasse) eingehalten.")
-
-            st.divider()
+			
 
             
             # --- SEKTION: FILTER & SORTIERUNG (RASTER-LAYOUT) ---
