@@ -761,6 +761,20 @@ elif st.session_state.view == "BIS_Public":
         r_col = f"RICHTER {tag}"
         judges = sorted([r for r in df_full[df_full[tag].astype(str).str.upper() == 'X'][r_col].unique() if str(r) != "nan"])
 
+				# --- PRÜFEN, OB ES IN DIESER KATEGORIE ÜBERHAUPT NOMINIERTE KATZEN GIBT ---
+        cats_in_this_cat = df_full[
+            (df_full[ziel_spalte].astype(str).str.upper() == 'X') & 
+            (df_full['KATEGORIE'] == sel_cat)
+        ]
+
+        # Wenn keine einzige Katze ein 'X' in dieser Kategorie hat, Tabelle ausblenden
+        if cats_in_this_cat.empty:
+            st.markdown("<br><br>", unsafe_allow_html=True)
+            st.info(f"ℹ️ In der Kategorie {sel_cat} sind für {show_selection} aktuell keine Katzen für das Best in Show nominiert.")
+            
+            # Verhindert, dass das restliche Layout/Footer nach oben springt
+            st.markdown("<div style='min-height: 400px;'></div>", unsafe_allow_html=True)
+
         # --- CSS-LOGIK FÜR GRÜNE RICHTER IM HEADER ---
         style_rules = ""
         for label, klassen, geschl in bis_defs:
