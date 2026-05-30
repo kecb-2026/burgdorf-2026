@@ -1286,12 +1286,20 @@ elif st.session_state.view == "QR_Codes":
 # --- NEUER MENÜPUNKT: NOMINIERTE KATZEN (VOLLE FILTER- & SORTIERFUNKTION) ---
 elif st.session_state.view == "Nominated_Cats":
     display_header_with_logo("🏅 Nominierte Katzen (Admin-Zentrale)")
+
+    def get_show_class(row):
+        kl = str(row.get('KLASSE_INTERNAL', row.get('AUSSTELLUNGSKLASSE', row.get('KLASSE', '')))).replace('.0', '')
+        geschlecht = str(row.get('GESCHLECHT', '')).upper()
+        if kl in ['1','3','5','7','9']: return f"Adult {geschlecht}"
+        if kl in ['2','4','6','8','10']: return f"Neuter {geschlecht}"
+        if kl == '11': return f"Junior 8-12 {geschlecht}"
+        if kl == '12': return f"Kitten 4-8 {geschlecht}"
+        return "Unbekannt"	
     
     df_full = load_labels()
-    
-    if df_full is not None:
+
+	if df_full is not None:
         df_nominierte = df_full[df_full['SELECTION'].astype(str).str.upper() == 'X'].copy()
-        
         if not df_nominierte.empty:
             nominated_data = []
             
@@ -1334,13 +1342,42 @@ elif st.session_state.view == "Nominated_Cats":
                     "Geschlecht": row.get('GESCHLECHT', '-'),
                     "Kategorie": row.get('KATEGORIE', '-'),
                     "Klasse": klasse,
+					"Show-Klasse": get_show_class(row),
                     "Richter": richter_name,
                     "Tag": ausstellungstag
                 })
             
             df_nom_display = pd.DataFrame(nominated_data)
 
-			
+			# --- ADMIN-KONTROLLZENTRUM (PRO TAG) ---
+            st.markdown("### 🛡️ Admin-Kontrollzentrum")
+            df_valid = df_nom_display[df_nom_display['Richter'] != "-"].copy()
+            
+            # Prüfungen
+            dups = df_nom_display[df_nom_display.duplicated(subset=['Katalog-Nr.', 'Tag'], keep=False)]
+            richter_load = df_valid.groupby(['Tag', 'Richter', 'Kategorie']).size().reset_index(name='Anzahl')
+            overloaded = richter_load[richter_load['Anzahl'] > 8]
+            violation_groups = df_valid.groupby(['Tag', 'Richter', 'Kategorie', 'Show-Klasse']).filter(lambda x: len(x) > 1)
+
+            # Anzeige
+            c1, c2, c3 = st.columns(3)
+            with c1:
+                if not dups.empty: st.error(f"❌ Dubletten: {len(dups['Katalog-Nr.'].unique())}")
+                else: st.success("✅ Katalog-Nr. ok")
+            with c2:
+                if not overloaded.empty: st.warning(f"⚠️ Limit >8: {len(overloaded)}")
+                else: st.success("✅ Richter-Limit ok")
+            with c3:
+                if not violation_groups.empty: st.error(f"❌ Klassen-Verstoß: {len(violation_groups['Richter'].unique())}")
+                else: st.success("✅ Klassen-Regel ok")
+
+            if not dups.empty or not overloaded.empty or not violation_groups.empty:
+                with st.expander("⚠️ Fehlerdetails einsehen"):
+                    if not dups.empty: st.dataframe(dups[['Tag', 'Katalog-Nr.', 'Richter']], hide_index=True)
+                    if not overloaded.empty: st.dataframe(overloaded, hide_index=True)
+                    if not violation_groups.empty: st.dataframe(violation_groups[['Tag', 'Richter', 'Kategorie', 'Show-Klasse', 'Katalog-Nr.']], hide_index=True)
+            st.divider()
+
 
             
             # --- SEKTION: FILTER & SORTIERUNG (RASTER-LAYOUT) ---
