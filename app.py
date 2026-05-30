@@ -770,7 +770,7 @@ elif st.session_state.view == "BIS_Public":
         # Wenn keine einzige Katze ein 'X' in dieser Kategorie hat, Tabelle ausblenden
         if cats_in_this_cat.empty:
             st.markdown("<br><br>", unsafe_allow_html=True)
-            st.info(f"ℹ️ In der Kategorie {sel_cat} sind für {tag} aktuell keine Katzen für das Best in Show nominiert.")
+            st.info(f"ℹ️ In der Kategorie {sel_cat} sind für {tag} aktuell keine Katzen für die Best in Show nominiert.")
             
             # Verhindert, dass das restliche Layout/Footer nach oben springt
             st.markdown("<div style='min-height: 400px;'></div>", unsafe_allow_html=True)
