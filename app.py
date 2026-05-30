@@ -1294,14 +1294,15 @@ elif st.session_state.view == "Nominated_Cats":
         if kl in ['2','4','6','8','10']: return f"Neuter {geschlecht}"
         if kl == '11': return f"Junior 8-12 {geschlecht}"
         if kl == '12': return f"Kitten 4-8 {geschlecht}"
-        return "Unbekannt"	
+        return "Unbekannt"    
     
     df_full = load_labels()
-		
-	if df_full is not None:
+        
+    if df_full is not None:
         df_nominierte = df_full[df_full['SELECTION'].astype(str).str.upper() == 'X'].copy()
         if not df_nominierte.empty:
             nominated_data = []
+
             
             for _, row in df_nominierte.iterrows():
                 kat_nr = row.get('KAT_STR', str(row.get('KATALOG-NR', ''))).replace('.0', '')
