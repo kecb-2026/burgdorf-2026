@@ -763,7 +763,7 @@ elif st.session_state.view == "BIS_Public":
 
 				# --- PRÜFEN, OB ES IN DIESER KATEGORIE ÜBERHAUPT NOMINIERTE KATZEN GIBT ---
         cats_in_this_cat = df_full[
-            (df_full[ziel_spalte].astype(str).str.upper() == 'X') & 
+            (df_full[tag].astype(str).str.upper() == 'X') & 
             (df_full['KATEGORIE'] == sel_cat)
         ]
 
