@@ -1350,34 +1350,40 @@ elif st.session_state.view == "Nominated_Cats":
             
             df_nom_display = pd.DataFrame(nominated_data)
 
-			# --- ADMIN-KONTROLLZENTRUM (PRO TAG) ---
+            # --- ADMIN-KONTROLLZENTRUM (Version 1 Stil: Eigene Expander) ---
             st.markdown("### 🛡️ Admin-Kontrollzentrum")
             df_valid = df_nom_display[df_nom_display['Richter'] != "-"].copy()
-            
-            # Prüfungen
+
+            # 1. Dubletten
             dups = df_nom_display[df_nom_display.duplicated(subset=['Katalog-Nr.', 'Tag'], keep=False)]
+            if not dups.empty:
+                st.error(f"❌ {len(dups['Katalog-Nr.'].unique())} Katze(n) sind mehrfach nominiert!")
+                with st.expander("Details: Doppelte Katalog-Nummern"):
+                    st.dataframe(dups[['Tag', 'Katalog-Nr.', 'Richter']], hide_index=True)
+            else:
+                st.success("✅ Katalog-Nummern sind eindeutig.")
+
+            # 2. Richter-Limit
             richter_load = df_valid.groupby(['Tag', 'Richter', 'Kategorie']).size().reset_index(name='Anzahl')
             overloaded = richter_load[richter_load['Anzahl'] > 8]
+            if not overloaded.empty:
+                st.warning(f"⚠️ {len(overloaded)} Richter-Kategorie-Kombination(en) über Limit (8)!")
+                with st.expander("Details: Richter-Auslastung"):
+                    st.dataframe(overloaded, hide_index=True)
+            else:
+                st.success("✅ Richter-Kapazität eingehalten.")
+
+            # 3. Klassen-Exklusivität
             violation_groups = df_valid.groupby(['Tag', 'Richter', 'Kategorie', 'Show-Klasse']).filter(lambda x: len(x) > 1)
+            if not violation_groups.empty:
+                st.error(f"❌ {len(violation_groups['Richter'].unique())} Richter hat Klassen-Verstöße!")
+                with st.expander("Details: Klassen-Verstöße"):
+                    st.dataframe(violation_groups[['Tag', 'Richter', 'Kategorie', 'Show-Klasse', 'Katalog-Nr.']], hide_index=True)
+            else:
+                st.success("✅ Klassen-Regel eingehalten.")
 
-            # Anzeige
-            c1, c2, c3 = st.columns(3)
-            with c1:
-                if not dups.empty: st.error(f"❌ Dubletten: {len(dups['Katalog-Nr.'].unique())}")
-                else: st.success("✅ Katalog-Nr. ok")
-            with c2:
-                if not overloaded.empty: st.warning(f"⚠️ Limit >8: {len(overloaded)}")
-                else: st.success("✅ Richter-Limit ok")
-            with c3:
-                if not violation_groups.empty: st.error(f"❌ Klassen-Verstoß: {len(violation_groups['Richter'].unique())}")
-                else: st.success("✅ Klassen-Regel ok")
-
-            if not dups.empty or not overloaded.empty or not violation_groups.empty:
-                with st.expander("⚠️ Fehlerdetails einsehen"):
-                    if not dups.empty: st.dataframe(dups[['Tag', 'Katalog-Nr.', 'Richter']], hide_index=True)
-                    if not overloaded.empty: st.dataframe(overloaded, hide_index=True)
-                    if not violation_groups.empty: st.dataframe(violation_groups[['Tag', 'Richter', 'Kategorie', 'Show-Klasse', 'Katalog-Nr.']], hide_index=True)
             st.divider()
+
 
 
             
