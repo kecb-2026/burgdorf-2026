@@ -15,6 +15,8 @@ import re
 import time
 from streamlit_autorefresh import st_autorefresh
 import qrcode
+import json
+import os
 from io import BytesIO
 # --- IMPORTS FÜR DIE PDF-GENERIERUNG ---
 from reportlab.lib.pagesizes import letter
@@ -319,9 +321,31 @@ class GlobalStore:
         self.active_overlay = None
         self.overlay_start_time = 0
 
+    def save_backup(self):
+        """Sichert den aktuellen Speicherzustand in einer JSON-Datei auf dem Server"""
+        try:
+            with open("store_backup.json", "w", encoding="utf-8") as f:
+                json.dump(self.data, f, ensure_ascii=False, indent=4)
+        except Exception as e:
+            pass  # Verhindert, dass ein Fehler beim Schreiben die App blockiert
+
+    def load_backup(self):
+        """Lädt die Daten aus dem Backup, falls der Server neu gestartet wurde"""
+        if os.path.exists("store_backup.json"):
+            try:
+                with open("store_backup.json", "r", encoding="utf-8") as f:
+                    backup_data = json.load(f)
+                    if backup_data:
+                        self.data = backup_data
+            except Exception as e:
+                st.error(f"Fehler beim Laden des Notfall-Backups: {e}")
+
 @st.cache_resource
 def get_store():
-    return GlobalStore()
+    store_instance = GlobalStore()
+    # Beim allerersten Start der App prüfen, ob ein Backup bereitliegt
+    store_instance.load_backup()
+    return store_instance
 
 store = get_store()
 
