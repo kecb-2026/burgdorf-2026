@@ -1297,7 +1297,7 @@ elif st.session_state.view == "Nominated_Cats":
         return "Unbekannt"	
     
     df_full = load_labels()
-
+		
 	if df_full is not None:
         df_nominierte = df_full[df_full['SELECTION'].astype(str).str.upper() == 'X'].copy()
         if not df_nominierte.empty:
