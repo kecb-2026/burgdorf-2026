@@ -1396,8 +1396,12 @@ elif st.session_state.view == "Nominated_Cats":
             # Zweite Filterzeile (Klasse & Geschlecht)
             c_f3, c_f4 = st.columns(2)
             with c_f3:
-                klasse_optionen = ["Alle Klassen"] + sorted([str(kl) for kl in df_nom_display['Klasse'].unique() if kl != "-"])
-                wahl_klasse = st.selectbox("Nach Klasse filtern:", klasse_optionen)
+                # Wir definieren die feste Reihenfolge für die Show-Klassen
+                reihenfolge = ["Kitten 4-8 M", "Kitten 4-8 W", "Junior 8-12 M", "Junior 8-12 W", "Neuter M", "Neuter W", "Adult M", "Adult W"]
+                vorhandene_sk = [sk for sk in reihenfolge if sk in df_nom_display['Show-Klasse'].unique()]
+                
+                show_klasse_optionen = ["Alle Show-Klassen"] + vorhandene_sk
+                wahl_show_klasse = st.selectbox("Nach Show-Klasse filtern:", show_klasse_optionen)
             with c_f4:
                 geschlecht_optionen = ["Alle Geschlechter"] + sorted([str(g) for g in df_nom_display['Geschlecht'].unique() if g != "-"])
                 wahl_geschlecht = st.selectbox("Nach Geschlecht filtern:", geschlecht_optionen)
@@ -1422,8 +1426,8 @@ elif st.session_state.view == "Nominated_Cats":
             if wahl_kategorie != "Alle Kategorien":
                 df_nom_display = df_nom_display[df_nom_display['Kategorie'].astype(str) == wahl_kategorie]
                 
-            if wahl_klasse != "Alle Klassen":
-                df_nom_display = df_nom_display[df_nom_display['Klasse'].astype(str) == wahl_klasse]
+            if wahl_show_klasse != "Alle Show-Klassen":
+                df_nom_display = df_nom_display[df_nom_display['Show-Klasse'].astype(str) == wahl_klasse]
                 
             if wahl_geschlecht != "Alle Geschlechter":
                 df_nom_display = df_nom_display[df_nom_display['Geschlecht'] == wahl_geschlecht]
