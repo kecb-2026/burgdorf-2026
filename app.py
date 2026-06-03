@@ -795,6 +795,12 @@ elif st.session_state.view == "BIS_Public":
         st.session_state['bis_stable_cat'] = sel_cat
         # --------------------------------------
 
+        # --- DYNAMISCHE SPALTEN-WEICHE FÜR DIE 2 TAGE ---
+        sel_col = f"SELECTION {tag.replace('TAG ', '')}"
+        if sel_col in df_full.columns:
+            df_full['SELECTION'] = df_full[sel_col]
+        # ------------------------------------------------
+
         bis_defs = [
             ("Adult Male", [1,3,5,7,9], "M"), ("Adult Female", [1,3,5,7,9], "W"), 
             ("Neuter Male", [2,4,6,8,10], "M"), ("Neuter Female", [2,4,6,8,10], "W"), 
@@ -805,9 +811,9 @@ elif st.session_state.view == "BIS_Public":
         r_col = f"RICHTER {tag}"
         judges = sorted([r for r in df_full[df_full[tag].astype(str).str.upper() == 'X'][r_col].unique() if str(r) != "nan"])
 
-				# --- PRÜFEN, OB ES IN DIESER KATEGORIE ÜBERHAUPT NOMINIERTE KATZEN GIBT ---
+        # --- PRÜFEN, OB ES IN DIESER KATEGORIE ÜBERHAUPT NOMINIERTE KATZEN GIBT ---
         cats_in_this_cat = df_full[
-            (df_full[tag].astype(str).str.upper() == 'X') & 
+            (df_full['SELECTION'].astype(str).str.upper() == 'X') & 
             (df_full['KATEGORIE'] == sel_cat)
         ]
 
@@ -822,8 +828,8 @@ elif st.session_state.view == "BIS_Public":
         # --- CSS-LOGIK FÜR GRÜNE RICHTER IM HEADER ---
         style_rules = ""
         for label, klassen, geschl in bis_defs:
-            if not store.data.get(f"winner_reveal_{sel_cat}_{label}", False):
-                prefix = f"v_{sel_cat}_{label}_"
+            if not store.data.get(f"winner_reveal_{tag}_{sel_cat}_{label}", False):
+                prefix = f"v_{tag}_{sel_cat}_{label}_"
                 abgestimmte = [key.replace(prefix, "") for key, val in store.data.get("votes", {}).items() 
                                if key.startswith(prefix) and val != "Keine Wahl" and val != "Keine Wahl/Not chosen yet"]
                 for j in abgestimmte:
@@ -845,8 +851,8 @@ elif st.session_state.view == "BIS_Public":
             r_cols = st.columns([0.8] + [1.2]*len(judges) + [0.8])
             r_cols[0].markdown(f"<div class='class-label-box'>{label}</div>", unsafe_allow_html=True)
             
-            show_noms = store.data.get(f"reveal_{sel_cat}_{label}", False)
-            winner_revealed = store.data.get(f"winner_reveal_{sel_cat}_{label}", False)
+            show_noms = store.data.get(f"reveal_{tag}_{sel_cat}_{label}", False)
+            winner_revealed = store.data.get(f"winner_reveal_{tag}_{sel_cat}_{label}", False)
             
             for i, j in enumerate(judges):
                 with r_cols[i+1]:
@@ -856,7 +862,7 @@ elif st.session_state.view == "BIS_Public":
                             kat_nr = m.iloc[0]['KAT_STR']
                             circles_html = ""
                             if winner_revealed:
-                                prefix = f"v_{sel_cat}_{label}_"
+                                prefix = f"v_{tag}_{sel_cat}_{label}_"
                                 all_votes = store.data.get("votes", {})
                                 voters = [v_key.replace(prefix, "") for v_key, v_val in all_votes.items() if v_key.startswith(prefix) and str(v_val) == str(kat_nr)]
                                 if voters:
@@ -869,8 +875,8 @@ elif st.session_state.view == "BIS_Public":
             
             with r_cols[-1]:
                 if winner_revealed:
-                    prefix = f"v_{sel_cat}_{label}_"
-                    winner_nr = store.data.get(f"override_{sel_cat}_{label}", "Automatisch (Stimmen)")
+                    prefix = f"v_{tag}_{sel_cat}_{label}_"
+                    winner_nr = store.data.get(f"override_{tag}_{sel_cat}_{label}", "Automatisch (Stimmen)")
                     if winner_nr == "Automatisch (Stimmen)" and "votes" in store.data:
                         vts = [v for k, v in store.data["votes"].items() if k.startswith(prefix) and v != "Keine Wahl"]
                         if vts: winner_nr = pd.Series(vts).value_counts().index[0]
@@ -880,6 +886,7 @@ elif st.session_state.view == "BIS_Public":
                 else: st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
 
     time.sleep(3); st.rerun()
+
     
 # LIVE DASHBOARD
 elif st.session_state.view == "Dashboard":
