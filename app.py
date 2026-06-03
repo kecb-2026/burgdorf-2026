@@ -1584,7 +1584,7 @@ elif st.session_state.view == "Nominated_Cats":
                 df_nom_display = df_nom_display[df_nom_display['Kategorie'].astype(str) == wahl_kategorie]
                 
             if wahl_show_klasse != "Alle Show-Klassen":
-                df_nom_display = df_nom_display[df_nom_display['Show-Klasse'].astype(str) == wahl_klasse]
+                df_nom_display = df_nom_display[df_nom_display['Show-Klasse'].astype(str) == wahl_show_klasse]
                 
             if wahl_geschlecht != "Alle Geschlechter":
                 df_nom_display = df_nom_display[df_nom_display['Geschlecht'] == wahl_geschlecht]
