@@ -900,11 +900,15 @@ elif st.session_state.view == "BIS_Public":
 # LIVE DASHBOARD
 elif st.session_state.view == "Dashboard":
     display_header_with_logo("📢 Live-Aufruf & Status")
-
-
-    # Holt den Tag direkt aus dem vom Admin gesteuerten Key
-    menu_day = st.session_state.get("judge_day_selector", "Tag 1")
-    tag = "TAG 2" if "2" in str(menu_day) else "TAG 1"
+    
+    # Holt sich den vom Admin festgesetzten Tag (völlig immun gegen das st_autorefresh)
+    admin_day = st.session_state.get("admin_selected_day", "Tag 1")
+    tag = "TAG 2" if "2" in str(admin_day) else "TAG 1"
+    
+    # Passive Info-Anzeige in der Seitenleiste
+    st.sidebar.info(f"📅 Aktiver Ausstellungstag: {tag}")
+    
+    
 	
     df_full = load_labels()
     if df_full is not None:
