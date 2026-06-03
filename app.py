@@ -443,7 +443,7 @@ def roman_to_numeric(text):
 @st.cache_data(ttl=1)
 def load_labels():
     try:
-        df = pd.read_excel("LABELS.xlsx", engine='openpyxl', header=0)
+        df = pd.read_excel("2026.xlsx", engine='openpyxl', header=0)
         df.columns = [str(c).strip().upper() for c in df.columns]
         df = df.fillna("-")
         df['KLASSE_INTERNAL'] = df['AUSSTELLUNGSKLASSE'] if 'AUSSTELLUNGSKLASSE' in df.columns else df.get('KLASSE', '')
@@ -667,7 +667,12 @@ elif st.session_state.view == "BIS_Admin_Control":
     display_header_with_logo("👨‍⚖️ BIS Control Center")
     df_full = load_labels()
     if df_full is not None:
+        # Tag auswählen, um die Filterung auf SELECTION 1 oder 2 zu aktivieren
+        tag_choice = st.radio("Tag zur Steuerung wählen:", ["Tag 1", "Tag 2"], horizontal=True)
+        selection_col = "SELECTION 1" if tag_choice == "Tag 1" else "SELECTION 2"
+        
         sel_cat = st.selectbox("Kategorie verwalten:", sorted(df_full['KATEGORIE'].unique()))
+        
         bis_defs = [("Adult Male", [1,3,5,7,9], "M"), ("Adult Female", [1,3,5,7,9], "W"), ("Neuter Male", [2,4,6,8,10], "M"), ("Neuter Female", [2,4,6,8,10], "W"), ("Junior 8-12 Male", [11], "M"), ("Junior 8-12 Female", [11], "W"), ("Kitten 4-8 Male", [12], "M"), ("Kitten 4-8 Female", [12], "W")]
         
         for label, klassen, geschl in bis_defs:
@@ -679,7 +684,13 @@ elif st.session_state.view == "BIS_Admin_Control":
                     key_reveal = f"reveal_{sel_cat}_{label}"; key_winner_reveal = f"winner_reveal_{sel_cat}_{label}"; key_override = f"override_{sel_cat}_{label}"
                     store.data[key_reveal] = st.checkbox("Nominationen anzeigen", value=store.data.get(key_reveal, False), key=f"cb1_{key_reveal}")
                     store.data[key_winner_reveal] = st.checkbox("BIS Gewinner anzeigen", value=store.data.get(key_winner_reveal, False), key=f"cb2_{key_winner_reveal}")
-                    pool = df_full[(df_full['SELECTION'].astype(str).str.upper() == 'X') & (df_full['KATEGORIE'] == sel_cat) & (df_full['KLASSE_INTERNAL'].isin(klassen)) & (df_full['GESCHLECHT'].astype(str).str.upper() == geschl)]
+                    
+                    # HIER wurde der Filter auf selection_col angepasst:
+                    pool = df_full[(df_full[selection_col].astype(str).str.upper() == 'X') & 
+                                   (df_full['KATEGORIE'] == sel_cat) & 
+                                   (df_full['KLASSE_INTERNAL'].isin(klassen)) & 
+                                   (df_full['GESCHLECHT'].astype(str).str.upper() == geschl)]
+                    
                     options = ["Automatisch (Stimmen)"] + sorted(pool['KAT_STR'].unique().tolist())
                     store.data[key_override] = st.selectbox(f"Gewinner festlegen:", options, index=options.index(store.data.get(key_override, "Automatisch (Stimmen)")) if store.data.get(key_override) in options else 0, key=f"sb_{key_override}")
                     
@@ -691,7 +702,7 @@ elif st.session_state.view == "BIS_Admin_Control":
                     if final_nr and st.button(f"🏆 OVERLAY ZEIGEN (#{final_nr})", key=f"btn_ov_{sel_cat}_{label}"):
                         w_match = df_full[df_full['KAT_STR'] == str(final_nr)]
                         if not w_match.empty:
-                            store.active_overlay = m_w = w_match.iloc[0].to_dict()
+                            store.active_overlay = w_match.iloc[0].to_dict() # Fehler korrigiert: m_w entfernt
                             store.overlay_start_time = time.time()
                             if "local_overlay_end" in st.session_state:
                                 st.session_state.local_overlay_end = 0
