@@ -676,22 +676,34 @@ st.session_state.steward_lock = st.toggle(
     value=st.session_state.steward_lock
 )
 
-# Initialisiere den sicheren Speicher, falls er beim allerersten Start noch leer ist
-if "admin_selected_day" not in st.session_state:
-    st.session_state.admin_selected_day = "Tag 1"
+    st.divider()
+    st.subheader("⚙️ System-Einstellungen (Admin-Steuerung)")
+    
+    # 1. Richter-Fixierung
+    if "steward_lock" not in st.session_state:
+        st.session_state.steward_lock = True
+    st.session_state.steward_lock = st.toggle(
+        "Richter-Auswahl für Stewards sperren (Lockdown)", 
+        value=st.session_state.steward_lock
+    )
 
-# Funktion, die den Wert sofort beim Klicken bombensicher wegschreibt
-def save_admin_day():
-    st.session_state.admin_selected_day = st.session_state.admin_radio_widget
+    # Initialisiere den sicheren Speicher, falls er beim allerersten Start noch leer ist
+    if "admin_selected_day" not in st.session_state:
+        st.session_state.admin_selected_day = "Tag 1"
 
-st.subheader("⚙️ Globaler Event-Status")
-st.radio(
-    "Aktiven Tag für die gesamte Ausstellung festlegen:", 
-    ["Tag 1", "Tag 2"], 
-    key="admin_radio_widget",
-    index=0 if st.session_state.admin_selected_day == "Tag 1" else 1,
-    on_change=save_admin_day  # Das hier sichert den Tag ab!
-)
+    # HIER IST JETZT DIE FUNKTION: Sauber eingerückt auf der Modulebene des Admin-Panels
+    def save_admin_day():
+        st.session_state.admin_selected_day = st.session_state.admin_radio_widget
+
+    st.subheader("⚙️ Globaler Event-Status")
+    st.radio(
+        "Aktiven Tag für die gesamte Ausstellung festlegen:", 
+        ["Tag 1", "Tag 2"], 
+        key="admin_radio_widget",
+        index=0 if st.session_state.admin_selected_day == "Tag 1" else 1,
+        on_change=save_admin_day
+    )
+
 
 
 
