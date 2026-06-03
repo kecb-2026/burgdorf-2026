@@ -443,12 +443,24 @@ def roman_to_numeric(text):
 @st.cache_data(ttl=1)
 def load_labels():
     try:
-        df = pd.read_excel("LABELS.xlsx", engine='openpyxl', header=0)
+        df = pd.read_excel("2026.xlsx", engine='openpyxl', header=0)
         df.columns = [str(c).strip().upper() for c in df.columns]
         df = df.fillna("-")
         df['KLASSE_INTERNAL'] = df['AUSSTELLUNGSKLASSE'] if 'AUSSTELLUNGSKLASSE' in df.columns else df.get('KLASSE', '')
         if 'KATALOG-NR' in df.columns:
             df['KAT_STR'] = df['KATALOG-NR'].astype(str).str.replace('.0', '', regex=False)
+
+        # --- NEU: ABSOLUT RISIKO-FREIE WEICHE FÜR TAG 1 & TAG 2 ---
+        # Wir prüfen, welcher Tag im globalen Sidebar-Radio-Button gewählt ist
+        # Falls der Selector auf "Tag 2" steht, nehmen wir SELECTION 2, sonst SELECTION 1
+        day_selector = st.session_state.get("judge_day_selector", "Tag 1")
+        
+        if "2" in str(day_selector):
+            df['SELECTION'] = df['SELECTION 2'] if 'SELECTION 2' in df.columns else df.get('SELECTION', '-')
+        else:
+            df['SELECTION'] = df['SELECTION 1'] if 'SELECTION 1' in df.columns else df.get('SELECTION', '-')
+        # -----------------------------------------------------------
+		
         return df
     except:
         return None
