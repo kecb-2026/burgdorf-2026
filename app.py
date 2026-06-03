@@ -675,9 +675,24 @@ elif st.session_state.view == "Home":
     )
 
 # BIS ADMIN CONTROL
+# BIS ADMIN CONTROL
 elif st.session_state.view == "BIS_Admin_Control":
-    display_header_with_logo("👨‍⚖️ BIS Control Center")
+    display_header_with_logo("👑 BIS Admin Control")
     df_full = load_labels()
+    
+    if df_full is not None:
+        # --- HIER DIE NEUE RADIO-BOX FÜR DIE TAGE EINFÜGEN ---
+        admin_tag = st.radio("Ausstellungstag verwalten:", ["Tag 1", "Tag 2"], horizontal=True, key="admin_day_selector").upper()
+        
+        # Spaltenname dynamisch bestimmen (SELECTION 1 oder SELECTION 2)
+        sel_col = f"SELECTION {admin_tag.replace('TAG ', '')}"
+        
+        # Wir überschreiben temporär im geladenen Dataframe die 'SELECTION' Spalte,
+        # damit alle nachfolgenden Filter im originalen Code (pool = df_full[df_full['SELECTION']...]) unverändert weiterlaufen!
+        if sel_col in df_full.columns:
+            df_full['SELECTION'] = df_full[sel_col]
+        # -----------------------------------------------------
+
     if df_full is not None:
         sel_cat = st.selectbox("Kategorie verwalten:", sorted(df_full['KATEGORIE'].unique()))
         bis_defs = [("Adult Male", [1,3,5,7,9], "M"), ("Adult Female", [1,3,5,7,9], "W"), ("Neuter Male", [2,4,6,8,10], "M"), ("Neuter Female", [2,4,6,8,10], "W"), ("Junior 8-12 Male", [11], "M"), ("Junior 8-12 Female", [11], "W"), ("Kitten 4-8 Male", [12], "M"), ("Kitten 4-8 Female", [12], "W")]
