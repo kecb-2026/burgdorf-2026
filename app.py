@@ -665,28 +665,6 @@ elif st.session_state.view == "Home":
         "Richter-Auswahl für Stewards sperren (Lockdown)", 
         value=st.session_state.steward_lock
     )
-st.divider()
-st.subheader("⚙️ System-Einstellungen (Admin-Steuerung)")
-
-# 1. Richter-Fixierung
-if "steward_lock" not in st.session_state:
-    st.session_state.steward_lock = True
-st.session_state.steward_lock = st.toggle(
-    "Richter-Auswahl für Stewards sperren (Lockdown)", 
-    value=st.session_state.steward_lock
-)
-
-st.divider()
-st.subheader("⚙️ System-Einstellungen (Admin-Steuerung)")
-    
-
-    # 1. Richter-Fixierung
-    if "steward_lock" not in st.session_state:
-        st.session_state.steward_lock = True
-    st.session_state.steward_lock = st.toggle(
-        "Richter-Auswahl für Stewards sperren (Lockdown)", 
-        value=st.session_state.steward_lock
-    )
 
     # Initialisiere den sicheren Speicher, falls er beim allerersten Start noch leer ist
     if "admin_selected_day" not in st.session_state:
@@ -704,10 +682,6 @@ st.subheader("⚙️ System-Einstellungen (Admin-Steuerung)")
         index=0 if st.session_state.admin_selected_day == "Tag 1" else 1,
         on_change=save_admin_day
     )
-
-
-
-
 
 # BIS ADMIN CONTROL
 # BIS ADMIN CONTROL
