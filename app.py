@@ -896,7 +896,6 @@ elif st.session_state.view == "BIS_Public":
 
     time.sleep(3); st.rerun()
 
-    
 # LIVE DASHBOARD
 elif st.session_state.view == "Dashboard":
     display_header_with_logo("📢 Live-Aufruf & Status")
@@ -908,12 +907,13 @@ elif st.session_state.view == "Dashboard":
     # Passive Info-Anzeige in der Seitenleiste
     st.sidebar.info(f"📅 Aktiver Ausstellungstag: {tag}")
     
-    
-	
     df_full = load_labels()
     if df_full is not None:
         r_col = f"RICHTER {tag}"
+        
+        # Filtert das Excel NUR auf Zeilen, die am aktuellen Tag ein 'X' haben
         df_tag = df_full[df_full[tag].astype(str).str.upper() == 'X'].copy()
+        
         judges = sorted([r for r in df_tag[r_col].unique() if str(r) != "nan"])
         if judges:
             cols = st.columns(len(judges))
@@ -924,33 +924,42 @@ elif st.session_state.view == "Dashboard":
                     judge_entries = []
                     for k, v in store.data.items():
                         if "|" in k and k.split("|")[1] == j:
-                            flags = v.get("flags", {}) if isinstance(v, dict) else {}
-                            beim_richten = flags.get("Zum Richten", False) and not flags.get("Gerichtet", False)
-                            nominiert = flags.get("NOM", False)
-                            biv = flags.get("BIV", False)
+                            kat_nr = k.split("|")[0]
                             
-                            if beim_richten or nominiert or biv:
-                                judge_entries.append({"key": k, "data": v if isinstance(v, dict) else {"flags": {}}})
+                            # PRÜFUNG: Existiert die Katze am aktuellen Tag bei diesem Richter?
+                            m = df_tag[(df_tag['KAT_STR'] == kat_nr) & (df_tag[r_col] == j)]
+                            
+                            if not m.empty:  # Nur verarbeiten, wenn sie zum aktuellen Tag gehört!
+                                flags = v.get("flags", {}) if isinstance(v, dict) else {}
+                                beim_richten = flags.get("Zum Richten", False) and not flags.get("Gerichtet", False)
+                                nominiert = flags.get("NOM", False)
+                                biv = flags.get("BIV", False)
+                                
+                                if beim_richten or nominiert or biv:
+                                    judge_entries.append({
+                                        "key": k, 
+                                        "data": v if isinstance(v, dict) else {"flags": {}},
+                                        "row_data": m.iloc[0]  # Daten merken fürs spätere Anzeigen
+                                    })
                     
                     judge_entries.sort(key=lambda x: x["data"].get("timestamp", 0))
                     
                     for entry in judge_entries:
                         kat_nr = entry["key"].split("|")[0]
                         flags = entry["data"].get("flags", {})
-                        m = df_tag[df_tag['KAT_STR'] == kat_nr]
-                        if not m.empty:
-                            tags = "".join([f"<span class='tag tag-{t.lower().replace(' ', '')}'>{t}</span> " for t, val in flags.items() if val and t != "Gerichtet"])
-                            if tags: 
-                                st.markdown(f"""
-                                    <div class='cat-card'>
-                                        <div class='cat-number'>{kat_nr}</div>
-                                        <div class='cat-details'>{get_full_label(m.iloc[0])}</div>
-                                        <div class='tag-container'>{tags}</div>
-                                    </div>
-                                """, unsafe_allow_html=True)
+                        m_row = entry["row_data"]
+                        
+                        tags = "".join([f"<span class='tag tag-{t.lower().replace(' ', '')}'>{t}</span> " for t, val in flags.items() if val and t != "Gerichtet"])
+                        if tags: 
+                            st.markdown(f"""
+                                <div class='cat-card'>
+                                    <div class='cat-number'>{kat_nr}</div>
+                                    <div class='cat-details'>{get_full_label(m_row)}</div>
+                                    <div class='tag-container'>{tags}</div>
+                                </div>
+                            """, unsafe_allow_html=True)
                             
     st_autorefresh(interval=10000, key="dash_refresh")
-
 
 # --- CORRECTIONS ONLY IN THE STEWARD # --- DIESEN BLOCK IM STEWARD PANEL ERSETZEN ---
 elif st.session_state.view == "Steward_Panel":
