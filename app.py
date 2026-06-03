@@ -676,8 +676,8 @@ st.session_state.steward_lock = st.toggle(
     value=st.session_state.steward_lock
 )
 
-    st.divider()
-    st.subheader("⚙️ System-Einstellungen (Admin-Steuerung)")
+st.divider()
+st.subheader("⚙️ System-Einstellungen (Admin-Steuerung)")
     
     # 1. Richter-Fixierung
     if "steward_lock" not in st.session_state:
