@@ -951,20 +951,34 @@ elif st.session_state.view == "Steward_Panel":
         url_judge_name = st.session_state.get("url_judge", "--")
         
         # 2. Automatisch ermitteln, an welchem Tag dieser Richter arbeitet
-        url_day = st.query_params.get("day", "1")
-        default_tag_idx = 1 if url_day == "2" else 0
+        url_day = st.query_params.get("day", None)
         
+        # Standardmäßig wird der Tag vom Admin-Schalter genommen
+        admin_day = st.session_state.get("judge_day_selector", "Tag 1")
+        calculated_tag = "TAG 2" if "2" in str(admin_day) else "TAG 1"
+        
+        # Falls in der URL explizit ein Tag steht, überschreibt dieser den Admin-Tag
+        if url_day == "1":
+            calculated_tag = "TAG 1"
+        elif url_day == "2":
+            calculated_tag = "TAG 2"
+        
+        # 3. Wenn ein Richtername übergeben wurde, die bestehende Logik prüfen:
         if url_judge_name != "--":
-            # Wenn der Richter nicht in Tag 1, aber in Tag 2 existiert -> Umschalten auf Tag 2
+            # Wenn der Richter nicht in Tag 1, aber in Tag 2 existiert -> Zuweisung auf Tag 2 erzwingen
             j_t1 = [r for r in df_full['RICHTER TAG 1'].unique() if str(r) != "nan"] if 'RICHTER TAG 1' in df_full.columns else []
             j_t2 = [r for r in df_full['RICHTER TAG 2'].unique() if str(r) != "nan"] if 'RICHTER TAG 2' in df_full.columns else []
             
             if url_judge_name in j_t2 and url_judge_name not in j_t1:
-                default_tag_idx = 1 # Setzt den Radio-Button auf "Tag 2"
+                calculated_tag = "TAG 2"
         
-        # Sidebar Radio-Button mit dem dynamischen Default-Index
-        tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"], index=default_tag_idx).upper()
+        # Finale Zuweisung an die Variable tag (immer in Großbuchstaben für die Spaltennamen)
+        tag = calculated_tag.upper()
         
+        # Optionale visuelle Rückmeldung in der Sidebar statt einem Eingabefeld
+        st.sidebar.info(f"📅 Aktiver Ausstellungstag: {tag}")
+        
+
         r_col = f"RICHTER {tag}"
         all_j = sorted([r for r in df_full[df_full[tag].astype(str).str.upper() == 'X'][r_col].unique() if str(r) != "nan"])
         
