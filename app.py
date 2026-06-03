@@ -1073,11 +1073,11 @@ elif st.session_state.view == "Judge_Voting":
                     pool = df_full[(df_full['SELECTION'].astype(str).str.upper() == 'X') & (df_full['KATEGORIE'] == active_cat) & (df_full['KLASSE_INTERNAL'].isin(klassen)) & (df_full['GESCHLECHT'].astype(str).str.upper() == geschl)]
                     if not pool.empty:
                         opts = {f"#{r['KAT_STR']} - {get_full_label(r)}": r['KAT_STR'] for _, r in pool.iterrows()}
-                        v_key = f"v_{active_cat}_{label}_{active_j}"
+                        # TAG wird hier in den Schlüssel eingebaut, damit Tag 1 und Tag 2 getrennt gespeichert und resettet werden
+                        v_key = f"v_{tag}_{active_cat}_{label}_{active_j}"
                         curr = store.data["votes"].get(v_key, "Keine Wahl")
                         sel = st.radio("Favorit:", ["Keine Wahl/Not chosen yet"] + list(opts.keys()), index=(list(opts.values()).index(curr)+1) if curr in opts.values() else 0, key=f"r_{v_key}")
                         store.data["votes"][v_key] = opts[sel] if sel != "Keine Wahl/Not chosen yet" else "Keine Wahl/Not chosen yet"
-
 
 
 
