@@ -1964,7 +1964,7 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
                 verfuegbare_spalten = [col for col in ['KAT_STR', 'KATEGORIE', 'KLASSE_INTERNAL', 'GESCHLECHT', 'RASSE', 'FARBE'] if col in df_nominierte_t1.columns]
                 schoene_namen = {"KAT_STR": "Kat.-Nr.", "KATEGORIE": "Kategorie", "KLASSE_INTERNAL": "Klasse", "GESCHLECHT": "Geschlecht", "RASSE": "Rasse", "FARBE": "Farbe"}
                 aktuelle_config = {col: schoene_namen[col] for col in verfuegbare_spalten if col in schoene_namen}
-                st.dataframe(df_nominierte_t1[verfuegbare_spalten], column_config=aktuelle_config, use_container_width=True, hide_index=True, key="preview_t1")
+                st.dataframe(df_nominierte_t2[verfuegbare_spalten], column_config=aktuelle_config, use_container_width=True, hide_index=True, key="preview_t1")
             else:
                 st.info("Aktuell sind keine Katzen für den Labeldruck an Tag 1 (Spalte 'SELECTION 1') bereit.")
 
