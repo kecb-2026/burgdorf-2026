@@ -666,7 +666,9 @@ elif st.session_state.view == "Home":
         value=st.session_state.steward_lock
     )
 
-	# Initialisiere den sicheren Speicher, falls er beim allerersten Start noch leer ist
+	# --- DIESEN BLOCK IM ADMIN PANEL ERSETZEN ---
+
+# Initialisiere den sicheren Speicher, falls er beim allerersten Start noch leer ist
 if "admin_selected_day" not in st.session_state:
     st.session_state.admin_selected_day = "Tag 1"
 
@@ -680,8 +682,9 @@ st.radio(
     ["Tag 1", "Tag 2"], 
     key="admin_radio_widget",
     index=0 if st.session_state.admin_selected_day == "Tag 1" else 1,
-    on_change=save_admin_day  # Das hier friert den Tag im Speicher ein!
+    on_change=save_admin_day  # Das hier sichert den Tag ab!
 )
+
 
 
 
