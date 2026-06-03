@@ -823,28 +823,30 @@ elif st.session_state.view == "BIS_Public":
             for i, j in enumerate(judges):
                 with r_cols[i+1]:
                     if show_noms:
-                            # HIER wurde der Filter auf selection_col angepasst:
-                            m = df_full[
-                                (df_full[selection_col].astype(str).str.upper() == 'X') & 
-                                (df_full[r_col] == j) & 
-                                (df_full['KATEGORIE'] == sel_cat) & 
-                                (df_full['KLASSE_INTERNAL'].isin(klassen)) & 
-                                (df_full['GESCHLECHT'].astype(str).str.upper() == geschl)
-                            ]
-                            if not m.empty:
-                                kat_nr = m.iloc[0]['KAT_STR']
+                        m = df_full[
+                            (df_full[selection_col].astype(str).str.upper() == 'X') & 
+                            (df_full[r_col] == j) & 
+                            (df_full['KATEGORIE'] == sel_cat) & 
+                            (df_full['KLASSE_INTERNAL'].isin(klassen)) & 
+                            (df_full['GESCHLECHT'].astype(str).str.upper() == geschl)
+                        ]
+                        if not m.empty:
+                            kat_nr = m.iloc[0]['KAT_STR']
                             circles_html = ""
                             if winner_revealed:
                                 prefix = f"v_{sel_cat}_{label}_"
                                 all_votes = store.data.get("votes", {})
-                                voters = [v_key.replace(prefix, "") for v_key, v_val in all_votes.items() if v_key.startswith(prefix) and str(v_val) == str(kat_nr)]
+                                voters = [v_key.replace(prefix, "") for v_key, v_val in all_votes.items() 
+                                          if v_key.startswith(prefix) and str(v_val) == str(kat_nr)]
                                 if voters:
                                     circles = "".join([f"<div class='judge-circle' title='{v}'>{get_initials(v)}</div>" for v in voters])
                                     circles_html = f"<div class='judge-initials-container'>{circles}</div>"
 
                             st.markdown(f"<div class='cat-card'><div class='cat-number'>{kat_nr}</div><div class='cat-details'>{get_full_label(m.iloc[0])}</div>{circles_html}</div>", unsafe_allow_html=True)
-                        else: st.markdown("<div class='placeholder-box'>–</div>", unsafe_allow_html=True)
-                    else: st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
+                        else: 
+                            st.markdown("<div class='placeholder-box'>–</div>", unsafe_allow_html=True)
+                    else: 
+                        st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
             
             with r_cols[-1]:
                 if winner_revealed:
@@ -855,8 +857,10 @@ elif st.session_state.view == "BIS_Public":
                         if vts: winner_nr = pd.Series(vts).value_counts().index[0]
                     if winner_nr and winner_nr != "Automatisch (Stimmen)":
                         m_w = df_full[df_full['KAT_STR'] == str(winner_nr)]
-                        if not m_w.empty: st.markdown(f"<div class='cat-card winner-card'><div class='cat-number'>{winner_nr}</div><div class='cat-details'>{get_full_label(m_w.iloc[0])}</div></div>", unsafe_allow_html=True)
-                else: st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
+                        if not m_w.empty: 
+                            st.markdown(f"<div class='cat-card winner-card'><div class='cat-number'>{winner_nr}</div><div class='cat-details'>{get_full_label(m_w.iloc[0])}</div></div>", unsafe_allow_html=True)
+                else: 
+                    st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
 
     time.sleep(3); st.rerun()
     
