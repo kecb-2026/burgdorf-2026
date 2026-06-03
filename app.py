@@ -1411,22 +1411,16 @@ elif st.session_state.view == "QR_Codes":
         set_view("Home")
                 
                 
-# --- NEUER MENÜPUNKT: NOMINIERTE KATZEN (VOLLE FILTER- & SORTIERFUNKTION) ---
-# --- NEUER MENÜPUNKT: NOMINIERTE KATZEN (VOLLE FILTER- & SORTIERFUNKTION) ---
+# --- NEUER MENÜPUNKT: NOMINIERTE KATZEN (VOLLE FILTER- & # --- NEUER MENÜPUNKT: NOMINIERTE KATZEN (VOLLE FILTER- & SORTIERFUNKTION) ---
 elif st.session_state.view == "Nominated_Cats":
     display_header_with_logo("🏅 Nominierte Katzen (Admin-Zentrale)")
 
-    # --- ÄNDERUNG: Zentralen Admin-Tag als Standard holen und Radio-Button oben platzieren ---
+    # --- ÄNDERUNG: Radio-Button entfernt. Holt den Tag jetzt direkt passiv aus dem Admin-Speicher ---
     admin_day_raw = st.session_state.get("admin_selected_day", "Tag 1")
-    default_idx_nom = 1 if "2" in str(admin_day_raw) else 0
+    target_tag = "TAG 2" if "2" in str(admin_day_raw) else "TAG 1"
     
-    # Auswahl des Tages via Radio Button ganz oben
-    wahl_ausstellungstag = st.radio(
-        "Anzuzeigender Ausstellungstag:", 
-        ["Tag 1 (Samstag)", "Tag 2 (Sonntag)", "Beide Tage anzeigen"], 
-        index=default_idx_nom,
-        key="nominated_cats_day_selector"
-    )
+    # Passive Info für den Admin, welcher Tag gerade angezeigt wird
+    st.sidebar.info(f"📅 Filter aktiv für: {target_tag}")
 
     def get_show_class(row):
         kl = str(row.get('KLASSE_INTERNAL', row.get('AUSSTELLUNGSKLASSE', row.get('KLASSE', '')))).replace('.0', '')
@@ -1440,70 +1434,50 @@ elif st.session_state.view == "Nominated_Cats":
     df_full = load_labels()
         
     if df_full is not None:
-        # --- ÄNDERUNG: Wir filtern nicht mehr nach einer Spalte 'SELECTION', sondern sammeln die Daten dynamisch über SELECTION 1 & 2 ---
         nominated_data = []
         
         for _, row in df_full.iterrows():
             kat_nr = row.get('KAT_STR', str(row.get('KATALOG-NR', ''))).replace('.0', '')
-            richter_t1 = row.get('RICHTER TAG 1', row.get('RICHTER 1', ''))
-            richter_t2 = row.get('RICHTER TAG 2', row.get('RICHTER 2', ''))
             
-            # Prüfen, ob die Katze in SELECTION 1 oder SELECTION 2 ein 'X' hat
-            is_sel1 = str(row.get('SELECTION 1', '')).upper() == 'X'
-            is_sel2 = str(row.get('SELECTION 2', '')).upper() == 'X'
-            
-            # Falls die Katze an keinem Tag nominiert ist, überspringen
-            if not is_sel1 and not is_sel2:
-                continue
-                
-            klasse = row.get('KLASSE_INTERNAL', row.get('AUSSTELLUNGSKLASSE', row.get('KLASSE', '-')))
-            fg_cols = [c for c in row.index if "FARBGRUPPE" in c or "FARB-GRUPPE" in c]
-            farbgruppe = row[fg_cols[0]] if fg_cols else row.get('FARBGRUPPE', '-')
-            
-            geb_cols = [c for c in row.index if "GEB" in c or "GEBURT" in c]
-            geb_datum = row[geb_cols[0]] if geb_cols else row.get('GEB_DATUM', '-')
-            if isinstance(geb_datum, pd.Timestamp): 
-                geb_datum = geb_datum.strftime('%d.%m.%Y')
-
-            # Wenn an Tag 1 nominiert, Eintrag für Tag 1 hinzufügen
-            if is_sel1:
-                nominated_data.append({
-                    "Katalog-Nr.": kat_nr,
-                    "Rasse": row.get('RASSE', '-'),
-                    "Farbcode": row.get('FARBE', '-'),
-                    "Geburtsdatum": geb_datum,
-                    "Geschlecht": row.get('GESCHLECHT', '-'),
-                    "Kategorie": row.get('KATEGORIE', '-'),
-                    "Klasse": klasse,
-                    "Show-Klasse": get_show_class(row),
-                    "Richter": richter_t1 if pd.notna(richter_t1) and str(richter_t1) != "nan" else "-",
-                    "Tag": "Tag 1 (Sa)"
-                })
-                
-            # Wenn an Tag 2 nominiert, separaten Eintrag für Tag 2 hinzufügen
-            if is_sel2:
-                nominated_data.append({
-                    "Katalog-Nr.": kat_nr,
-                    "Rasse": row.get('RASSE', '-'),
-                    "Farbcode": row.get('FARBE', '-'),
-                    "Geburtsdatum": geb_datum,
-                    "Geschlecht": row.get('GESCHLECHT', '-'),
-                    "Kategorie": row.get('KATEGORIE', '-'),
-                    "Klasse": klasse,
-                    "Show-Klasse": get_show_class(row),
-                    "Richter": richter_t2 if pd.notna(richter_t2) and str(richter_t2) != "nan" else "-",
-                    "Tag": "Tag 2 (So)"
-                })
+            # --- ÄNDERUNG: Filtert die Liste direkt nur nach der Spalte des aktiven Admin-Tages ---
+            if target_tag == "TAG 1":
+                if str(row.get('SELECTION 1', '')).upper() == 'X':
+                    richter_t1 = row.get('RICHTER TAG 1', row.get('RICHTER 1', ''))
+                    nominated_data.append({
+                        "Katalog-Nr.": kat_nr,
+                        "Rasse": row.get('RASSE', '-'),
+                        "Farbcode": row.get('FARBE', '-'),
+                        "Geburtsdatum": row.get('GEB_DATUM', '-'), # Datumskonvertierung läuft wie gehabt weiter
+                        "Geschlecht": row.get('GESCHLECHT', '-'),
+                        "Kategorie": row.get('KATEGORIE', '-'),
+                        "Klasse": row.get('KLASSE_INTERNAL', row.get('AUSSTELLUNGSKLASSE', row.get('KLASSE', '-'))),
+                        "Show-Klasse": get_show_class(row),
+                        "Richter": richter_t1 if pd.notna(richter_t1) and str(richter_t1) != "nan" else "-",
+                        "Tag": "Tag 1 (Sa)"
+                    })
+            else:
+                if str(row.get('SELECTION 2', '')).upper() == 'X':
+                    richter_t2 = row.get('RICHTER TAG 2', row.get('RICHTER 2', ''))
+                    nominated_data.append({
+                        "Katalog-Nr.": kat_nr,
+                        "Rasse": row.get('RASSE', '-'),
+                        "Farbcode": row.get('FARBE', '-'),
+                        "Geburtsdatum": row.get('GEB_DATUM', '-'),
+                        "Geschlecht": row.get('GESCHLECHT', '-'),
+                        "Kategorie": row.get('KATEGORIE', '-'),
+                        "Klasse": row.get('KLASSE_INTERNAL', row.get('AUSSTELLUNGSKLASSE', row.get('KLASSE', '-'))),
+                        "Show-Klasse": get_show_class(row),
+                        "Richter": richter_t2 if pd.notna(richter_t2) and str(richter_t2) != "nan" else "-",
+                        "Tag": "Tag 2 (So)"
+                    })
         
         if nominated_data:
-            df_nom_display = pd.DataFrame(nominated_data)
+            # Formatiere Geburtsdaten innerhalb der gematchten Daten
+            for d in nominated_data:
+                if isinstance(d["Geburtsdatum"], pd.Timestamp):
+                    d["Geburtsdatum"] = d["Geburtsdatum"].strftime('%d.%m.%Y')
 
-            # --- ÄNDERUNG: Filterung basierend auf dem Radio Button oben anwenden ---
-            if wahl_ausstellungstag == "Tag 1 (Samstag)":
-                df_nom_display = df_nom_display[df_nom_display['Tag'].str.contains('Tag 1')]
-            elif wahl_ausstellungstag == "Tag 2 (Sonntag)":
-                df_nom_display = df_nom_display[df_nom_display['Tag'].str.contains('Tag 2')]
-            # ----------------------------------------------------------------------
+            df_nom_display = pd.DataFrame(nominated_data)
 
             # --- ADMIN-KONTROLLZENTRUM (Unverändert) ---
             st.markdown("### 🛡️ Admin-Kontrollzentrum")
@@ -1569,7 +1543,7 @@ elif st.session_state.view == "Nominated_Cats":
                 }
                 wahl_sortierung = st.selectbox("Primär sortieren nach:", list(sort_options.keys()))
             
-            # --- FILTER LOGIK ANWENDEN (Mit Tippfehler-Korrektur zu wahl_show_klasse) ---
+            # --- FILTER LOGIK ANWENDEN ---
             if wahl_richter != "Alle Richter":
                 df_nom_display = df_nom_display[df_nom_display['Richter'] == wahl_richter]
             if wahl_kategorie != "Alle Kategorien":
@@ -1579,50 +1553,34 @@ elif st.session_state.view == "Nominated_Cats":
             if wahl_geschlecht != "Alle Geschlechter":
                 df_nom_display = df_nom_display[df_nom_display['Geschlecht'] == wahl_geschlecht]
                 
-            # --- SORTIER LOGIK ANWENDEN (Unverändert) ---
+            # --- SORTIER LOGIK ANWENDEN ---
             if wahl_sortierung == "Katalog-Nr.":
                 df_nom_display = df_nom_display.sort_values(by="Katalog-Nr.", key=lambda x: pd.to_numeric(x, errors='coerce'))
             else:
                 df_nom_display = df_nom_display.sort_values(by=sort_options[wahl_sortierung])
 
-            st.success(f"Gefunden: {len(df_nom_display)} nominierte Katze(n) mit den gewählten Filtern.")
+            st.success(f"Gefunden: {len(df_nom_display)} nominierte Katze(n) für {target_tag}.")
             
-            # Registerkarten (Unverändert)
-            tab_alle, tab_t1, tab_t2 = st.tabs(["Alle anzeigen", "Tag 1 (Samstag)", "Tag 2 (Sonntag)"])
-            
-            with tab_alle:
-                if not df_nom_display.empty:
-                    st.dataframe(df_nom_display, use_container_width=True, hide_index=True)
-                else:
-                    st.info("Keine Einträge für diese Filterkombination.")
-            
-            with tab_t1:
-                df_t1 = df_nom_display[df_nom_display['Tag'].str.contains('Tag 1')]
-                if not df_t1.empty:
-                    st.dataframe(df_t1, use_container_width=True, hide_index=True)
-                else:
-                    st.info("Keine passenden Nominationen für Tag 1 vorhanden.")
-                    
-            with tab_t2:
-                df_t2 = df_nom_display[df_nom_display['Tag'].str.contains('Tag 2')]
-                if not df_t2.empty:
-                    st.dataframe(df_t2, use_container_width=True, hide_index=True)
-                else:
-                    st.info("Keine passenden Nominationen für Tag 2 vorhanden.")
+            # --- ÄNDERUNG: Keine verwirrenden Tabs mehr. Zeigt direkt die eine, fertig gefilterte Tabelle an ---
+            if not df_nom_display.empty:
+                st.dataframe(df_nom_display, use_container_width=True, hide_index=True)
+            else:
+                st.info("Keine Einträge für diese Filterkombination vorhanden.")
 
             if not df_nom_display.empty:
                 csv = df_nom_display.to_csv(index=False).encode('utf-8-sig')
                 st.download_button(
                     label="📥 Gefilterte Liste als CSV herunterladen",
                     data=csv,
-                    file_name="nominierte_katzen_gefiltert.csv",
+                    file_name=f"nominierte_katzen_{target_tag.lower().replace(' ', '')}.csv",
                     mime="text/csv",
                 )
         else:
-            st.info("In den Spalten 'SELECTION 1' und 'SELECTION 2' sind aktuell keine Katzen nominiert.")
+            st.info(f"Für {target_tag} sind aktuell keine Nominierungen im Excel eingetragen.")
             
     if st.button("⬅️ Zurück zum Hauptmenü", key="back_from_nom"):
         set_view("Home")
+
 
             
 # --- NEUER MENÜPUNKT: JUDGE LIST ---
