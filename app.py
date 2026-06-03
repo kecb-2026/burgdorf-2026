@@ -893,11 +893,10 @@ elif st.session_state.view == "BIS_Public":
 elif st.session_state.view == "Dashboard":
     display_header_with_logo("📢 Live-Aufruf & Status")
 
-    # --- FIX: Nutzt den bereits existierenden Tag aus dem Menü-Radio ---
-    menu_day = st.session_state.get("judge_day_selector", 
-               st.session_state.get("bis_stable_tag", "Tag 1"))
+
+    # Holt den Tag direkt aus dem vom Admin gesteuerten Key
+    menu_day = st.session_state.get("judge_day_selector", "Tag 1")
     tag = "TAG 2" if "2" in str(menu_day) else "TAG 1"
-    # ------------------------------------------------------------------
 	
     df_full = load_labels()
     if df_full is not None:
