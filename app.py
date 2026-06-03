@@ -948,8 +948,7 @@ elif st.session_state.view == "Dashboard":
     st_autorefresh(interval=10000, key="dash_refresh")
 
 
-# --- CORRECTIONS ONLY IN THE STEWARD PANEL ---
-# --- CORRECTIONS ONLY IN THE STEWARD PANEL ---
+# --- CORRECTIONS ONLY IN THE STEWARD # --- DIESEN BLOCK IM STEWARD PANEL ERSETZEN ---
 elif st.session_state.view == "Steward_Panel":
     display_header_with_logo("📝 Steward-Pult")
     df_full = load_labels()
@@ -958,37 +957,36 @@ elif st.session_state.view == "Steward_Panel":
         # 1. Prüfen, ob ein Richter via QR-Code übergeben wurde
         url_judge_name = st.session_state.get("url_judge", "--")
         
-        # 2. Automatisch ermitteln, an welchem Tag dieser Richter arbeitet
-        url_day = st.query_params.get("day", None)
-        
-        # Standardmäßig wird der Tag vom Admin-Schalter genommen
-        admin_day = st.session_state.get("judge_day_selector", "Tag 1")
+        # 2. Automatisch ermitteln, welcher Tag gilt (Standard ist der sichere ADMIN-TAG)
+        admin_day = st.session_state.get("admin_selected_day", "Tag 1")
         calculated_tag = "TAG 2" if "2" in str(admin_day) else "TAG 1"
         
-        # Falls in der URL explizit ein Tag steht, überschreibt dieser den Admin-Tag
+        # Falls in der URL explizit ein Tag steht (?day=2), überschreibt dieser den Admin-Tag
+        url_day = st.query_params.get("day", None)
         if url_day == "1":
             calculated_tag = "TAG 1"
         elif url_day == "2":
             calculated_tag = "TAG 2"
         
-        # 3. Wenn ein Richtername übergeben wurde, die bestehende Logik prüfen:
+        # 3. Wenn ein Richtername übergeben wurde, deine originale Logik prüfen:
         if url_judge_name != "--":
-            # Wenn der Richter nicht in Tag 1, aber in Tag 2 existiert -> Zuweisung auf Tag 2 erzwingen
             j_t1 = [r for r in df_full['RICHTER TAG 1'].unique() if str(r) != "nan"] if 'RICHTER TAG 1' in df_full.columns else []
             j_t2 = [r for r in df_full['RICHTER TAG 2'].unique() if str(r) != "nan"] if 'RICHTER TAG 2' in df_full.columns else []
             
             if url_judge_name in j_t2 and url_judge_name not in j_t1:
                 calculated_tag = "TAG 2"
         
-        # Finale Zuweisung an die Variable tag (immer in Großbuchstaben für die Spaltennamen)
+        # Finale Zuweisung an die Variable tag für die Spaltennamen
         tag = calculated_tag.upper()
         
-        # Optionale visuelle Rückmeldung in der Sidebar statt einem Eingabefeld
+        # Nur noch eine passive Info-Anzeige in der Sidebar statt einem störenden Radio-Button
         st.sidebar.info(f"📅 Aktiver Ausstellungstag: {tag}")
         
-
         r_col = f"RICHTER {tag}"
         all_j = sorted([r for r in df_full[df_full[tag].astype(str).str.upper() == 'X'][r_col].unique() if str(r) != "nan"])
+        
+        # ... AB HIER läuft dein restlicher originaler Steward-Code zu 100% unverändert weiter ...
+
         
         # Berechnen des Default-Index für die Richter-Selectbox
         default_idx = 0
