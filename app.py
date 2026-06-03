@@ -666,13 +666,14 @@ elif st.session_state.view == "Home":
         value=st.session_state.steward_lock
     )
 
-    # 2. Navigation-Sichtbarkeit
-    if "show_nav" not in st.session_state:
-        st.session_state.show_nav = True
-    st.session_state.show_nav = st.toggle(
-        "Haupt-Navigation für Stewards/Richter anzeigen", 
-        value=st.session_state.show_nav
-    )
+	# ZENTRALE STEUERUNG IM ADMIN PANEL
+	st.subheader("⚙️ Globaler Event-Status")
+	st.radio(
+	    "Aktiven Tag für die gesamte Ausstellung festlegen:", 
+	    ["Tag 1", "Tag 2"], 
+	    key="judge_day_selector"
+	)
+
 
 # BIS ADMIN CONTROL
 # BIS ADMIN CONTROL
