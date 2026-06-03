@@ -667,8 +667,8 @@ elif st.session_state.view == "Home":
     )
 
 	# ZENTRALE STEUERUNG IM ADMIN PANEL
-	st.subheader("⚙️ Globaler Event-Status")
-	st.radio(
+    st.subheader("⚙️ Globaler Event-Status")
+    st.radio(
 	    "Aktiven Tag für die gesamte Ausstellung festlegen:", 
 	    ["Tag 1", "Tag 2"], 
 	    key="judge_day_selector"
