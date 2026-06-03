@@ -756,6 +756,9 @@ elif st.session_state.view == "BIS_Public":
         tag_selection = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"], index=tag_index)
         tag = tag_selection.upper()
         sel_cat = st.selectbox("Kategorie:", available_cats, index=cat_index)
+
+		# DYNAMISCHE SPALTE ABLEITEN
+        selection_col = f"SELECTION {tag.split(' ')[1]}"
         
         # Zustand sofort für den nächsten Durchlauf einfrieren
         st.session_state['bis_stable_tag'] = tag
@@ -770,9 +773,11 @@ elif st.session_state.view == "BIS_Public":
         ]
         
         r_col = f"RICHTER {tag}"
-        judges = sorted([r for r in df_full[df_full[tag].astype(str).str.upper() == 'X'][r_col].unique() if str(r) != "nan"])
-
-				# --- PRÜFEN, OB ES IN DIESER KATEGORIE ÜBERHAUPT NOMINIERTE KATZEN GIBT ---
+                # Filterung der Richter über die neue selection_col
+        judges = sorted([r for r in df_full[df_full[selection_col].astype(str).str.upper() == 'X'][r_col].unique() if str(r) != "nan"])
+				
+		
+		# --- PRÜFEN, OB ES IN DIESER KATEGORIE ÜBERHAUPT NOMINIERTE KATZEN GIBT ---
         cats_in_this_cat = df_full[
             (df_full[tag].astype(str).str.upper() == 'X') & 
             (df_full['KATEGORIE'] == sel_cat)
@@ -818,9 +823,16 @@ elif st.session_state.view == "BIS_Public":
             for i, j in enumerate(judges):
                 with r_cols[i+1]:
                     if show_noms:
-                        m = df_full[(df_full['SELECTION'].astype(str).str.upper() == 'X') & (df_full[r_col] == j) & (df_full['KATEGORIE'] == sel_cat) & (df_full['KLASSE_INTERNAL'].isin(klassen)) & (df_full['GESCHLECHT'].astype(str).str.upper() == geschl)]
-                        if not m.empty:
-                            kat_nr = m.iloc[0]['KAT_STR']
+                            # HIER wurde der Filter auf selection_col angepasst:
+                            m = df_full[
+                                (df_full[selection_col].astype(str).str.upper() == 'X') & 
+                                (df_full[r_col] == j) & 
+                                (df_full['KATEGORIE'] == sel_cat) & 
+                                (df_full['KLASSE_INTERNAL'].isin(klassen)) & 
+                                (df_full['GESCHLECHT'].astype(str).str.upper() == geschl)
+                            ]
+                            if not m.empty:
+                                kat_nr = m.iloc[0]['KAT_STR']
                             circles_html = ""
                             if winner_revealed:
                                 prefix = f"v_{sel_cat}_{label}_"
