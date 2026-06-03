@@ -679,6 +679,7 @@ st.session_state.steward_lock = st.toggle(
 st.divider()
 st.subheader("⚙️ System-Einstellungen (Admin-Steuerung)")
     
+
     # 1. Richter-Fixierung
     if "steward_lock" not in st.session_state:
         st.session_state.steward_lock = True
@@ -703,7 +704,6 @@ st.subheader("⚙️ System-Einstellungen (Admin-Steuerung)")
         index=0 if st.session_state.admin_selected_day == "Tag 1" else 1,
         on_change=save_admin_day
     )
-
 
 
 
