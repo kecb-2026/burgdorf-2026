@@ -1415,6 +1415,20 @@ elif st.session_state.view == "QR_Codes":
 elif st.session_state.view == "Nominated_Cats":
     display_header_with_logo("🏅 Nominierte Katzen (Admin-Zentrale)")
 
+    # --- ÄNDERUNG START: Zentralen Admin-Tag als Standard holen und Radio-Button oben platzieren ---
+    admin_day_raw = st.session_state.get("admin_selected_day", "Tag 1")
+    # Ermittelt den default_idx für den Radio-Button basierend auf der Admin-Zentrale
+    default_idx_nom = 1 if "2" in str(admin_day_raw) else 0
+    
+    # Auswahl des Tages via Radio Button ganz oben
+    wahl_ausstellungstag = st.radio(
+        "Anzuzeigender Ausstellungstag:", 
+        ["Tag 1 (Samstag)", "Tag 2 (Sonntag)", "Beide Tage anzeigen"], 
+        index=default_idx_nom,
+        key="nominated_cats_day_selector"
+    )
+    # --- ÄNDERUNG ENDE ---
+
     def get_show_class(row):
         kl = str(row.get('KLASSE_INTERNAL', row.get('AUSSTELLUNGSKLASSE', row.get('KLASSE', '')))).replace('.0', '')
         geschlecht = str(row.get('GESCHLECHT', '')).upper()
@@ -1478,6 +1492,15 @@ elif st.session_state.view == "Nominated_Cats":
             
             df_nom_display = pd.DataFrame(nominated_data)
 
+       # --- ÄNDERUNG START: Filterung basierend auf dem Radio Button oben sofort anwenden ---
+            if wahl_ausstellungstag == "Tag 1 (Samstag)":
+                df_nom_display = df_nom_display[df_nom_display['Tag'].str.contains('Tag 1')]
+            elif wahl_ausstellungstag == "Tag 2 (Sonntag)":
+                df_nom_display = df_nom_display[df_nom_display['Tag'].str.contains('Tag 2')]
+            # Bei "Beide Tage anzeigen" wird die Filterung einfach übersprungen und alles bleibt im Datensatz
+            # --- ÄNDERUNG ENDE ---
+
+			
             # --- ADMIN-KONTROLLZENTRUM (Version 1 Stil: Eigene Expander) ---
             st.markdown("### 🛡️ Admin-Kontrollzentrum")
             df_valid = df_nom_display[df_nom_display['Richter'] != "-"].copy()
