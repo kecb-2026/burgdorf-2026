@@ -1770,22 +1770,26 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
     
     if df_full is not None:
         # =====================================================================
-        # DIE RICHTIGE LÖSUNG: Wir kopieren die Daten frisch aus dem Speicher,
-        # damit der Cache nicht durch andere Filter manipuliert wird.
+        # ABSOLUT SICHERE FIX-VARIANTE NUR FÜR DIESE VORSCHAU:
+        # Wir laden die Excel hier ein zweites Mal unter einem völlig neuen Namen,
+        # NUR um die originalen, echten Filter-Spalten unberührt auszulesen.
         # =====================================================================
-        df_samstag_basis = df_full.copy()
-        df_sonntag_basis = df_full.copy()
+        try:
+            df_original_spalten = pd.read_excel("2026.xlsx", engine='openpyxl', header=0)
+            df_original_spalten.columns = [str(c).strip().upper() for c in df_original_spalten.columns]
+            
+            # Wir holen uns NUR die wahren Ja/Nein-Masken (die "X") für Samstag und Sonntag
+            mask_samstag = df_original_spalten['SELECTION 1'].astype(str).str.upper() == 'X' if 'SELECTION 1' in df_original_spalten.columns else pd.Series([False]*len(df_full))
+            mask_sonntag = df_original_spalten['SELECTION 2'].astype(str).str.upper() == 'X' if 'SELECTION 2' in df_original_spalten.columns else pd.Series([False]*len(df_full))
+        except Exception:
+            # Falls beim Lesen etwas schiefgeht, sicherer Fallback auf den Ist-Zustand
+            mask_samstag = df_full['SELECTION'].astype(str).str.upper() == 'X'
+            mask_sonntag = df_full['SELECTION'].astype(str).str.upper() == 'X'
 
-        # Jetzt filtern wir auf den unberührten Kopien sauber nach Tag 1 und Tag 2
-        if 'SELECTION 1' in df_samstag_basis.columns:
-            df_samstag_daten = df_samstag_basis[df_samstag_basis['SELECTION 1'].astype(str).str.upper() == 'X'].copy()
-        else:
-            df_samstag_daten = df_samstag_basis[df_samstag_basis['SELECTION'].astype(str).str.upper() == 'X'].copy()
-
-        if 'SELECTION 2' in df_sonntag_basis.columns:
-            df_sonntag_daten = df_sonntag_basis[df_sonntag_basis['SELECTION 2'].astype(str).str.upper() == 'X'].copy()
-        else:
-            df_sonntag_daten = pd.DataFrame(columns=df_full.columns)
+        # Jetzt filtern wir das von dir benötigte 'df_full' (mit allen generierten Spalten)
+        # anhand der echten, unverfälschten Zeilen-Masken aus der Original-Datei:
+        df_samstag_daten = df_full[mask_samstag].copy()
+        df_sonntag_daten = df_full[mask_sonntag].copy()
 
 
     
