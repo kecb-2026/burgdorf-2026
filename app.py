@@ -1771,10 +1771,6 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
         from reportlab.lib import colors
         from io import BytesIO
 
-        # Striktes Filtern auf Basis deiner importierten Spalten
-        df_samstag_daten = df_full[df_full['SELECTION 1'].astype(str).str.upper() == 'X'].copy()
-        df_sonntag_daten = df_full[df_full['SELECTION 2'].astype(str).str.upper() == 'X'].copy()
-
         # DEINE PDF-FUNKTION (KOMPLETT UNBERÜHRT UND UNVERÄNDERT)
         def generate_avery_labels(df):
             buffer = BytesIO()
@@ -1931,57 +1927,32 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
         # Spaltenkonfigurationen
         schoene_namen = {"KAT_STR": "Kat.-Nr.", "KATEGORIE": "Kategorie", "KLASSE_INTERNAL": "Klasse", "GESCHLECHT": "Geschlecht", "RASSE": "Rasse", "FARBE": "Farbe"}
 
-        # =====================================================================
-        # TAB FÜR TAG 1 (SAMSTAG)
-        # =====================================================================
         with tab_tag1:
-            if not df_samstag_daten.empty:
-                st.info(f"Aktuell sind **{len(df_samstag_daten)}** Katzen für den Labeldruck an Tag 1 bereit.")
+            # Hier Filtern WIRKLICH lokal im Tab-Block
+            df_s1 = df_full[df_full['SELECTION 1'].astype(str).str.upper() == 'X'].copy()
+            if not df_s1.empty:
+                st.info(f"Aktuell sind **{len(df_s1)}** Katzen für Tag 1 bereit.")
+                st.download_button("📥 Avery PDF Tag 1", data=generate_avery_labels(df_s1), file_name="KECB_Tag1.pdf", mime="application/pdf", key="dl_t1")
                 
-                pdf_labels_t1 = generate_avery_labels(df_samstag_daten)
-                st.download_button(
-                    label="📥 Avery Zweckform PDF generieren & herunterladen (Tag 1)",
-                    data=pdf_labels_t1,
-                    file_name="KECB_Nomination_Labels_Sorted_Tag1.pdf",
-                    mime="application/pdf",
-                    key="dl_btn_t1"
-                )
-                
-                st.write("### Vorschau der enthaltenen Katzen (Tag 1):")
-                spalten_t1 = [c for c in ['KAT_STR', 'KATEGORIE', 'KLASSE_INTERNAL', 'GESCHLECHT', 'RASSE', 'FARBE'] if c in df_samstag_daten.columns]
-                config_t1 = {c: schoene_namen[c] for c in spalten_t1 if c in schoene_namen}
-                
-                st.dataframe(df_samstag_daten[spalten_t1], column_config=config_t1, use_container_width=True, hide_index=True, key="preview_table_isolated_t1")
+                spalten_t1 = [c for c in ['KAT_STR', 'KATEGORIE', 'KLASSE_INTERNAL', 'GESCHLECHT', 'RASSE', 'FARBE'] if c in df_s1.columns]
+                st.dataframe(df_s1[spalten_t1], column_config={c: schoene_namen[c] for c in spalten_t1 if c in schoene_namen}, use_container_width=True, hide_index=True, key="view_t1")
             else:
-                st.info("Aktuell sind keine Katzen für den Labeldruck an Tag 1 (Spalte 'SELECTION 1') bereit.")
+                st.info("Keine Daten für Tag 1.")
 
-        # =====================================================================
-        # TAB FÜR TAG 2 (SONNTAG)
-        # =====================================================================
         with tab_tag2:
-            if not df_sonntag_daten.empty:
-                st.info(f"Aktuell sind **{len(df_sonntag_daten)}** Katzen für den Labeldruck an Tag 2 bereit.")
+            # Hier Filtern WIRKLICH lokal im Tab-Block
+            df_s2 = df_full[df_full['SELECTION 2'].astype(str).str.upper() == 'X'].copy()
+            if not df_s2.empty:
+                st.info(f"Aktuell sind **{len(df_s2)}** Katzen für Tag 2 bereit.")
+                st.download_button("📥 Avery PDF Tag 2", data=generate_avery_labels(df_s2), file_name="KECB_Tag2.pdf", mime="application/pdf", key="dl_t2")
                 
-                pdf_labels_t2 = generate_avery_labels(df_sonntag_daten)
-                st.download_button(
-                    label="📥 Avery Zweckform PDF generieren & herunterladen (Tag 2)",
-                    data=pdf_labels_t2,
-                    file_name="KECB_Nomination_Labels_Sorted_Tag2.pdf",
-                    mime="application/pdf",
-                    key="dl_btn_t2"
-                )
-                
-                st.write("### Vorschau der enthaltenen Katzen (Tag 2):")
-                spalten_t2 = [c for c in ['KAT_STR', 'KATEGORIE', 'KLASSE_INTERNAL', 'GESCHLECHT', 'RASSE', 'FARBE'] if c in df_sonntag_daten.columns]
-                config_t2 = {c: schoene_namen[c] for c in spalten_t2 if c in schoene_namen}
-                
-                st.dataframe(df_sonntag_daten[spalten_t2], column_config=config_t2, use_container_width=True, hide_index=True, key="preview_table_isolated_t2")
+                spalten_t2 = [c for c in ['KAT_STR', 'KATEGORIE', 'KLASSE_INTERNAL', 'GESCHLECHT', 'RASSE', 'FARBE'] if c in df_s2.columns]
+                st.dataframe(df_s2[spalten_t2], column_config={c: schoene_namen[c] for c in spalten_t2 if c in schoene_namen}, use_container_width=True, hide_index=True, key="view_t2")
             else:
-                st.info("Aktuell sind keine Katzen für den Labeldruck an Tag 2 (Spalte 'SELECTION 2') bereit.")
+                st.info("Keine Daten für Tag 2.")
             
         if st.button("⬅️ Zurück zum Hauptmenü", key="back_from_labels"):
             set_view("Home")
-
 
 
 # ADMIN PANEL
