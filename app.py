@@ -1770,16 +1770,17 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
         # KORREKTUR: FILTERUNG DER DATEN DIREKT GANZ OBEN UNTERSCHIEDLICH BENANNT
         # Damit weiß Streamlit von Sekunde 1 an, dass es zwei völlig getrennte Datensätze sind.
         # =====================================================================
-		# Erzwinge das Auslesen der echten Spalten 1 und 2 aus der Ursprungsdatei:
-		if 'SELECTION 1' in df_full.columns:
-	    df_samstag_daten = df_full[df_full['SELECTION 1'].astype(str).str.upper() == 'X'].copy()
-		else:
-	    df_samstag_daten = df_full[df_full['SELECTION'].astype(str).str.upper() == 'X'].copy()
-	
-		if 'SELECTION 2' in df_full.columns:
-	    df_sonntag_daten = df_full[df_full['SELECTION 2'].astype(str).str.upper() == 'X'].copy()
-		else:
-	    df_sonntag_daten = pd.DataFrame(columns=df_full.columns) # Fallback falls leer
+        # Erzwinge das Auslesen der echten Spalten 1 und 2 aus der Ursprungsdatei:
+        if 'SELECTION 1' in df_full.columns:
+            df_samstag_daten = df_full[df_full['SELECTION 1'].astype(str).str.upper() == 'X'].copy()
+        else:
+            df_samstag_daten = df_full[df_full['SELECTION'].astype(str).str.upper() == 'X'].copy()
+
+        if 'SELECTION 2' in df_full.columns:
+            df_sonntag_daten = df_full[df_full['SELECTION 2'].astype(str).str.upper() == 'X'].copy()
+        else:
+            df_sonntag_daten = pd.DataFrame(columns=df_full.columns) # Fallback falls leer
+
 
 
     
