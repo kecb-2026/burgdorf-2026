@@ -787,7 +787,7 @@ elif st.session_state.view == "BIS_Public":
     df_full = load_labels()
     
     if df_full is not None:
-		df_full = df_full.drop_duplicates() # Füge dies hinzu, um Geisterzeilen zu vermeiden
+        df_full = df_full.drop_duplicates() # Füge dies hinzu, um Geisterzeilen zu vermeiden
         # --- STABILE WIDGET-INITIALISIERUNG ---
         # Holt den exakten Zustand vor dem Rerun ab, damit nichts zurückspringt
         current_tag = st.session_state.get('bis_stable_tag', 'TAG 1')
