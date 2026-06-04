@@ -1769,24 +1769,23 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
     df_full = load_labels()
     
     if df_full is not None:
-        # =====================================================================
-        # DER UNUMSTÖSSLICHE BEWEIS-BLOCK
-        # =====================================================================
-        st.write("### 🔬 ABSOLUTE KONTROLLE DER QUELLDATEN:")
+        # 1. Spaltennamen radikal säubern (Leerzeichen weg, alles GROSS)
+        df_full.columns = [str(c).strip().upper() for c in df_full.columns]
         
-        # Wir zählen, wie viele echte "X" in JEDER Spalte stecken, BEVOR wir irgendwas filtern
-        x_in_sel1 = (df_full['SELECTION 1'].astype(str).str.upper() == 'X').sum() if 'SELECTION 1' in df_full.columns else "Nicht vorhanden"
-        x_in_sel2 = (df_full['SELECTION 2'].astype(str).str.upper() == 'X').sum() if 'SELECTION 2' in df_full.columns else "Nicht vorhanden"
-        
-        st.warning(f"Kreuze in 'SELECTION 1' gefunden: **{x_in_sel1}**")
-        st.warning(f"Kreuze in 'SELECTION 2' gefunden: **{x_in_sel2}**")
-        
-        # Wir zeigen die ersten 5 Katzen, bei denen SELECTION 2 ein X hat, aber NUR die Katalognummer
+        # 2. Präzise Filterung anhand der exakt gesäuberten Spalten
+        if 'SELECTION 1' in df_full.columns:
+            df_samstag_daten = df_full[df_full['SELECTION 1'].astype(str).str.upper() == 'X'].copy()
+        elif 'SELECTION' in df_full.columns:
+            df_samstag_daten = df_full[df_full['SELECTION'].astype(str).str.upper() == 'X'].copy()
+        else:
+            # Absoluter Fallback: Wenn gar nichts passt, leeres DataFrame erzeugen
+            df_samstag_daten = pd.DataFrame(columns=df_full.columns)
+            
         if 'SELECTION 2' in df_full.columns:
-            test_sonntag = df_full[df_full['SELECTION 2'].astype(str).str.upper() == 'X'][['KAT_STR']].head(5)
-            st.write("Die ersten 5 Katalognummern, die laut `load_labels()` am Sonntag starten sollten:")
-            st.dataframe(test_sonntag)
-        # =====================================================================
+            df_sonntag_daten = df_full[df_full['SELECTION 2'].astype(str).str.upper() == 'X'].copy()
+        else:
+            # Absoluter Fallback: Wenn Sonntag fehlt, leeres DataFrame erzeugen
+            df_sonntag_daten = pd.DataFrame(columns=df_full.columns)
 
     
     
