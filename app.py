@@ -1986,8 +1986,8 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
                 # st.dataframe(df_samstag_daten[spalten_t1], column_config=config_t1, use_container_width=True, hide_index=True, key="preview_table_samstag_final")
 				# Hier sortieren wir die Daten direkt im Aufruf, ohne die Variable selbst zu verändern
 				st.dataframe(df_samstag_daten[spalten_t1].sort_values(by='KAT_STR', key=lambda x: pd.to_numeric(x, errors='coerce')), column_config=config_t1, use_container_width=True, hide_index=True, key="preview_table_samstag_final")
-
-            else:
+				
+			else:
                 st.info("Aktuell sind keine Katzen für den Labeldruck an Tag 1 (Spalte 'SELECTION 1') bereit.")
 
         # =====================================================================
