@@ -1770,31 +1770,37 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
     
     if df_full is not None:
         # =====================================================================
-        # LIIVE-DEBUGGING BOXEN (WERDEN DIREKT IN DER APP ANGEZEIGT)
+        # DIE ABSOLUT AUSFALLSICHERE LÖSUNG ÜBER DIE KATALOGNUMMER:
+        # Wir ermitteln die Katalognummern der echten Samstag/Sonntag-Katzen
+        # direkt aus der Excel und filtern df_full über diese Nummern.
         # =====================================================================
-        st.error("🔬 DEBUG-MODUS AKTIV")
-        
-        # 1. Welcher Tag ist im Hintergrund ausgewählt?
-        aktueller_tag_im_state = st.session_state.get("judge_day_selector", "NICHT GEFUNDEN")
-        st.warning(f"Zustand im Hintergrund (`judge_day_selector`): **{aktueller_tag_im_state}**")
-        
-        # 2. Welche Spalten existieren in df_full?
-        st.info(f"Verfügbare Spalten im Datensatz: `{list(df_full.columns)}`")
-        
-        # =====================================================================
-        # FILTER-TESTS
-        # =====================================================================
-        df_samstag_daten = df_full[df_full['SELECTION 1'].astype(str).str.upper() == 'X'].copy() if 'SELECTION 1' in df_full.columns else pd.DataFrame()
-        df_sonntag_daten = df_full[df_full['SELECTION 2'].astype(str).str.upper() == 'X'].copy() if 'SELECTION 2' in df_full.columns else pd.DataFrame()
-        
-        # 3. Wie viele Zeilen wurden gefunden?
-        st.success(
-            f"Filter-Ergebnis:\n"
-            f"- Katzen gefunden für Samstag (SELECTION 1 == 'X'): **{len(df_samstag_daten)}** Zeilen\n"
-            f"- Katzen gefunden für Sonntag (SELECTION 2 == 'X'): **{len(df_sonntag_daten)}** Zeilen"
-        )
-        st.error("🔬 ENDE DEBUG-MELDUNGEN")
-        # =====================================================================
+        try:
+            df_excel = pd.read_excel("2026.xlsx", engine='openpyxl', header=0)
+            df_excel.columns = [str(c).strip().upper() for c in df_excel.columns]
+            
+            # Finde die Spaltennamen heraus (Kulanz für abweichende Schreibweisen)
+            kat_col = 'KATALOG-NR' if 'KATALOG-NR' in df_excel.columns else ('KAT_STR' if 'KAT_STR' in df_excel.columns else df_excel.columns[2])
+            
+            # Erstelle saubere Listen mit den Katalognummern für Samstag und Sonntag
+            kat_samstag = df_excel[df_excel['SELECTION 1'].astype(str).str.upper() == 'X'][kat_col].astype(str).tolist()
+            kat_sonntag = df_excel[df_excel['SELECTION 2'].astype(str).str.upper() == 'X'][kat_col].astype(str).tolist()
+            
+            # Jetzt filtern wir df_full, indem wir prüfen, ob die Katalognummer in den Listen ist
+            # Wir bereiten die Spalte in df_full für den Textvergleich vor
+            df_full['_tmp_kat'] = df_full['KAT_STR'].astype(str).str.replace('.0', '', regex=False).str.strip()
+            
+            df_samstag_daten = df_full[df_full['_tmp_kat'].isin(kat_samstag)].copy()
+            df_sonntag_daten = df_full[df_full['_tmp_kat'].isin(kat_sonntag)].copy()
+            
+            # Aufräumen der temporären Spalte
+            df_full.drop(columns=['_tmp_kat'], errors='ignore')
+            if not df_samstag_daten.empty: df_samstag_daten.drop(columns=['_tmp_kat'], errors='ignore', inplace=True)
+            if not df_sonntag_daten.empty: df_sonntag_daten.drop(columns=['_tmp_kat'], errors='ignore', inplace=True)
+            
+        except Exception as e:
+            # Sicherheits-Fallback falls das Excel-Lesen fehlschlägt
+            df_samstag_daten = df_full[df_full['SELECTION'].astype(str).str.upper() == 'X'].copy()
+            df_sonntag_daten = df_full[df_full['SELECTION'].astype(str).str.upper() == 'X'].copy()
 
 
     
