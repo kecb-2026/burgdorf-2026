@@ -2015,17 +2015,19 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
                 df_sonntag_vorschau = df_sonntag_daten[spalten_t2].copy()
                 df_sonntag_vorschau['TAG'] = 'SONNTAG'
                 config_t2['TAG'] = 'Tag'
-				                
-				# Hier sortieren wir die fertige Sonntag-Vorschau direkt beim Anzeigen
-				st.dataframe(
-				    df_sonntag_vorschau.sort_values(by='KAT_STR', key=lambda x: pd.to_numeric(x, errors='coerce')), 
-				    column_config=config_t2, 
-				    use_container_width=True, 
-				    hide_index=True, 
-				    key="voneinander_getrennte_sonntags_tabelle"
-				)
-
+                                
+                # Hier sortieren wir die fertige Sonntag-Vorschau direkt beim Anzeigen (Einrückung mit Spaces korrigiert)
+                st.dataframe(
+                    df_sonntag_vorschau.sort_values(by='KAT_STR', key=lambda x: pd.to_numeric(x, errors='coerce')), 
+                    column_config=config_t2, 
+                    use_container_width=True, 
+                    hide_index=True, 
+                    key="voneinander_getrennte_sonntags_tabelle"
+                )
                 # --- BIS HIER ERSETZEN ---
+                
+            
+
                 
             else:
                 st.info("Aktuell sind keine Katzen für den Labeldruck an Tag 2 (Spalte 'SELECTION 2') bereit.")
