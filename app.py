@@ -1768,21 +1768,28 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
     
     df_full = load_labels()
     
-    if df_full is not None:
-        # =====================================================================
-        # KORREKTUR: FILTERUNG DER DATEN DIREKT GANZ OBEN UNTERSCHIEDLICH BENANNT
-        # Damit weiß Streamlit von Sekunde 1 an, dass es zwei völlig getrennte Datensätze sind.
-        # =====================================================================
-        # Erzwinge das Auslesen der echten Spalten 1 und 2 aus der Ursprungsdatei:
-        if 'SELECTION 1' in df_full.columns:
-            df_samstag_daten = df_full[df_full['SELECTION 1'].astype(str).str.upper() == 'X'].copy()
-        else:
-            df_samstag_daten = df_full[df_full['SELECTION'].astype(str).str.upper() == 'X'].copy()
+    # Reines, unmanipuliertes Laden der Excel-Datei nur für diese Druckansicht
+    try:
+        df_direct = pd.read_excel("2026.xlsx", engine='openpyxl', header=0)
+        # Spaltennamen vereinheitlichen (Großbuchstaben und Leerzeichen entfernen)
+        df_direct.columns = [str(c).strip().upper() for c in df_direct.columns]
+    except Exception as e:
+        st.error(f"Fehler beim Laden der Excel-Datei: {e}")
+        df_direct = None
 
-        if 'SELECTION 2' in df_full.columns:
-            df_sonntag_daten = df_full[df_full['SELECTION 2'].astype(str).str.upper() == 'X'].copy()
+    if df_direct is not None:
+        # =====================================================================
+        # RADIKALE TRENNUNG: Filterung direkt aus der frischen Excel-Datei
+        # =====================================================================
+        if 'SELECTION 1' in df_direct.columns:
+            df_samstag_daten = df_direct[df_direct['SELECTION 1'].astype(str).str.upper() == 'X'].copy()
         else:
-            df_sonntag_daten = pd.DataFrame(columns=df_full.columns) # Fallback falls leer
+            df_samstag_daten = pd.DataFrame(columns=df_direct.columns)
+
+        if 'SELECTION 2' in df_direct.columns:
+            df_sonntag_daten = df_direct[df_direct['SELECTION 2'].astype(str).str.upper() == 'X'].copy()
+        else:
+            df_sonntag_daten = pd.DataFrame(columns=df_direct.columns)
 
 
 
