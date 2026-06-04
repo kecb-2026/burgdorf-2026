@@ -1767,8 +1767,6 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
     st.write("Generiere hier die exakten Druck-Labels (8 Stück pro A4-Seite). Jede Klasse beginnt ein neues Blatt.")
 
     df_full = load_labels()
-
-	    df_full = load_labels()
     
     if df_full is not None:
         # =====================================================================
