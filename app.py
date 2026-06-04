@@ -1755,9 +1755,7 @@ elif st.session_state.view == "Judge_List" or st.session_state.view == "Judge Li
     if st.button("⬅️ Zurück zum Hauptmenü", key="back_from_judgebook"):
         set_view("Home")
 
-		
-
-# --- EIGENSTÄNDIGE VIEW: NOMINATION LABELS DRUCK ---
+		# --- EIGENSTÄNDIGE VIEW: NOMINATION LABELS DRUCK ---
 elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
     display_header_with_logo("🖨️ Nomination Labels Druckzentrale")
     st.write("Generiere hier die exakten Druck-Labels (8 Stück pro A4-Seite). Jede Klasse beginnt ein neues Blatt.")
@@ -1765,23 +1763,24 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
     df_full = load_labels()
     
     if df_full is not None:
-        # ABSOLUT STABILE IMPORTS (Ganz nach oben gezogen)
+        # =====================================================================
+        # KORREKTUR: FILTERUNG DER DATEN DIREKT GANZ OBEN UNTERSCHIEDLICH BENANNT
+        # Damit weiß Streamlit von Sekunde 1 an, dass es zwei völlig getrennte Datensätze sind.
+        # =====================================================================
+        df_samstag_daten = df_full[df_full['SELECTION 1'].astype(str).str.upper() == 'X'].copy()
+        df_sonntag_daten = df_full[df_full['SELECTION 2'].astype(str).str.upper() == 'X'].copy()
+
         import reportlab
         from reportlab.lib.pagesizes import A4
         from reportlab.pdfgen import canvas
         from reportlab.lib import colors
         from io import BytesIO
 
-        # =====================================================================
-        # KORREKTUR 1: FUNKTION GLOBAL DEFINIERT
-        # Die Funktion steht jetzt VOR den Tabs, damit sie für beide Tage 
-        # als neutrale Schablone dient und exakt das DF verarbeitet, das man ihr übergibt.
-        # =====================================================================
+        # DEINE PDF-FUNKTION (KOMPLETT UNBERÜHRT UND UNVERÄNDERT)
         def generate_avery_labels(df):
             buffer = BytesIO()
             c = canvas.Canvas(buffer, pagesize=A4)
             
-            # Avery J8165 exakte Maße (Vollständig unberührt)
             mm = 2.83464
             label_width = 99.1 * mm
             label_height = 67.7 * mm
@@ -1789,17 +1788,16 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
             margin_top = 13.1 * mm
             
             color_map = {
-                "AM": colors.HexColor("#ffff00"),   # Gelb
-                "AW": colors.HexColor("#ff99cc"),   # Rosa
-                "KM": colors.HexColor("#99cc00"),   # Grün
-                "KW": colors.HexColor("#33ccff"),   # Blau
-                "JM": colors.HexColor("#cc99ff"),   # Pastell-Lila
-                "JW": colors.HexColor("#e60073"),   # Kräftiges Beeren-Pink
-                "KiM": colors.HexColor("#ffbf00"),  # Bernstein-Gelb
-                "KiW": colors.HexColor("#ff6600")   # Orange
+                "AM": colors.HexColor("#ffff00"),
+                "AW": colors.HexColor("#ff99cc"),
+                "KM": colors.HexColor("#99cc00"),
+                "KW": colors.HexColor("#33ccff"),
+                "JM": colors.HexColor("#cc99ff"),
+                "JW": colors.HexColor("#e60073"),
+                "KiM": colors.HexColor("#ffbf00"),
+                "KiW": colors.HexColor("#ff6600")
             }
             
-            # --- HILFSFELDER FÜR DIE SORTIERUNG ERZEUGEN ---
             sorted_rows = []
             for idx, row in df.iterrows():
                 klasse_val = row.get('KLASSE_INTERNAL', row.get('KLASSE', ''))
@@ -1892,7 +1890,6 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
                         if isinstance(geb_datum, pd.Timestamp):
                             geb_datum = geb_datum.strftime('%d.%m.%Y')
                         
-                        # --- ZEICHNEN ---
                         c.saveState()
                         c.setStrokeColor(colors.HexColor("#e5e5e5"))
                         c.setLineWidth(0.2)
@@ -1929,22 +1926,17 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
             buffer.seek(0)
             return buffer.getvalue()
 
-        # Tabs oben für die Tagestrennung
+        # Tabs für die Tagestrennung
         tab_tag1, tab_tag2 = st.tabs(["Tag 1 (Samstag)", "Tag 2 (Sonntag)"])
         
         # =====================================================================
         # TAB FÜR TAG 1 (SAMSTAG)
         # =====================================================================
         with tab_tag1:
-            df_nominierte_t1 = df_full[df_full['SELECTION 1'].astype(str).str.upper() == 'X'].copy()
-            
-            if not df_nominierte_t1.empty:
-                st.info(f"Aktuell sind **{len(df_nominierte_t1)}** Katzen für den Labeldruck an Tag 1 bereit.")
+            if not df_samstag_daten.empty:
+                st.info(f"Aktuell sind **{len(df_samstag_daten)}** Katzen für den Labeldruck an Tag 1 bereit.")
                 
-                # =====================================================================
-                # KORREKTUR 2: RUFT JETZT DIE GENERALE FUNKTION STRICKT MIT T1-DATEN AUF
-                # =====================================================================
-                pdf_labels_t1 = generate_avery_labels(df_nominierte_t1)
+                pdf_labels_t1 = generate_avery_labels(df_samstag_daten)
                 st.download_button(
                     label="📥 Avery Zweckform PDF generieren & herunterladen (Tag 1)",
                     data=pdf_labels_t1,
@@ -1954,10 +1946,11 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
                 )
                 
                 st.write("### Vorschau der enthaltenen Katzen (Tag 1):")
-                verfuegbare_spalten_t1 = [col for col in ['KAT_STR', 'KATEGORIE', 'KLASSE_INTERNAL', 'GESCHLECHT', 'RASSE', 'FARBE'] if col in df_nominierte_t1.columns]
-                schoene_namen_t1 = {"KAT_STR": "Kat.-Nr.", "KATEGORIE": "Kategorie", "KLASSE_INTERNAL": "Klasse", "GESCHLECHT": "Geschlecht", "RASSE": "Rasse", "FARBE": "Farbe"}
-                aktuelle_config_t1 = {col: schoene_namen_t1[col] for col in verfuegbare_spalten_t1 if col in schoene_namen_t1}
-                st.dataframe(df_nominierte_t1[verfuegbare_spalten_t1], column_config=aktuelle_config_t1, use_container_width=True, hide_index=True, key="preview_t1")
+                spalten_t1 = [c for c in ['KAT_STR', 'KATEGORIE', 'KLASSE_INTERNAL', 'GESCHLECHT', 'RASSE', 'FARBE'] if c in df_samstag_daten.columns]
+                namen_t1 = {"KAT_STR": "Kat.-Nr.", "KATEGORIE": "Kategorie", "KLASSE_INTERNAL": "Klasse", "GESCHLECHT": "Geschlecht", "RASSE": "Rasse", "FARBE": "Farbe"}
+                config_t1 = {c: namen_t1[c] for c in spalten_t1 if c in namen_t1}
+                
+                st.dataframe(df_samstag_daten[spalten_t1], column_config=config_t1, use_container_width=True, hide_index=True, key="preview_t1")
             else:
                 st.info("Aktuell sind keine Katzen für den Labeldruck an Tag 1 (Spalte 'SELECTION 1') bereit.")
 
@@ -1965,16 +1958,10 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
         # TAB FÜR TAG 2 (SONNTAG)
         # =====================================================================
         with tab_tag2:
-            df_nominierte_t2 = df_full[df_full['SELECTION 2'].astype(str).str.upper() == 'X'].copy()
-            
-            if not df_nominierte_t2.empty:
-                st.info(f"Aktuell sind **{len(df_nominierte_t2)}** Katzen für den Labeldruck an Tag 2 bereit.")
+            if not df_sonntag_daten.empty:
+                st.info(f"Aktuell sind **{len(df_sonntag_daten)}** Katzen für den Labeldruck an Tag 2 bereit.")
                 
-                # =====================================================================
-                # KORREKTUR 3: ENTSCHEIDENDER AUFRUF MIT DEN REINEN T2-DATEN
-                # Jetzt holt sich die ausgelagerte Funktion garantiert NUR die Sonntagsdaten.
-                # =====================================================================
-                pdf_labels_t2 = generate_avery_labels(df_nominierte_t2)
+                pdf_labels_t2 = generate_avery_labels(df_sonntag_daten)
                 st.download_button(
                     label="📥 Avery Zweckform PDF generieren & herunterladen (Tag 2)",
                     data=pdf_labels_t2,
@@ -1984,18 +1971,20 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
                 )
                 
                 st.write("### Vorschau der enthaltenen Katzen (Tag 2):")
-                verfuegbare_spalten_t2 = [col for col in ['KAT_STR', 'KATEGORIE', 'KLASSE_INTERNAL', 'GESCHLECHT', 'RASSE', 'FARBE'] if col in df_nominierte_t2.columns]
-                schoene_namen_t2 = {"KAT_STR": "Kat.-Nr.", "KATEGORIE": "Kategorie", "KLASSE_INTERNAL": "Klasse", "GESCHLECHT": "Geschlecht", "RASSE": "Rasse", "FARBE": "Farbe"}
-                aktuelle_config_t2 = {col: schoene_namen_t2[col] for col in verfuegbare_spalten_t2 if col in schoene_namen_t2}
                 # =====================================================================
-                # KORREKTUR 4: VORSCHAU-DATAFRAME STEUERT JETZT GARANTIERT T2 AN
+                # FIX: Greift jetzt auf die völlig separat oben geladene 'df_sonntag_daten' zu.
                 # =====================================================================
-                st.dataframe(df_nominierte_t2[verfuegbare_spalten_t2], column_config=aktuelle_config_t2, use_container_width=True, hide_index=True, key="preview_t2")
+                spalten_t2 = [c for c in ['KAT_STR', 'KATEGORIE', 'KLASSE_INTERNAL', 'GESCHLECHT', 'RASSE', 'FARBE'] if c in df_sonntag_daten.columns]
+                namen_t2 = {"KAT_STR": "Kat.-Nr.", "KATEGORIE": "Kategorie", "KLASSE_INTERNAL": "Klasse", "GESCHLECHT": "Geschlecht", "RASSE": "Rasse", "FARBE": "Farbe"}
+                config_t2 = {c: namen_t2[c] for c in spalten_t2 if c in namen_t2}
+                
+                st.dataframe(df_sonntag_daten[spalten_t2], column_config=config_t2, use_container_width=True, hide_index=True, key="preview_t2")
             else:
                 st.info("Aktuell sind keine Katzen für den Labeldruck an Tag 2 (Spalte 'SELECTION 2') bereit.")
             
         if st.button("⬅️ Zurück zum Hauptmenü", key="back_from_labels"):
             set_view("Home")
+
 
 # ADMIN PANEL
 elif st.session_state.view == "Admin_Panel":
