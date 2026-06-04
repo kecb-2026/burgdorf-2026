@@ -1755,10 +1755,7 @@ elif st.session_state.view == "Judge_List" or st.session_state.view == "Judge Li
     if st.button("⬅️ Zurück zum Hauptmenü", key="back_from_judgebook"):
         set_view("Home")
 
-# --- EIGENSTÄNDIGE VIEW: NOMINATION LABELS DRUCK ---
-Du Drecks Ki
-Sollst den Code anpassen, dass an Tag 2 auch die nominierten Katen von Tag 2 angezeigt werden und nicht von Tag 1.
-Du ändertest den Code seit einer verdammten stunde ohne Erfolg 
+
 
 # --- EIGENSTÄNDIGE VIEW: NOMINATION LABELS DRUCK ---
 elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
