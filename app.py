@@ -1762,21 +1762,23 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
     display_header_with_logo("🖨️ Nomination Labels Druckzentrale")
     st.write("Generiere hier die exakten Druck-Labels (8 Stück pro A4-Seite). Jede Klasse beginnt ein neues Blatt.")
     
-    df_full = load_labels()
-    
-    if df_full is not None:
-        # =====================================================================
-        # KORREKTUR: FILTERUNG DER DATEN DIREKT GANZ OBEN UNTERSCHIEDLICH BENANNT
-        # Damit weiß Streamlit von Sekunde 1 an, dass es zwei völlig getrennte Datensätze sind.
-        # =====================================================================
-        df_samstag_daten = df_full[df_full['SELECTION 1'].astype(str).str.upper() == 'X'].copy()
-        df_sonntag_daten = df_full[df_full['SELECTION 2'].astype(str).str.upper() == 'X'].copy()
+    # --- HIER IST DIE ÄNDERUNG ---
+    # Statt load_labels() zu benutzen, laden wir hier direkt von der Quelle.
+    # Damit ist es dem Rest der App egal, welcher Tag im Filter ausgewählt ist.
+    import pandas as pd # Falls noch nicht oben geschehen
+    try:
+        df_full = pd.read_csv("2026.xlsx - Sheet1.csv") # Pfad anpassen!
+        df_full.columns = [str(c).strip().upper() for c in df_full.columns]
+        df_full = df_full.fillna("-")
+        # Hier die Spalten für die PDF-Funktion sicherstellen
+        df_full['KLASSE_INTERNAL'] = df_full.get('AUSSTELLUNGSKLASSE', df_full.get('KLASSE', '-'))
+        if 'KATALOG-NR' in df_full.columns:
+            df_full['KAT_STR'] = df_full['KATALOG-NR'].astype(str).str.replace('.0', '', regex=False)
+    except Exception as e:
+        st.error(f"Fehler beim Laden der Daten: {e}")
+        df_full = None
+    # -----------------------------
 
-        import reportlab
-        from reportlab.lib.pagesizes import A4
-        from reportlab.pdfgen import canvas
-        from reportlab.lib import colors
-        from io import BytesIO
 
         # DEINE PDF-FUNKTION (KOMPLETT UNBERÜHRT UND UNVERÄNDERT)
         def generate_avery_labels(df):
