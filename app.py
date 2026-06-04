@@ -1767,26 +1767,30 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
     st.write("Generiere hier die exakten Druck-Labels (8 Stück pro A4-Seite). Jede Klasse beginnt ein neues Blatt.")
 
     df_full = load_labels()
+
+	    df_full = load_labels()
     
     if df_full is not None:
         # =====================================================================
-        # DIREKTE UND VERLÄSSLICHE TRENNUNG AUS DF_FULL
+        # DER UNUMSTÖSSLICHE BEWEIS-BLOCK
         # =====================================================================
-        # Wir filtern direkt auf den Spalten, die nachweislich im Datensatz existieren
-        if 'SELECTION 1' in df_full.columns:
-            df_samstag_daten = df_full[df_full['SELECTION 1'].astype(str).str.upper() == 'X'].copy()
-        else:
-            df_samstag_daten = df_full[df_full['SELECTION'].astype(str).str.upper() == 'X'].copy()
-            
+        st.write("### 🔬 ABSOLUTE KONTROLLE DER QUELLDATEN:")
+        
+        # Wir zählen, wie viele echte "X" in JEDER Spalte stecken, BEVOR wir irgendwas filtern
+        x_in_sel1 = (df_full['SELECTION 1'].astype(str).str.upper() == 'X').sum() if 'SELECTION 1' in df_full.columns else "Nicht vorhanden"
+        x_in_sel2 = (df_full['SELECTION 2'].astype(str).str.upper() == 'X').sum() if 'SELECTION 2' in df_full.columns else "Nicht vorhanden"
+        
+        st.warning(f"Kreuze in 'SELECTION 1' gefunden: **{x_in_sel1}**")
+        st.warning(f"Kreuze in 'SELECTION 2' gefunden: **{x_in_sel2}**")
+        
+        # Wir zeigen die ersten 5 Katzen, bei denen SELECTION 2 ein X hat, aber NUR die Katalognummer
         if 'SELECTION 2' in df_full.columns:
-            df_sonntag_daten = df_full[df_full['SELECTION 2'].astype(str).str.upper() == 'X'].copy()
-        else:
-            # Falls SELECTION 2 fehlt, leeres DataFrame statt Kopie von Samstag!
-            df_sonntag_daten = pd.DataFrame(columns=df_full.columns)
+            test_sonntag = df_full[df_full['SELECTION 2'].astype(str).str.upper() == 'X'][['KAT_STR']].head(5)
+            st.write("Die ersten 5 Katalognummern, die laut `load_labels()` am Sonntag starten sollten:")
+            st.dataframe(test_sonntag)
+        # =====================================================================
 
-
-
-
+    
     
 
         # DEINE PDF-FUNKTION (KOMPLETT UNBERÜHRT UND UNVERÄNDERT)
