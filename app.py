@@ -2008,7 +2008,7 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
                 namen_t2 = {"KAT_STR": "Kat.-Nr.", "KATEGORIE": "Kategorie", "KLASSE_INTERNAL": "Klasse", "GESCHLECHT": "Geschlecht", "RASSE": "Rasse", "FARBE": "Farbe"}
                 config_t2 = {c: namen_t2[c] for c in spalten_t2 if c in namen_t2}
 				
-				st.dataframe(df_sonntag_daten[spalten_t2], column_config=config_t2, use_container_width=True, hide_index=True, key=f"preview_t2_{len(df_sonntag_daten)}")
+	            st.dataframe(df_sonntag_daten[spalten_t2], column_config=config_t2, use_container_width=True, hide_index=True, key=f"preview_t2_{len(df_sonntag_daten)}")
  
                 # st.dataframe(df_sonntag_daten[spalten_t2], column_config=config_t2, use_container_width=True, hide_index=True, key="preview_t2")
             else:
