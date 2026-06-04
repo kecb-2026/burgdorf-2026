@@ -1758,7 +1758,7 @@ elif st.session_state.view == "Judge_List" or st.session_state.view == "Judge Li
 
 
 # --- EIGENSTÄNDIGE VIEW: NOMINATION LABELS DRUCK ---
-0# --- EIGENSTÄNDIGE VIEW: NOMINATION LABELS DRUCK ---
+# --- EIGENSTÄNDIGE VIEW: NOMINATION LABELS DRUCK ---
 elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
     display_header_with_logo("🖨️ Nomination Labels Druckzentrale")
     st.write("Generiere hier die exakten Druck-Labels (8 Stück pro A4-Seite). Jede Klasse beginnt ein neues Blatt.")
