@@ -1766,14 +1766,17 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
     df_full = load_labels()
     
     if df_full is not None:
-        # Daten-Filterung
+        # =====================================================================
+        # FILTERUNG DER DATEN DIREKT GANZ OBEN
+        # =====================================================================
         df_samstag_daten = df_full[df_full['SELECTION 1'].astype(str).str.upper() == 'X'].copy()
         df_sonntag_daten = df_full[df_full['SELECTION 2'].astype(str).str.upper() == 'X'].copy()
 
-        # PDF-Funktion - Original-Logik
+        # DEINE PDF-FUNKTION (KOMPLETT UNBERÜHRT UND UNVERÄNDERT)
         def generate_avery_labels(df):
             buffer = BytesIO()
             c = canvas.Canvas(buffer, pagesize=A4)
+            
             mm = 2.83464
             label_width = 99.1 * mm
             label_height = 67.7 * mm
@@ -1919,34 +1922,62 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
             buffer.seek(0)
             return buffer.getvalue()
 
-        # Renderer-Funktion
-        def render_tab_content(df, day_label, day_key):
-            if not df.empty:
-                st.info(f"Aktuell sind **{len(df)}** Katzen für den Labeldruck an {day_label} bereit.")
-                pdf_bytes = generate_avery_labels(df)
-                st.download_button(
-                    label=f"📥 Avery Zweckform PDF generieren & herunterladen ({day_label})",
-                    data=pdf_bytes,
-                    file_name=f"KECB_Nomination_Labels_Sorted_{day_key}.pdf",
-                    mime="application/pdf",
-                    key=f"dl_btn_{day_key}"
-                )
-                st.write(f"### Vorschau der enthaltenen Katzen ({day_label}):")
-                spalten = [c for c in ['KAT_STR', 'KATEGORIE', 'KLASSE_INTERNAL', 'GESCHLECHT', 'RASSE', 'FARBE'] if c in df.columns]
-                namen = {"KAT_STR": "Kat.-Nr.", "KATEGORIE": "Kategorie", "KLASSE_INTERNAL": "Klasse", "GESCHLECHT": "Geschlecht", "RASSE": "Rasse", "FARBE": "Farbe"}
-                config = {c: namen[c] for c in spalten if c in namen}
-                st.dataframe(df[spalten], column_config=config, use_container_width=True, hide_index=True, key=f"preview_{day_key}")
-            else:
-                st.info(f"Aktuell sind keine Katzen für den Labeldruck an {day_label} bereit.")
-
+        # Tabs für die Tagestrennung
         tab_tag1, tab_tag2 = st.tabs(["Tag 1 (Samstag)", "Tag 2 (Sonntag)"])
+        
+        # =====================================================================
+        # TAB FÜR TAG 1 (SAMSTAG)
+        # =====================================================================
         with tab_tag1:
-            render_tab_content(df_samstag_daten, "Tag 1", "Tag1")
+            if not df_samstag_daten.empty:
+                st.info(f"Aktuell sind **{len(df_samstag_daten)}** Katzen für den Labeldruck an Tag 1 bereit.")
+                
+                # Button zur Generierung
+                if st.button("📥 Avery Zweckform PDF generieren (Tag 1)", key="btn_gen_t1"):
+                    pdf_labels_t1 = generate_avery_labels(df_samstag_daten)
+                    st.download_button(
+                        label="💾 Datei herunterladen (Tag 1)",
+                        data=pdf_labels_t1,
+                        file_name="KECB_Nomination_Labels_Sorted_Tag1.pdf",
+                        mime="application/pdf"
+                    )
+                
+                st.write("### Vorschau der enthaltenen Katzen (Tag 1):")
+                spalten_t1 = [c for c in ['KAT_STR', 'KATEGORIE', 'KLASSE_INTERNAL', 'GESCHLECHT', 'RASSE', 'FARBE'] if c in df_samstag_daten.columns]
+                namen_t1 = {"KAT_STR": "Kat.-Nr.", "KATEGORIE": "Kategorie", "KLASSE_INTERNAL": "Klasse", "GESCHLECHT": "Geschlecht", "RASSE": "Rasse", "FARBE": "Farbe"}
+                config_t1 = {c: namen_t1[c] for c in spalten_t1 if c in namen_t1}
+                st.dataframe(df_samstag_daten[spalten_t1], column_config=config_t1, use_container_width=True, hide_index=True, key="preview_t1")
+            else:
+                st.info("Aktuell sind keine Katzen für den Labeldruck an Tag 1 (Spalte 'SELECTION 1') bereit.")
+
+        # =====================================================================
+        # TAB FÜR TAG 2 (SONNTAG)
+        # =====================================================================
         with tab_tag2:
-            render_tab_content(df_sonntag_daten, "Tag 2", "Tag2")
+            if not df_sonntag_daten.empty:
+                st.info(f"Aktuell sind **{len(df_sonntag_daten)}** Katzen für den Labeldruck an Tag 2 bereit.")
+                
+                # Button zur Generierung
+                if st.button("📥 Avery Zweckform PDF generieren (Tag 2)", key="btn_gen_t2"):
+                    pdf_labels_t2 = generate_avery_labels(df_sonntag_daten)
+                    st.download_button(
+                        label="💾 Datei herunterladen (Tag 2)",
+                        data=pdf_labels_t2,
+                        file_name="KECB_Nomination_Labels_Sorted_Tag2.pdf",
+                        mime="application/pdf"
+                    )
+                
+                st.write("### Vorschau der enthaltenen Katzen (Tag 2):")
+                spalten_t2 = [c for c in ['KAT_STR', 'KATEGORIE', 'KLASSE_INTERNAL', 'GESCHLECHT', 'RASSE', 'FARBE'] if c in df_sonntag_daten.columns]
+                namen_t2 = {"KAT_STR": "Kat.-Nr.", "KATEGORIE": "Kategorie", "KLASSE_INTERNAL": "Klasse", "GESCHLECHT": "Geschlecht", "RASSE": "Rasse", "FARBE": "Farbe"}
+                config_t2 = {c: namen_t2[c] for c in spalten_t2 if c in namen_t2}
+                st.dataframe(df_sonntag_daten[spalten_t2], column_config=config_t2, use_container_width=True, hide_index=True, key="preview_t2")
+            else:
+                st.info("Aktuell sind keine Katzen für den Labeldruck an Tag 2 (Spalte 'SELECTION 2') bereit.")
             
         if st.button("⬅️ Zurück zum Hauptmenü", key="back_from_labels"):
             set_view("Home")
+
 
 			
 # ADMIN PANEL
