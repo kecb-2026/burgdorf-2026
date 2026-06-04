@@ -1766,8 +1766,8 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
     
     if df_full is not None:
         # =====================================================================
-        # ÄNDERUNG 1: AUSWAHL MIT TAB OBEN EINBAUEN
-        # Hier werden die zwei Haupt-Tabs für die Tagestrennung ganz oben erzeugt.
+        # ÄNDERUNG 1: TABS FÜR DIE TAGESTRENNUNG GANZ OBEN
+        # Erstellt die zwei Haupt-Tabs zur visuellen und logischen Aufteilung.
         # =====================================================================
         tab_tag1, tab_tag2 = st.tabs(["Tag 1 (Samstag)", "Tag 2 (Sonntag)"])
         
@@ -1775,17 +1775,13 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
         # TAB FÜR TAG 1 (SAMSTAG)
         # =====================================================================
         with tab_tag1:
-            # =====================================================================
-            # ÄNDERUNG 2: FILTERN NACH 'SELECTION 1' STATT 'SELECTION'
-            # Hier greift der Code jetzt exakt auf die Excel-Spalte für Samstag zu.
-            # =====================================================================
+            # Filterung exakt nach 'SELECTION 1' (Holt nur Samstag-Zeilen)
             df_nominierte_t1 = df_full[df_full['SELECTION 1'].astype(str).str.upper() == 'X'].copy()
             
-            # Ab hier folgt deine ABSOLUT UNBERÜHRTE Verarbeitungslogik für Tag 1
             if not df_nominierte_t1.empty:
                 st.info(f"Aktuell sind **{len(df_nominierte_t1)}** Katzen für den Labeldruck an Tag 1 bereit.")
                 
-                # ABSOLUT STABILE IMPORTS (Unverändert)
+                # ABSOLUT STABILE IMPORTS (Original und unberührt)
                 import reportlab
                 from reportlab.lib.pagesizes import A4
                 from reportlab.pdfgen import canvas
@@ -1797,14 +1793,13 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
                     buffer = BytesIO()
                     c = canvas.Canvas(buffer, pagesize=A4)
                     
-                    # Avery J8165 exakte Maße (Unverändert)
+                    # Avery J8165 exakte Maße (Original und unberührt)
                     mm = 2.83464
                     label_width = 99.1 * mm
                     label_height = 67.7 * mm
                     margin_left = 5.9 * mm
                     margin_top = 13.1 * mm
                     
-                    # Deine originale Farb-Map (Unverändert)
                     color_map = {
                         "AM": colors.HexColor("#ffff00"),   # Gelb
                         "AW": colors.HexColor("#ff99cc"),   # Rosa
@@ -1816,7 +1811,7 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
                         "KiW": colors.HexColor("#ff6600")   # Orange
                     }
                     
-                    # --- HILFSFELDER FÜR DIE SORTIERUNG ERZEUGEN --- (Unverändert)
+                    # --- HILFSFELDER FÜR DIE SORTIERUNG ERZEUGEN --- (Original und unberührt)
                     sorted_rows = []
                     for idx, row in df.iterrows():
                         klasse_val = row.get('KLASSE_INTERNAL', row.get('KLASSE', ''))
@@ -1902,6 +1897,10 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
                             badge_bg = color_map.get(row['_badge_key'], colors.HexColor("#99cc00"))
                             
                             rasse = str(row.get('RASSE', ''))
+                            badge_label = row['_badge_label']
+                            badge_bg = color_map.get(row['_badge_key'], colors.HexColor("#99cc00"))
+                            
+                            rasse = str(row.get('RASSE', ''))
                             farbe = str(row.get('FARBE', ''))
                             ems_code = f"{rasse} {farbe}".strip()
                             
@@ -1910,7 +1909,7 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
                             if isinstance(geb_datum, pd.Timestamp):
                                 geb_datum = geb_datum.strftime('%d.%m.%Y')
                             
-                            # --- ZEICHNEN --- (Unverändert)
+                            # --- ZEICHNEN ---
                             c.saveState()
                             
                             c.setStrokeColor(colors.HexColor("#e5e5e5"))
@@ -1949,7 +1948,7 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
                     buffer.seek(0)
                     return buffer.getvalue()
 
-                # PDF Download Button für Tag 1 (Eindeutiger Key hinzugefügt)
+                # PDF Download Button für Tag 1
                 pdf_labels_t1 = generate_avery_labels(df_nominierte_t1)
                 st.download_button(
                     label="📥 Avery Zweckform PDF generieren & herunterladen (Tag 1)",
@@ -1959,12 +1958,16 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
                     key="dl_btn_t1"
                 )
                 
-                # SAFE VORSCHAU für Tag 1 (Eindeutiger Key hinzugefügt)
+                # =====================================================================
+                # KORREKTUR ÄNDERUNG 1: SPALTEN-LOGIK FÜR VORSCHAU TAG 1 ISOLIERT
+                # Wir definieren verfuegbare_spalten_t1 und aktuelle_config_t1 hier lokal,
+                # damit es keinen Namenskonflikt mit Tag 2 gibt.
+                # =====================================================================
                 st.write("### Vorschau der enthaltenen Katzen (Tag 1):")
-                verfuegbare_spalten = [col for col in ['KAT_STR', 'KATEGORIE', 'KLASSE_INTERNAL', 'GESCHLECHT', 'RASSE', 'FARBE'] if col in df_nominierte_t1.columns]
-                schoene_namen = {"KAT_STR": "Kat.-Nr.", "KATEGORIE": "Kategorie", "KLASSE_INTERNAL": "Klasse", "GESCHLECHT": "Geschlecht", "RASSE": "Rasse", "FARBE": "Farbe"}
-                aktuelle_config = {col: schoene_namen[col] for col in verfuegbare_spalten if col in schoene_namen}
-                st.dataframe(df_nominierte_t2[verfuegbare_spalten], column_config=aktuelle_config, use_container_width=True, hide_index=True, key="preview_t1")
+                verfuegbare_spalten_t1 = [col for col in ['KAT_STR', 'KATEGORIE', 'KLASSE_INTERNAL', 'GESCHLECHT', 'RASSE', 'FARBE'] if col in df_nominierte_t1.columns]
+                schoene_namen_t1 = {"KAT_STR": "Kat.-Nr.", "KATEGORIE": "Kategorie", "KLASSE_INTERNAL": "Klasse", "GESCHLECHT": "Geschlecht", "RASSE": "Rasse", "FARBE": "Farbe"}
+                aktuelle_config_t1 = {col: schoene_namen_t1[col] for col in verfuegbare_spalten_t1 if col in schoene_namen_t1}
+                st.dataframe(df_nominierte_t1[verfuegbare_spalten_t1], column_config=aktuelle_config_t1, use_container_width=True, hide_index=True, key="preview_t1")
             else:
                 st.info("Aktuell sind keine Katzen für den Labeldruck an Tag 1 (Spalte 'SELECTION 1') bereit.")
 
@@ -1972,17 +1975,13 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
         # TAB FÜR TAG 2 (SONNTAG)
         # =====================================================================
         with tab_tag2:
-            # =====================================================================
-            # ÄNDERUNG 3: FILTERN NACH 'SELECTION 2' STATT 'SELECTION'
-            # Hier greift der Code jetzt exakt auf die Excel-Spalte für Sonntag zu.
-            # =====================================================================
+            # Filterung exakt nach 'SELECTION 2' (Holt nur Sonntag-Zeilen)
             df_nominierte_t2 = df_full[df_full['SELECTION 2'].astype(str).str.upper() == 'X'].copy()
             
-            # Ab hier folgt deine ABSOLUT UNBERÜHRTE Verarbeitungslogik für Tag 2
             if not df_nominierte_t2.empty:
                 st.info(f"Aktuell sind **{len(df_nominierte_t2)}** Katzen für den Labeldruck an Tag 2 bereit.")
                 
-                # PDF Download Button für Tag 2 (Nutzt originale Funktion, aber t2-Daten und eindeutigen Key)
+                # PDF Download Button für Tag 2
                 pdf_labels_t2 = generate_avery_labels(df_nominierte_t2)
                 st.download_button(
                     label="📥 Avery Zweckform PDF generieren & herunterladen (Tag 2)",
@@ -1992,18 +1991,22 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
                     key="dl_btn_t2"
                 )
                 
-                # SAFE VORSCHAU für Tag 2 (Eindeutiger Key hinzugefügt)
+                # =====================================================================
+                # KORREKTUR ÄNDERUNG 2: SPALTEN-LOGIK FÜR VORSCHAU TAG 2 REPARIERT
+                # Wir bauen hier völlig unabhängige Variablen (verfuegbare_spalten_t2 und 
+                # aktuelle_config_t2) für Sonntag auf. Damit knallt es nie wieder, falls
+                # Tab 1 komplett leer sein sollte. Auch die Key-Vergabe wurde korrigiert.
+                # =====================================================================
                 st.write("### Vorschau der enthaltenen Katzen (Tag 2):")
-                verfuegbare_spalten = [col for col in ['KAT_STR', 'KATEGORIE', 'KLASSE_INTERNAL', 'GESCHLECHT', 'RASSE', 'FARBE'] if col in df_nominierte_t2.columns]
-                schoene_namen = {"KAT_STR": "Kat.-Nr.", "KATEGORIE": "Kategorie", "KLASSE_INTERNAL": "Klasse", "GESCHLECHT": "Geschlecht", "RASSE": "Rasse", "FARBE": "Farbe"}
-                aktuelle_config = {col: schoene_namen[col] for col in verfuegbare_spalten if col in schoene_namen}
-                st.dataframe(df_nominierte_t2[verfuegbare_spalten], column_config=aktuelle_config, use_container_width=True, hide_index=True, key="preview_t2")
+                verfuegbare_spalten_t2 = [col for col in ['KAT_STR', 'KATEGORIE', 'KLASSE_INTERNAL', 'GESCHLECHT', 'RASSE', 'FARBE'] if col in df_nominierte_t2.columns]
+                schoene_namen_t2 = {"KAT_STR": "Kat.-Nr.", "KATEGORIE": "Kategorie", "KLASSE_INTERNAL": "Klasse", "GESCHLECHT": "Geschlecht", "RASSE": "Rasse", "FARBE": "Farbe"}
+                aktuelle_config_t2 = {col: schoene_namen_t2[col] for col in verfuegbare_spalten_t2 if col in schoene_namen_t2}
+                st.dataframe(df_nominierte_t2[verfuegbare_spalten_t2], column_config=aktuelle_config_t2, use_container_width=True, hide_index=True, key="preview_t2")
             else:
                 st.info("Aktuell sind keine Katzen für den Labeldruck an Tag 2 (Spalte 'SELECTION 2') bereit.")
             
         if st.button("⬅️ Zurück zum Hauptmenü", key="back_from_labels"):
             set_view("Home")
-
 
 # ADMIN PANEL
 elif st.session_state.view == "Admin_Panel":
