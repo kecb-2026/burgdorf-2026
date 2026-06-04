@@ -2001,14 +2001,30 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
                 )
                 
                 st.write("### Vorschau der enthaltenen Katzen (Tag 2):")
+                
+                # --- AB HIER ERSETZEN ---
                 spalten_t2 = [c for c in ['KAT_STR', 'KATEGORIE', 'KLASSE_INTERNAL', 'GESCHLECHT', 'RASSE', 'FARBE'] if c in df_sonntag_daten.columns]
                 namen_t2 = {"KAT_STR": "Kat.-Nr.", "KATEGORIE": "Kategorie", "KLASSE_INTERNAL": "Klasse", "GESCHLECHT": "Geschlecht", "RASSE": "Rasse", "FARBE": "Farbe"}
                 config_t2 = {c: namen_t2[c] for c in spalten_t2 if c in namen_t2}
                 
-                # Komplett anderer Variablen-Key zwingt Streamlit zum echten Neuzeichnen
-                st.dataframe(df_sonntag_daten[spalten_t2], column_config=config_t2, use_container_width=True, hide_index=True, key="preview_table_sonntag_final")
+                # Wir erstellen die veränderte Struktur nur für diese Anzeige
+                df_sonntag_vorschau = df_sonntag_daten[spalten_t2].copy()
+                df_sonntag_vorschau['TAG'] = 'SONNTAG'
+                config_t2['TAG'] = 'Tag'
+                
+                # Das neue Widget, das Streamlit nicht mehr fälschlicherweise cachen kann
+                st.dataframe(
+                    df_sonntag_vorschau, 
+                    column_config=config_t2, 
+                    use_container_width=True, 
+                    hide_index=True, 
+                    key="voneinander_getrennte_sonntags_tabelle"
+                )
+                # --- BIS HIER ERSETZEN ---
+                
             else:
                 st.info("Aktuell sind keine Katzen für den Labeldruck an Tag 2 (Spalte 'SELECTION 2') bereit.")
+
             
         if st.button("⬅️ Zurück zum Hauptmenü", key="back_from_labels"):
             set_view("Home")
