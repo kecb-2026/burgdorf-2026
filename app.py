@@ -1982,12 +1982,10 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
                 namen_t1 = {"KAT_STR": "Kat.-Nr.", "KATEGORIE": "Kategorie", "KLASSE_INTERNAL": "Klasse", "GESCHLECHT": "Geschlecht", "RASSE": "Rasse", "FARBE": "Farbe"}
                 config_t1 = {c: namen_t1[c] for c in spalten_t1 if c in namen_t1}
                 
-                # Eindeutiger Key verhindert das Klonen der Tabelle im Browser
-                # st.dataframe(df_samstag_daten[spalten_t1], column_config=config_t1, use_container_width=True, hide_index=True, key="preview_table_samstag_final")
-				# Hier sortieren wir die Daten direkt im Aufruf, ohne die Variable selbst zu verändern
-				st.dataframe(df_samstag_daten[spalten_t1].sort_values(by='KAT_STR', key=lambda x: pd.to_numeric(x, errors='coerce')), column_config=config_t1, use_container_width=True, hide_index=True, key="preview_table_samstag_final")
-				
-			else:
+                # Hier sortieren wir die Daten direkt im Aufruf mit reinen Leerzeichen für die Einrückung
+                st.dataframe(df_samstag_daten[spalten_t1].sort_values(by='KAT_STR', key=lambda x: pd.to_numeric(x, errors='coerce')), column_config=config_t1, use_container_width=True, hide_index=True, key="preview_table_samstag_final")
+                
+            else:
                 st.info("Aktuell sind keine Katzen für den Labeldruck an Tag 1 (Spalte 'SELECTION 1') bereit.")
 
         # =====================================================================
