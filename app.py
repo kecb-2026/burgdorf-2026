@@ -1983,7 +1983,10 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
                 config_t1 = {c: namen_t1[c] for c in spalten_t1 if c in namen_t1}
                 
                 # Eindeutiger Key verhindert das Klonen der Tabelle im Browser
-                st.dataframe(df_samstag_daten[spalten_t1], column_config=config_t1, use_container_width=True, hide_index=True, key="preview_table_samstag_final")
+                # st.dataframe(df_samstag_daten[spalten_t1], column_config=config_t1, use_container_width=True, hide_index=True, key="preview_table_samstag_final")
+				# Hier sortieren wir die Daten direkt im Aufruf, ohne die Variable selbst zu verändern
+				st.dataframe(df_samstag_daten[spalten_t1].sort_values(by='KAT_STR', key=lambda x: pd.to_numeric(x, errors='coerce')), column_config=config_t1, use_container_width=True, hide_index=True, key="preview_table_samstag_final")
+
             else:
                 st.info("Aktuell sind keine Katzen für den Labeldruck an Tag 1 (Spalte 'SELECTION 1') bereit.")
 
@@ -2014,15 +2017,16 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
                 df_sonntag_vorschau = df_sonntag_daten[spalten_t2].copy()
                 df_sonntag_vorschau['TAG'] = 'SONNTAG'
                 config_t2['TAG'] = 'Tag'
-                
-                # Das neue Widget, das Streamlit nicht mehr fälschlicherweise cachen kann
-                st.dataframe(
-                    df_sonntag_vorschau, 
-                    column_config=config_t2, 
-                    use_container_width=True, 
-                    hide_index=True, 
-                    key="voneinander_getrennte_sonntags_tabelle"
-                )
+				                
+				# Hier sortieren wir die fertige Sonntag-Vorschau direkt beim Anzeigen
+				st.dataframe(
+				    df_sonntag_vorschau.sort_values(by='KAT_STR', key=lambda x: pd.to_numeric(x, errors='coerce')), 
+				    column_config=config_t2, 
+				    use_container_width=True, 
+				    hide_index=True, 
+				    key="voneinander_getrennte_sonntags_tabelle"
+				)
+
                 # --- BIS HIER ERSETZEN ---
                 
             else:
