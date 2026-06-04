@@ -1767,7 +1767,7 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
     # Damit ist es dem Rest der App egal, welcher Tag im Filter ausgewählt ist.
     import pandas as pd # Falls noch nicht oben geschehen
     try:
-        df_full = pd.read_csv("2026.xlsx - Sheet1.csv") # Pfad anpassen!
+        df_full = pd.read_csv("2026.xlsx") # Pfad anpassen!
         df_full.columns = [str(c).strip().upper() for c in df_full.columns]
         df_full = df_full.fillna("-")
         # Hier die Spalten für die PDF-Funktion sicherstellen
