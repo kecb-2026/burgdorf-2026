@@ -1756,6 +1756,10 @@ elif st.session_state.view == "Judge_List" or st.session_state.view == "Judge Li
         set_view("Home")
 
 # --- EIGENSTÄNDIGE VIEW: NOMINATION LABELS DRUCK ---
+Du Drecks Ki
+Sollst den Code anpassen, dass an Tag 2 auch die nominierten Katen von Tag 2 angezeigt werden und nicht von Tag 1.
+Du ändertest den Code seit einer verdammten stunde ohne Erfolg 
+
 # --- EIGENSTÄNDIGE VIEW: NOMINATION LABELS DRUCK ---
 elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
     display_header_with_logo("🖨️ Nomination Labels Druckzentrale")
@@ -1764,9 +1768,18 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
     df_full = load_labels()
     
     if df_full is not None:
-        # Striktes Filtern auf Basis deiner importierten Spalten
+        # =====================================================================
+        # KORREKTUR: FILTERUNG DER DATEN DIREKT GANZ OBEN UNTERSCHIEDLICH BENANNT
+        # Damit weiß Streamlit von Sekunde 1 an, dass es zwei völlig getrennte Datensätze sind.
+        # =====================================================================
         df_samstag_daten = df_full[df_full['SELECTION 1'].astype(str).str.upper() == 'X'].copy()
         df_sonntag_daten = df_full[df_full['SELECTION 2'].astype(str).str.upper() == 'X'].copy()
+
+        import reportlab
+        from reportlab.lib.pagesizes import A4
+        from reportlab.pdfgen import canvas
+        from reportlab.lib import colors
+        from io import BytesIO
 
         # DEINE PDF-FUNKTION (KOMPLETT UNBERÜHRT UND UNVERÄNDERT)
         def generate_avery_labels(df):
@@ -1921,9 +1934,6 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
         # Tabs für die Tagestrennung
         tab_tag1, tab_tag2 = st.tabs(["Tag 1 (Samstag)", "Tag 2 (Sonntag)"])
         
-        # Spaltenkonfigurationen
-        schoene_namen = {"KAT_STR": "Kat.-Nr.", "KATEGORIE": "Kategorie", "KLASSE_INTERNAL": "Klasse", "GESCHLECHT": "Geschlecht", "RASSE": "Rasse", "FARBE": "Farbe"}
-
         # =====================================================================
         # TAB FÜR TAG 1 (SAMSTAG)
         # =====================================================================
@@ -1942,9 +1952,10 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
                 
                 st.write("### Vorschau der enthaltenen Katzen (Tag 1):")
                 spalten_t1 = [c for c in ['KAT_STR', 'KATEGORIE', 'KLASSE_INTERNAL', 'GESCHLECHT', 'RASSE', 'FARBE'] if c in df_samstag_daten.columns]
-                config_t1 = {c: schoene_namen[c] for c in spalten_t1 if c in schoene_namen}
+                namen_t1 = {"KAT_STR": "Kat.-Nr.", "KATEGORIE": "Kategorie", "KLASSE_INTERNAL": "Klasse", "GESCHLECHT": "Geschlecht", "RASSE": "Rasse", "FARBE": "Farbe"}
+                config_t1 = {c: namen_t1[c] for c in spalten_t1 if c in namen_t1}
                 
-                st.dataframe(df_samstag_daten[spalten_t1].copy().reset_index(drop=True), column_config=config_t1, use_container_width=True, hide_index=True, key="preview_table_isolated_t1")
+                st.dataframe(df_samstag_daten[spalten_t1], column_config=config_t1, use_container_width=True, hide_index=True, key="preview_t1")
             else:
                 st.info("Aktuell sind keine Katzen für den Labeldruck an Tag 1 (Spalte 'SELECTION 1') bereit.")
 
@@ -1965,10 +1976,14 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
                 )
                 
                 st.write("### Vorschau der enthaltenen Katzen (Tag 2):")
+                # =====================================================================
+                # FIX: Greift jetzt auf die völlig separat oben geladene 'df_sonntag_daten' zu.
+                # =====================================================================
                 spalten_t2 = [c for c in ['KAT_STR', 'KATEGORIE', 'KLASSE_INTERNAL', 'GESCHLECHT', 'RASSE', 'FARBE'] if c in df_sonntag_daten.columns]
-                config_t2 = {c: schoene_namen[c] for c in spalten_t2 if c in schoene_namen}
+                namen_t2 = {"KAT_STR": "Kat.-Nr.", "KATEGORIE": "Kategorie", "KLASSE_INTERNAL": "Klasse", "GESCHLECHT": "Geschlecht", "RASSE": "Rasse", "FARBE": "Farbe"}
+                config_t2 = {c: namen_t2[c] for c in spalten_t2 if c in namen_t2}
                 
-                st.dataframe(df_sonntag_daten[spalten_t2].copy().reset_index(drop=True), column_config=config_t2, use_container_width=True, hide_index=True, key="preview_table_isolated_t2")
+                st.dataframe(df_sonntag_daten[spalten_t2], column_config=config_t2, use_container_width=True, hide_index=True, key="preview_t2")
             else:
                 st.info("Aktuell sind keine Katzen für den Labeldruck an Tag 2 (Spalte 'SELECTION 2') bereit.")
             
