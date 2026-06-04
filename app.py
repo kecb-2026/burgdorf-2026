@@ -1965,7 +1965,7 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
             if not df_samstag_daten.empty:
                 st.info(f"Aktuell sind **{len(df_samstag_daten)}** Katzen für den Labeldruck an Tag 1 bereit.")
                 
-                pdf_labels_t1 = generate_avery_labels(df_samstag_daten)
+                pdf_labels_t1 = generate_avery_labels(df_samstag_daten.copy())
                 st.download_button(
                     label="📥 Avery Zweckform PDF generieren & herunterladen (Tag 1)",
                     data=pdf_labels_t1,
@@ -1991,7 +1991,7 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
             if not df_sonntag_daten.empty:
                 st.info(f"Aktuell sind **{len(df_sonntag_daten)}** Katzen für den Labeldruck an Tag 2 bereit.")
                 
-                pdf_labels_t2 = generate_avery_labels(df_sonntag_daten)
+                pdf_labels_t2 = generate_avery_labels(df_sonntag_daten.copy())
                 st.download_button(
                     label="📥 Avery Zweckform PDF generieren & herunterladen (Tag 2)",
                     data=pdf_labels_t2,
