@@ -2011,12 +2011,10 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
                 namen_t2 = {"KAT_STR": "Kat.-Nr.", "KATEGORIE": "Kategorie", "KLASSE_INTERNAL": "Klasse", "GESCHLECHT": "Geschlecht", "RASSE": "Rasse", "FARBE": "Farbe"}
                 config_t2 = {c: namen_t2[c] for c in spalten_t2 if c in namen_t2}
                 
-                # Wir erstellen die veränderte Struktur nur für diese Anzeige
+                # Wir erstellen die Struktur für die Anzeige (die künstliche Spalte 'TAG' wurde hier entfernt!)
                 df_sonntag_vorschau = df_sonntag_daten[spalten_t2].copy()
-                df_sonntag_vorschau['TAG'] = 'SONNTAG'
-                config_t2['TAG'] = 'Tag'
                                 
-                # Hier sortieren wir die fertige Sonntag-Vorschau direkt beim Anzeigen (Einrückung mit Spaces korrigiert)
+                # Hier sortieren wir die fertige Sonntag-Vorschau direkt beim Anzeigen
                 st.dataframe(
                     df_sonntag_vorschau.sort_values(by='KAT_STR', key=lambda x: pd.to_numeric(x, errors='coerce')), 
                     column_config=config_t2, 
@@ -2025,6 +2023,7 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
                     key="voneinander_getrennte_sonntags_tabelle"
                 )
                 # --- BIS HIER ERSETZEN ---
+
                 
             
 
