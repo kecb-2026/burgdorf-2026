@@ -1769,23 +1769,41 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
     df_full = load_labels()
     
     if df_full is not None:
-        # 1. Spaltennamen radikal säubern (Leerzeichen weg, alles GROSS)
+        # 1. Spaltennamen radikal säubern
         df_full.columns = [str(c).strip().upper() for c in df_full.columns]
         
-        # 2. Präzise Filterung anhand der exakt gesäuberten Spalten
-        if 'SELECTION 1' in df_full.columns:
-            df_samstag_daten = df_full[df_full['SELECTION 1'].astype(str).str.upper() == 'X'].copy()
-        elif 'SELECTION' in df_full.columns:
-            df_samstag_daten = df_full[df_full['SELECTION'].astype(str).str.upper() == 'X'].copy()
+        # 2. Hilfsspalte für eine korrekte numerische Sortierung erstellen
+        # Verhindert, dass 100 vor 11 kommt
+        if 'KAT_STR' in df_full.columns:
+            df_full['_sort_nr_helper'] = pd.to_numeric(
+                df_full['KAT_STR'].astype(str).str.replace('.0', '', regex=False).str.strip(), 
+                errors='coerce'
+            ).fillna(9999).astype(int)
         else:
-            # Absoluter Fallback: Wenn gar nichts passt, leeres DataFrame erzeugen
+            df_full['_sort_nr_helper'] = 0
+
+        # 3. Präzise Filterung & direkte Sortierung (Kategorie -> Klasse -> Kat.-Nr.)
+        sort_spalten = []
+        if 'KATEGORIE' in df_full.columns: sort_spalten.append('KATEGORIE')
+        if 'KLASSE_INTERNAL' in df_full.columns: sort_spalten.append('KLASSE_INTERNAL')
+        sort_spalten.append('_sort_nr_helper')
+
+        if 'SELECTION 1' in df_full.columns:
+            df_samstag_daten = df_full[df_full['SELECTION 1'].astype(str).str.upper() == 'X'].sort_values(by=sort_spalten).copy()
+        elif 'SELECTION' in df_full.columns:
+            df_samstag_daten = df_full[df_full['SELECTION'].astype(str).str.upper() == 'X'].sort_values(by=sort_spalten).copy()
+        else:
             df_samstag_daten = pd.DataFrame(columns=df_full.columns)
             
         if 'SELECTION 2' in df_full.columns:
-            df_sonntag_daten = df_full[df_full['SELECTION 2'].astype(str).str.upper() == 'X'].copy()
+            df_sonntag_daten = df_full[df_full['SELECTION 2'].astype(str).str.upper() == 'X'].sort_values(by=sort_spalten).copy()
         else:
-            # Absoluter Fallback: Wenn Sonntag fehlt, leeres DataFrame erzeugen
             df_sonntag_daten = pd.DataFrame(columns=df_full.columns)
+
+        # Aufräumen der Hilfsspalte, damit sie nicht in der App stört
+        if not df_samstag_daten.empty: df_samstag_daten.drop(columns=['_sort_nr_helper'], errors='ignore', inplace=True)
+        if not df_sonntag_daten.empty: df_sonntag_daten.drop(columns=['_sort_nr_helper'], errors='ignore', inplace=True)
+
 
     
     
