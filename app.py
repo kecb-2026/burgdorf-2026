@@ -1765,19 +1765,25 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
     
     df_full = load_labels()
     
+    # Lade die Daten *innerhalb* der View neu, um sicherzustellen, dass keine alten States hängen
+    df_full = load_labels() # Falls load_labels gecacht ist, stelle sicher, dass es neu lädt
+    
     if df_full is not None:
-        # =====================================================================
-        # KORREKTUR: FILTERUNG DER DATEN DIREKT GANZ OBEN UNTERSCHIEDLICH BENANNT
-        # Damit weiß Streamlit von Sekunde 1 an, dass es zwei völlig getrennte Datensätze sind.
-        # =====================================================================
+        # Hier die Filterung (dein Code)
         df_samstag_daten = df_full[df_full['SELECTION 1'].astype(str).str.upper() == 'X'].copy()
         df_sonntag_daten = df_full[df_full['SELECTION 2'].astype(str).str.upper() == 'X'].copy()
+        
+        # Tabs...
+        tab_tag1, tab_tag2 = st.tabs(["Tag 1 (Samstag)", "Tag 2 (Sonntag)"])
+        
+        with tab_tag1:
+            # ... dein Code ...
+            st.dataframe(df_samstag_daten[spalten_t1], ..., key="preview_t1_v2") 
+            
+        with tab_tag2:
+            # ... dein Code ...
+            st.dataframe(df_sonntag_daten[spalten_t2], ..., key="preview_t2_v2")
 
-        import reportlab
-        from reportlab.lib.pagesizes import A4
-        from reportlab.pdfgen import canvas
-        from reportlab.lib import colors
-        from io import BytesIO
 
         # DEINE PDF-FUNKTION (KOMPLETT UNBERÜHRT UND UNVERÄNDERT)
         def generate_avery_labels(df):
