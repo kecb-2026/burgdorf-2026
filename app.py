@@ -1765,42 +1765,26 @@ elif st.session_state.view == "Judge_List" or st.session_state.view == "Judge Li
 elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
     display_header_with_logo("🖨️ Nomination Labels Druckzentrale")
     st.write("Generiere hier die exakten Druck-Labels (8 Stück pro A4-Seite). Jede Klasse beginnt ein neues Blatt.")
-    
+
     df_full = load_labels()
     
     if df_full is not None:
         # =====================================================================
-        # DIE ABSOLUT AUSFALLSICHERE LÖSUNG ÜBER DIE KATALOGNUMMER:
-        # Wir ermitteln die Katalognummern der echten Samstag/Sonntag-Katzen
-        # direkt aus der Excel und filtern df_full über diese Nummern.
+        # DIREKTE UND VERLÄSSLICHE TRENNUNG AUS DF_FULL
         # =====================================================================
-        try:
-            df_excel = pd.read_excel("2026.xlsx", engine='openpyxl', header=0)
-            df_excel.columns = [str(c).strip().upper() for c in df_excel.columns]
-            
-            # Finde die Spaltennamen heraus (Kulanz für abweichende Schreibweisen)
-            kat_col = 'KATALOG-NR' if 'KATALOG-NR' in df_excel.columns else ('KAT_STR' if 'KAT_STR' in df_excel.columns else df_excel.columns[2])
-            
-            # Erstelle saubere Listen mit den Katalognummern für Samstag und Sonntag
-            kat_samstag = df_excel[df_excel['SELECTION 1'].astype(str).str.upper() == 'X'][kat_col].astype(str).tolist()
-            kat_sonntag = df_excel[df_excel['SELECTION 2'].astype(str).str.upper() == 'X'][kat_col].astype(str).tolist()
-            
-            # Jetzt filtern wir df_full, indem wir prüfen, ob die Katalognummer in den Listen ist
-            # Wir bereiten die Spalte in df_full für den Textvergleich vor
-            df_full['_tmp_kat'] = df_full['KAT_STR'].astype(str).str.replace('.0', '', regex=False).str.strip()
-            
-            df_samstag_daten = df_full[df_full['_tmp_kat'].isin(kat_samstag)].copy()
-            df_sonntag_daten = df_full[df_full['_tmp_kat'].isin(kat_sonntag)].copy()
-            
-            # Aufräumen der temporären Spalte
-            df_full.drop(columns=['_tmp_kat'], errors='ignore')
-            if not df_samstag_daten.empty: df_samstag_daten.drop(columns=['_tmp_kat'], errors='ignore', inplace=True)
-            if not df_sonntag_daten.empty: df_sonntag_daten.drop(columns=['_tmp_kat'], errors='ignore', inplace=True)
-            
-        except Exception as e:
-            # Sicherheits-Fallback falls das Excel-Lesen fehlschlägt
+        # Wir filtern direkt auf den Spalten, die nachweislich im Datensatz existieren
+        if 'SELECTION 1' in df_full.columns:
+            df_samstag_daten = df_full[df_full['SELECTION 1'].astype(str).str.upper() == 'X'].copy()
+        else:
             df_samstag_daten = df_full[df_full['SELECTION'].astype(str).str.upper() == 'X'].copy()
-            df_sonntag_daten = df_full[df_full['SELECTION'].astype(str).str.upper() == 'X'].copy()
+            
+        if 'SELECTION 2' in df_full.columns:
+            df_sonntag_daten = df_full[df_full['SELECTION 2'].astype(str).str.upper() == 'X'].copy()
+        else:
+            # Falls SELECTION 2 fehlt, leeres DataFrame statt Kopie von Samstag!
+            df_sonntag_daten = pd.DataFrame(columns=df_full.columns)
+
+
 
 
     
