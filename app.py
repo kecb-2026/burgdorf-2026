@@ -1134,9 +1134,22 @@ elif st.session_state.view == "Judge_Voting":
     display_header_with_logo("🗳️ Richter Abstimmung/Judges Votes")
     df_full = load_labels()
     if df_full is not None:
-        url_day = st.query_params.get("day", "1")
-        day_idx = 1 if url_day == "2" else 0
-        tag = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"], index=day_idx, key="judge_day_selector").upper()
+        # --- ANFANG DER ÄNDERUNG: AUTOMATISCHE TAGES-SYNCHRONISATION STATT MANUELLER AUSWAHL ---
+        # WIR HOLEN DEN GLOBALEN TAG, DEN DER ADMIN IN SEINER HOME-FUNKTION GEWÄHLT HAT
+        global_admin_day = st.session_state.get("admin_selected_day", "Tag 1")
+        
+        # WIR ZWINGEN DEINEN EXISTIERENDEN SELECTOR-KEY AUF DEN GLOBALEN ADMIN-TAG.
+        # DADURCH BLEIBT DEINE KOMPLETTE FILTER-LOGIK IN 'load_labels()' ZU 100% ERHALTEN, 
+        # ABER DER RICHTER KANN SICH NICHT MEHR VERKLICKEN.
+        st.session_state["judge_day_selector"] = global_admin_day
+        
+        # STATT DES INTERAKTIVEN RADIO-BUTTONS ZEIGEN WIR DEN TAG NUR NOCH SCHREIBGESCHÜTZT AN
+        st.sidebar.info(f"📅 Aktiver Ausstellungstag: {global_admin_day}")
+        
+        # DIE VARIABLE 'tag' WIRD HIER FÜR DIE UNTEREN SPALTENNAMEN DIREKT AUSGELESEN
+        tag = global_admin_day.upper()
+        # --- ENDE DER ÄNDERUNG ---
+		
         r_col = f"RICHTER {tag}"
         all_judges = sorted([r for r in df_full[r_col].unique() if str(r) != "nan"])
         
