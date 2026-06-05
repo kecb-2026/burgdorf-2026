@@ -1011,6 +1011,17 @@ elif st.session_state.view == "Steward_Panel":
             
         mein_richter = st.selectbox("Richter wählen:", ["--"] + all_j, index=default_idx)
 
+		        # --- ANFANG DER ÄNDERUNG: WARNHINWEIS FÜR ABWEICHENDEN RICHTER ---
+        # WENN EIN VALIDIERTER RICHTER ÜBER DEN QR-CODE GEGEBEN IST (NICHT "--")
+        # UND DER AKTUELL GEWÄHLTE RICHTER DAVON ABWEICHT, WIRD EIN ROTER WARNKASTEN ANGEZEIGT.
+        if url_judge_name != "--" and mein_richter != "--" and mein_richter != url_judge_name:
+            st.error(
+                f"🚨 **ACHTUNG! Sie verlassen gerade Ihren zugewiesenen Richter!**\n\n"
+                f"Sie sind ursprünglich eingeloggt für **{url_judge_name}**, "
+                f"steuern aber aktuell die Katzenliste für **{mein_richter}**."
+            )
+        # --- ENDE DER ÄNDERUNG ---
+
         if mein_richter != "--":
             df_richter_alle = df_full[(df_full[tag].astype(str).str.upper() == 'X') & (df_full[r_col] == mein_richter)]
             verfuegbare_kategorien = sorted(list(set([str(cat).replace('.0', '') for cat in df_richter_alle['KATEGORIE'].unique() if pd.notna(cat)])))
