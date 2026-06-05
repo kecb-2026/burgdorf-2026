@@ -787,9 +787,19 @@ elif st.session_state.view == "BIS_Public":
     
     if df_full is not None:
         df_full = df_full.drop_duplicates() # Füge dies hinzu, um Geisterzeilen zu vermeiden
-        # --- STABILE WIDGET-INITIALISIERUNG ---
-        # Holt den exakten Zustand vor dem Rerun ab, damit nichts zurückspringt
-        current_tag = st.session_state.get('bis_stable_tag', 'TAG 1')
+        # --- ANFANG DER ÄNDERUNG: AUTOMATISCHE TAGES-SYNCHRONISATION FÜR DAS PUBLIKUM ---
+        # WIR HOLEN DEN GLOBALEN TAG VOM ADMIN ("Tag 1" ODER "Tag 2")
+        global_admin_day = st.session_state.get("admin_selected_day", "Tag 1")
+        current_tag = global_admin_day.upper()
+        
+        # WIR ÜBERSCHREIBEN DEINEN STABILEN TAG-SCHLÜSSEL AUTOMATISCH MIT DEM ADMIN-WERT
+        st.session_state['bis_stable_tag'] = current_tag
+        # --- ENDE DER ÄNDERUNG ---
+		
+		
+		# --- STABILE WIDGET-INITIALISIERUNG ---
+		# Holt den exakten Zustand vor dem Rerun ab, damit nichts zurückspringt
+        # current_tag = st.session_state.get('bis_stable_tag', 'TAG 1')
         available_cats = sorted(df_full['KATEGORIE'].unique())
         current_cat = st.session_state.get('bis_stable_cat', available_cats[0])
 
@@ -797,9 +807,17 @@ elif st.session_state.view == "BIS_Public":
         tag_index = ["TAG 1", "TAG 2"].index(current_tag) if current_tag in ["TAG 1", "TAG 2"] else 0
         cat_index = available_cats.index(current_cat) if current_cat in available_cats else 0
 
+        # --- ANFANG DER ÄNDERUNG: ENTFERNUNG DES INTERAKTIVEN RADIO-BUTTONS ---
+        # DIE MANUELLE AUSWAHL PER RADIO-BUTTON WURDE ENTFERNT. 
+        # STATTDESTESSEN WIRBT EIN SCHREIBGESCHÜTZTER HINWEIS IN DER SIDEBAR FÜR KLARHEIT.
+        st.sidebar.info(f"📅 Aktiver Ausstellungstag: {current_tag}")
+        tag = current_tag
+        # --- ENDE DER ÄNDERUNG ---
+		
+
         # Widgets erzwingen den Zustand über den Index
-        tag_selection = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"], index=tag_index)
-        tag = tag_selection.upper()
+        # tag_selection = st.sidebar.radio("Tag:", ["Tag 1", "Tag 2"], index=tag_index)
+        # tag = tag_selection.upper()
         sel_cat = st.selectbox("Kategorie:", available_cats, index=cat_index)
         
         # Zustand sofort für den nächsten Durchlauf einfrieren
