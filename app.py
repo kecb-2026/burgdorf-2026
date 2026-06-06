@@ -628,6 +628,11 @@ elif st.session_state.view == "Home":
             st.query_params.update({"view": "richter", "auth": "true", "role": "Richter"})
             set_view("Judge_Voting")
             st.rerun()
+			        # --- NEU: BUTTON FÜR DAS RICHTER-TEST-VOTING ---
+        if st.button("🧪 [TEST] LIVE-VOTING (RICHTER)"):
+            st.query_params.update({"view": "test-live-voting", "auth": "true", "role": "Admin"})
+            set_view("Test_Live_Voting")
+            st.rerun()
     with col2:
         if st.button("📝 STEWARD-PULT"):
             st.query_params.update({"view": "steward", "auth": "true", "role": "Steward"})
@@ -636,6 +641,11 @@ elif st.session_state.view == "Home":
         if st.button("👨‍⚖️ BIS ADMIN / CONTROL"):
             st.query_params.update({"view": "bis-admin", "auth": "true", "role": "Admin"})
             set_view("BIS_Admin_Control")
+            st.rerun()
+		 # --- NEU: BUTTON FÜR DEN LIVE-ADMIN-TEST ---
+        if st.button("🎛️ [TEST] LIVE-ADMIN CONTROL"):
+            st.query_params.update({"view": "test-live-admin", "auth": "true", "role": "Admin"})
+            set_view("Test_Live_Admin")
             st.rerun()
         if st.button("⚙️ ADMIN-KONSOLE (RESET)"):
             st.query_params.update({"view": "admin", "auth": "true", "role": "Admin"})
