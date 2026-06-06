@@ -969,10 +969,16 @@ elif st.session_state.view == "Dashboard":
                             if not m.empty:  # Nur verarbeiten, wenn sie zum aktuellen Tag gehört!
                                 flags = v.get("flags", {}) if isinstance(v, dict) else {}
                                 beim_richten = flags.get("Zum Richten", False) and not flags.get("Gerichtet", False)
+                                
+                                # --- NEU: HOLE DEN STATUS OB DIE KATZE GERADE AUF DEM TISCH IST ---
+                                wird_gerichtet = flags.get("Wird gerichtet", False) and not flags.get("Gerichtet", False)
+                                # -----------------------------------------------------------------
+                                
                                 nominiert = flags.get("NOM", False)
                                 biv = flags.get("BIV", False)
                                 
-                                if beim_richten or nominiert or biv:
+                                # --- ÄNDERUNG: ERWEITERT UM "WIRD_GERICHTET", DAMIT DIE KARTE GEZEIGT WIRD ---
+                                if beim_richten or wird_gerichtet or nominiert or biv:
                                     judge_entries.append({
                                         "key": k, 
                                         "data": v if isinstance(v, dict) else {"flags": {}},
@@ -986,13 +992,27 @@ elif st.session_state.view == "Dashboard":
                         flags = entry["data"].get("flags", {})
                         m_row = entry["row_data"]
                         
-                        tags = "".join([f"<span class='tag tag-{t.lower().replace(' ', '')}'>{t}</span> " for t, val in flags.items() if val and t != "Gerichtet"])
-                        if tags: 
+                        # --- NEU: DESIGN-WEICHE FÜR DAS ORANGE BLINKEN AUF DEM DASHBOARD ---
+                        rendered_tags = []
+                        for t, val in flags.items():
+                            if val and t != "Gerichtet":
+                                # LOGIK: FALLS "WIRD GERICHTET" AKTIV IST, BLENDEN WIR DAS BLAUE "ZUM RICHTEN" AUS
+                                if t == "Zum Richten" and flags.get("Wird gerichtet"):
+                                    continue
+                                
+                                # ENTFERNT LEERZEICHEN FÜR DEN CSS-KLASSENNAMEN (AUS "Wird gerichtet" WIRD "wirdgerichtet")
+                                class_suffix = t.lower().replace(" ", "")
+                                rendered_tags.append(f"<span class='tag tag-{class_suffix}'>{t}</span>")
+                        
+                        tags_html = "".join(rendered_tags)
+                        # --------------------------------------------------------------------
+                        
+                        if tags_html: 
                             st.markdown(f"""
                                 <div class='cat-card'>
                                     <div class='cat-number'>{kat_nr}</div>
                                     <div class='cat-details'>{get_full_label(m_row)}</div>
-                                    <div class='tag-container'>{tags}</div>
+                                    <div class='tag-container'>{tags_html}</div>
                                 </div>
                             """, unsafe_allow_html=True)
                             
