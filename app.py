@@ -154,26 +154,37 @@ st.markdown("""
     }
 
     /* Spalten-spezifische Button-Farben für das Steward-Pult */
+    /* SPALTE 1: AUFRUFEN -> BLAU */
     div[data-testid="stHorizontalBlock"] > div:nth-child(1) button {
         background-color: #007bff !important;
         border: 2px solid #0056b3 !important;
         color: white !important;
     }
+    /* SPALTE 2: WIRD GERICHTET -> ORANGE */
     div[data-testid="stHorizontalBlock"] > div:nth-child(2) button {
+        background-color: #ff9800 !important;
+        border: 2px solid #d37e00 !important;
+        color: white !important;
+    }
+    /* SPALTE 3: BIV -> GRÜN */
+    div[data-testid="stHorizontalBlock"] > div:nth-child(3) button {
         background-color: #28a745 !important;
         border: 2px solid #1e7e34 !important;
         color: white !important;
     }
-    div[data-testid="stHorizontalBlock"] > div:nth-child(3) button {
+    /* SPALTE 4: NOM -> GELB */
+    div[data-testid="stHorizontalBlock"] > div:nth-child(4) button {
         background-color: #ffc107 !important;
         border: 2px solid #d39e00 !important;
         color: black !important;
     }
-    div[data-testid="stHorizontalBlock"] > div:nth-child(4) button {
+    /* SPALTE 5: GERICHTET -> GRAU */
+    div[data-testid="stHorizontalBlock"] > div:nth-child(5) button {
         background-color: #6c757d !important;
         border: 2px solid #545b62 !important;
         color: white !important;
     }
+
 
     /* Hover Effekte */
     div[data-testid="stHorizontalBlock"] > div:nth-child(1) button:hover { background-color: #0069d9 !important; }
