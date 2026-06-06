@@ -1018,7 +1018,8 @@ elif st.session_state.view == "Dashboard":
                             
     st_autorefresh(interval=10000, key="dash_refresh")
 
-# --- CORRECTIONS ONLY IN THE STEWARD # --- DIESEN BLOCK IM STEWARD PANEL ERSETZEN ---
+# --- CORRECTIONS ONLY IN THE STEWARD # 
+# --- DIESEN BLOCK IM STEWARD PANEL ERSETZEN ---
 elif st.session_state.view == "Steward_Panel":
     display_header_with_logo("📝 Steward-Pult")
     df_full = load_labels()
@@ -1055,9 +1056,6 @@ elif st.session_state.view == "Steward_Panel":
         r_col = f"RICHTER {tag}"
         all_j = sorted([r for r in df_full[df_full[tag].astype(str).str.upper() == 'X'][r_col].unique() if str(r) != "nan"])
         
-        # ... AB HIER läuft dein restlicher originaler Steward-Code zu 100% unverändert weiter ...
-
-        
         # Berechnen des Default-Index für die Richter-Selectbox
         default_idx = 0
         if url_judge_name in all_j:
@@ -1065,16 +1063,13 @@ elif st.session_state.view == "Steward_Panel":
             
         mein_richter = st.selectbox("Richter wählen:", ["--"] + all_j, index=default_idx)
 
-		        # --- ANFANG DER ÄNDERUNG: WARNHINWEIS FÜR ABWEICHENDEN RICHTER ---
-        # WENN EIN VALIDIERTER RICHTER ÜBER DEN QR-CODE GEGEBEN IST (NICHT "--")
-        # UND DER AKTUELL GEWÄHLTE RICHTER DAVON ABWEICHT, WIRD EIN ROTER WARNKASTEN ANGEZEIGT.
+        # --- WARNHINWEIS FÜR ABWEICHENDEN RICHTER ---
         if url_judge_name != "--" and mein_richter != "--" and mein_richter != url_judge_name:
             st.error(
                 f"🚨 **ACHTUNG! Sie verlassen gerade Ihren zugewiesenen Richter!**\n\n"
                 f"Sie sind ursprünglich eingeloggt für **{url_judge_name}**, "
                 f"steuern aber aktuell die Katzenliste für **{mein_richter}**."
             )
-        # --- ENDE DER ÄNDERUNG ---
 
         if mein_richter != "--":
             df_richter_alle = df_full[(df_full[tag].astype(str).str.upper() == 'X') & (df_full[r_col] == mein_richter)]
@@ -1100,17 +1095,20 @@ elif st.session_state.view == "Steward_Panel":
                 if isinstance(geb_datum, pd.Timestamp): geb_datum = geb_datum.strftime('%d.%m.%Y')
                 elif pd.isna(geb_datum) or str(geb_datum).strip().lower() == "nan": geb_datum = "N/A"
                 
+                # --- NEU: STRUKTUR UM DIE NEUE FLAG "Wird gerichtet" ERWEITERN ---
                 if k not in store.data or not isinstance(store.data[k], dict) or "flags" not in store.data[k]: 
                     store.data[k] = {
-                        "flags": {"Zum Richten": False, "BIV": False, "NOM": False, "Gerichtet": False},
+                        "flags": {"Zum Richten": False, "Wird gerichtet": False, "BIV": False, "NOM": False, "Gerichtet": False},
                         "timestamp": 0
                     }
+                elif "Wird gerichtet" not in store.data[k]["flags"]:
+                    store.data[k]["flags"]["Wird gerichtet"] = False
+                # -----------------------------------------------------------------
                 
                 flags = store.data[k]["flags"]
                 card_class = "steward-card-wrapper gerichtet" if flags.get("Gerichtet") else "steward-card-wrapper"
                 
-                # --- START DES GRAUEN RECHTECKS ---
-                # Wir öffnen das div mit der Klasse steward-card-wrapper.
+                # START DES GRAUEN RECHTECKS
                 st.markdown(f"""
                 <div class="{card_class}">
                     <div class="card-header-row">
@@ -1126,27 +1124,44 @@ elif st.session_state.view == "Steward_Panel":
                     <div style="border-top: 1px solid #e2e2e2; padding-top: 10px; margin-top: 12px; margin-bottom: 8px;"></div>
                 """, unsafe_allow_html=True)
                 
-
-                
-                # Die originalen Spalten für die Buttons
-                c1, c2, c3, c4 = st.columns(4, vertical_alignment="center")
+                # --- ÄNDERUNG: ERWEITERT VON 4 AUF 5 SPALTEN FÜR DIE BUTTONS ---
+                c1, c2, c3, c4, c5 = st.columns(5, vertical_alignment="center")
                 
                 # BUTTON 1: AUFRUFEN (Blau)
                 is_rich = flags.get("Zum Richten")
                 with c1:
-                    # Hier nutzen wir nun auch die blinkende Klasse, wenn aktiv
-                    if is_rich: st.markdown('<div class="st-blink-btn">', unsafe_allow_html=True)
-                    if st.button("⚠️ [ AKTIV ] AUFGERUFEN ⚠️" if is_rich else "AUFRUFEN", key=f"btn_rich_{k}"):
+                    # HIER DIE AUSNAHME: WENN DIE KATZE SCHON BEIM RICHTER IST, BLINKT DER BLAUE BUTTON HIER NICHT MEHR
+                    if is_rich and not flags.get("Wird gerichtet"): st.markdown('<div class="st-blink-btn">', unsafe_allow_html=True)
+                    if st.button("⚠️ [ AKTIV ] AUFGERUFEN ⚠️" if (is_rich and not flags.get("Wird gerichtet")) else "AUFRUFEN", key=f"btn_rich_{k}"):
                         store.data[k]["flags"]["Zum Richten"] = not is_rich
                         if store.data[k]["flags"]["Zum Richten"]:
                             store.data[k]["flags"]["Gerichtet"] = False
                             store.data[k]["timestamp"] = time.time()
+                        else:
+                            # FALLS AUFRUF ENTFERNT WIRD, GEHT AUCH AUTOMATISCH "WIRD GERICHTET" WEG
+                            store.data[k]["flags"]["Wird gerichtet"] = False
                         st.rerun()
-                    if is_rich: st.markdown('</div>', unsafe_allow_html=True)
+                    if is_rich and not flags.get("Wird gerichtet"): st.markdown('</div>', unsafe_allow_html=True)
                 
-                # BUTTON 2: BIV (Grün)
-                is_biv = flags.get("BIV")
+                # --- NEU: BUTTON 2: WIRD GERICHTET (ORANGE FLAGGED) ---
+                is_busy = flags.get("Wird gerichtet")
                 with c2:
+                    if is_busy: st.markdown('<div class="st-blink-btn">', unsafe_allow_html=True) # NUTZT DEIN BLINK-STYLESHEET
+                    if st.button("⏳ TISCH / RICHTEN ⏳" if is_busy else "WIRD GERICHTET", key=f"btn_busy_{k}"):
+                        store.data[k]["flags"]["Wird gerichtet"] = not is_busy
+                        if store.data[k]["flags"]["Wird gerichtet"]:
+                            # LOGIK: WENN SIE GERICHTET WIRD, MUSS SIE AUCH AUTOMATISCH ALS "ZUM RICHTEN" GEKENNZEICHNET SEIN, 
+                            # DAMIT SIE AUF DEM LIVE-DASHBOARD IN DER RICHTER-SPALTE BLIEBT
+                            store.data[k]["flags"]["Zum Richten"] = True 
+                            store.data[k]["flags"]["Gerichtet"] = False
+                            store.data[k]["timestamp"] = time.time()
+                        st.rerun()
+                    if is_busy: st.markdown('</div>', unsafe_allow_html=True)
+                # ----------------------------------------------------------------------
+
+                # BUTTON 3: BIV (Grün)
+                is_biv = flags.get("BIV")
+                with c3:
                     if is_biv: st.markdown('<div class="st-blink-btn">', unsafe_allow_html=True)
                     if st.button("⚠️ [ AKTIV ] BIV ⚠️" if is_biv else "BIV", key=f"btn_biv_{k}"):
                         store.data[k]["flags"]["BIV"] = not is_biv
@@ -1154,9 +1169,9 @@ elif st.session_state.view == "Steward_Panel":
                         st.rerun()
                     if is_biv: st.markdown('</div>', unsafe_allow_html=True)
                 
-                # BUTTON 3: NOMINIEREN (Gelb)
+                # BUTTON 4: NOMINIEREN (Gelb)
                 is_nom = flags.get("NOM")
-                with c3:
+                with c4:
                     if is_nom: st.markdown('<div class="st-blink-btn">', unsafe_allow_html=True)
                     if st.button("⚠️ [ AKTIV ] NOM ⚠️" if is_nom else "NOM", key=f"btn_nom_{k}"):
                         store.data[k]["flags"]["NOM"] = not is_nom
@@ -1165,22 +1180,24 @@ elif st.session_state.view == "Steward_Panel":
                         st.rerun()
                     if is_nom: st.markdown('</div>', unsafe_allow_html=True)
                 
-                # BUTTON 4: GERICHTET (Grau - bleibt stabil ohne Blinken)
+                # BUTTON 5: GERICHTET (Grau)
                 is_done = flags.get("Gerichtet")
-                with c4:
+                with c5:
                     if st.button("[ ERLEDIGT ] GERICHTET" if is_done else "GERICHTET", key=f"btn_done_{k}"):
                         if not is_done:
                             store.data[k]["flags"]["Zum Richten"] = False
+                            
+                            # --- NEU: SCHALTE HIER AUCH DAS ORANGE "WIRD GERICHTET" AB, SOBALD ERLEDIGT KLICKT WIRD ---
+                            store.data[k]["flags"]["Wird gerichtet"] = False
+                            # -----------------------------------------------------------------------------
+                            
                             store.data[k]["flags"]["Gerichtet"] = True
                         else:
                             store.data[k]["flags"]["Gerichtet"] = False
                         st.rerun()
                                 
-                # --- ENDE DES GRAUEN RECHTECKS ---
-                # Erst nachdem die Buttons gerendert wurden, schließen wir das umschließende HTML-Kasten-Div.
+                # ENDE DES GRAUEN RECHTECKS
                 st.markdown("</div>", unsafe_allow_html=True)
-                
-                   # Zieht eine saubere Linie und schafft 30px Platz zur nächsten Karte
                 st.markdown('<hr style="border: none; border-top: 2px solid #000; margin-top: 0px; margin-bottom: 30px;">', unsafe_allow_html=True)
 
 # JUDGE VOTING
