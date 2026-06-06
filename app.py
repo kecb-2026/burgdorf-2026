@@ -186,17 +186,26 @@ st.markdown("""
     }
 
 
-    /* Hover Effekte */
+    /* Spalten-spezifische Button-Farben für das Steward-Pult (Flexibel für aktive Blink-Zustände) */
+    div[data-testid="stHorizontalBlock"] > div:nth-child(1) button { background-color: #007bff !important; border: 2px solid #0056b3 !important; color: white !important; }
+    div[data-testid="stHorizontalBlock"] > div:nth-child(2) button { background-color: #ff9800 !important; border: 2px solid #d37e00 !important; color: white !important; }
+    div[data-testid="stHorizontalBlock"] > div:nth-child(3) button { background-color: #28a745 !important; border: 2px solid #1e7e34 !important; color: white !important; }
+    div[data-testid="stHorizontalBlock"] > div:nth-child(4) button { background-color: #ffc107 !important; border: 2px solid #d39e00 !important; color: black !important; }
+    div[data-testid="stHorizontalBlock"] > div:nth-child(5) button { background-color: #6c757d !important; border: 2px solid #545b62 !important; color: white !important; }
+
+    /* Hover Effekte (Ebenfalls flexibel für aktive Blink-Zustände) */
     div[data-testid="stHorizontalBlock"] > div:nth-child(1) button:hover { background-color: #0069d9 !important; }
-    div[data-testid="stHorizontalBlock"] > div:nth-child(2) button:hover { background-color: #218838 !important; }
-    div[data-testid="stHorizontalBlock"] > div:nth-child(3) button:hover { background-color: #e0a800 !important; }
-    div[data-testid="stHorizontalBlock"] > div:nth-child(4) button:hover { background-color: #5a6268 !important; }
+    div[data-testid="stHorizontalBlock"] > div:nth-child(2) button:hover { background-color: #e68a00 !important; }
+    div[data-testid="stHorizontalBlock"] > div:nth-child(3) button:hover { background-color: #218838 !important; }
+    div[data-testid="stHorizontalBlock"] > div:nth-child(4) button:hover { background-color: #e0a800 !important; }
+    div[data-testid="stHorizontalBlock"] > div:nth-child(5) button:hover { background-color: #5a6268 !important; }
 
     /* Blinken für aktive Container-Wrapper im Python-Code */
     .button-class button, .st-blink-btn button, .blink-active button {
         animation: blinker 1.3s linear infinite !important;
         box-shadow: 0 0 15px rgba(0,0,0,0.2) !important;
     }
+
 
     /* Dashboard & Richter-Layout Styles */
     .judge-header-box { 
