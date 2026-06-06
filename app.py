@@ -491,7 +491,7 @@ access_map = {
     "Public": ["Dashboard", "BIS_Public", "Login"],
     "Richter": ["Judge_Voting", "Dashboard", "BIS_Public"],
     "Steward": ["Steward_Panel", "Dashboard", "BIS_Public"],
-    "Admin": ["Home", "Dashboard", "BIS_Public", "Judge_Voting", "Steward_Panel", "BIS_Admin_Control", "QR_Codes", "Nominated_Cats", "Judge_List", "Nomination_Labels", "Admin_Panel"]
+    "Admin": ["Home", "Dashboard", "BIS_Public", "Judge_Voting", "Steward_Panel", "BIS_Admin_Control", "Test_Live_Admin", "Test_Live_Voting","QR_Codes", "Nominated_Cats", "Judge_List", "Nomination_Labels", "Admin_Panel"]
 }
 
 st.markdown("""
