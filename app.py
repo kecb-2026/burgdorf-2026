@@ -288,7 +288,7 @@ st.markdown("""
     .tag-biv { background-color: #28a745; animation: blinker 1.5s linear infinite; }
     .tag-nom { background-color: #ffc107; color: black; animation: blinker 1s linear infinite; }
 
-    /* --- ERGÄNZUNG: CSS ABSOLUT SPEZIFISCH AUF STEWARD-CARDS BESCHRÄNKEN --- */
+    /* --- AB HIER IN DEINEM SKRIPT ERSETZEN --- */
     .steward-card-wrapper div[data-testid="stHorizontalBlock"] div.stButton > button {
         height: 25px !important;
         min-height: 25px !important;
@@ -298,27 +298,31 @@ st.markdown("""
         line-height: 1 !important;
         border-radius: 8px !important;
     }
-               
-    /* SPALTE 1: BLAU */
+                
+    /* SPALTE 1: AUFRUFEN -> BLAU */
     .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(1) button { background-color: #007bff !important; border: 2px solid #0056b3 !important; color: white !important; }
-    /* SPALTE 2: ORANGE */
+    
+    /* SPALTE 2: WIRD GERICHTET -> ORANGE */
     .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(2) button { background-color: #ff9800 !important; border: 2px solid #d37e00 !important; color: white !important; }
-    /* SPALTE 3: GRÜN */
+    
+    /* SPALTE 3: BIV -> GRÜN */
     .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(3) button { background-color: #28a745 !important; border: 2px solid #1e7e34 !important; color: white !important; }
-    /* SPALTE 4: GELB */
+    
+    /* SPALTE 4: NOM -> GELB */
     .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(4) button { background-color: #ffc107 !important; border: 2px solid #d39e00 !important; color: black !important; }
-    /* SPALTE 5: GRAU */
+    
+    /* SPALTE 5: GERICHTET -> GRAU */
     .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(5) button { background-color: #6c757d !important; border: 2px solid #545b62 !important; color: white !important; }
 
-    /* Hover Effekte für alle 5 Spalten */
+    /* Hover Effekte */
     .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(1) button:hover { background-color: #0069d9 !important; }
     .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(2) button:hover { background-color: #e68a00 !important; }
     .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(3) button:hover { background-color: #218838 !important; }
     .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(4) button:hover { background-color: #e0a800 !important; }
     .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(5) button:hover { background-color: #5a6268 !important; }
     
-    .tag-wirdgerichtet { background-color: #ff9800 !important; animation: blink 1.5s infinite; color: white; }
-   
+    .tag-wirdgerichtet { background-color: #ff9800 !important; animation: blinker 1.5s infinite; color: white; }
+
 </style>
 
 
