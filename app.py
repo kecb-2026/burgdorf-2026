@@ -2088,7 +2088,82 @@ elif st.session_state.view == "Admin_Panel":
         
     if st.button("⬅️ Zurück zum Hauptmenü", key="back_from_admin"):
         set_view("Home")
+
+
+
+# ==============================================================================
+# NEUER MENÜPUNKT: TEST LIVE-VOTING (RICHTER)
+# ==============================================================================
+elif st.session_state.view == "🏆 [Test] Live-Voting (Richter)":
+    display_header_with_logo("🗳️ [TEST] Richter-Voting (Live-Takt)")
+    
+    df_full = load_labels()
+    if df_full is not None:
+        # AUTOMATISCHE TAGES-SYNCHRONISATION
+        global_admin_day = st.session_state.get("admin_selected_day", "Tag 1")
+        st.session_state["judge_day_selector"] = global_admin_day
+        st.sidebar.info(f"📅 Aktiver Ausstellungstag: {global_admin_day}")
+        tag = global_admin_day.upper()
         
+        r_col = f"RICHTER {tag}"
+        all_judges = sorted([r for r in df_full[r_col].unique() if str(r) != "nan"])
+        
+        # 1. LIVE-WERTE AUS DEM TEST-ADMIN AUSLESEN
+        active_cat = store.data.get("test_live_cat")
+        active_label = store.data.get("test_live_label")
+        
+        # 2. WENN NOCH KEIN HÄKCHEN IM TEST-ADMIN GESETZT WURDE -> WARTE-BILDSCHIRM
+        if not active_cat or not active_label:
+            st.info("⏳ **Bitte warten...** Die Ausstellungsleitung hat für den Test aktuell noch keine Abstimmungsrunde freigeschaltet.")
+            st.stop()
+            
+        # 3. GELBER LIVE-BANNER FÜR DEN RICHTER
+        st.markdown(
+            f"<div style='background-color:#fff3cd; padding:15px; border-radius:8px; border-left:5px solid #ffc107; margin-bottom:20px;'>"
+            f"📢 <b>[TEST-MODUS] AKTIVE RUNDE VOM ADMIN-PULT:</b><br>"
+            f"<span style='font-size:20px; color:#856404;'><b>Kategorie {active_cat} — {active_label}</b></span>"
+            f"</div>", 
+            unsafe_allow_html=True
+        )
+        
+        # Richter-Identität ermitteln (entweder via URL oder Box)
+        c1, _ = st.columns([2, 2])
+        url_judge_name = st.session_state.get("url_judge", "--")
+        
+        if url_judge_name in all_judges and st.session_state.user_role != "Admin":
+            active_j = url_judge_name
+            c1.markdown(f"<div><b>Eingeloggt als Richter:</b> <span style='color:#1a4a9e; font-size:18px;'>{active_j}</span></div>", unsafe_allow_html=True)
+        else:
+            active_j = c1.selectbox("Identität/Identity wählen:", ["--"] + all_judges, key="test_live_vote_j_box")
+
+        # Wenn ein Richter gewählt/eingeloggt ist, zeigen wir EXKLUSIV die eine aktive Klasse
+        if active_j != "--":
+            if "votes" not in store.data: store.data["votes"] = {}
+            bis_defs = [
+                ("Adult Male", [1,3,5,7,9], "M"), ("Adult Female", [1,3,5,7,9], "W"), 
+                ("Neuter Male", [2,4,6,8,10], "M"), ("Neuter Female", [2,4,6,8,10], "W"), 
+                ("Junior 8-12 Male", [11], "M"), ("Junior 8-12 Female", [11], "W"), 
+                ("Kitten 4-8 Male", [12], "M"), ("Kitten 4-8 Female", [12], "W")
+            ]
+            
+            for label, klassen, geschl in bis_defs:
+                # DIE MAGISCHE WEICHE: NUR WENN ES DIE VOM TEST-ADMIN FREIGEGEBENE KLASSE IST!
+                if label == active_label:
+                    with st.expander(f"Wahl für/Choice for {label}", expanded=True):
+                        pool = df_full[(df_full['SELECTION'].astype(str).str.upper() == 'X') & (df_full['KATEGORIE'] == active_cat) & (df_full['KLASSE_INTERNAL'].isin(klassen)) & (df_full['GESCHLECHT'].astype(str).str.upper() == geschl)]
+                        
+                        if not pool.empty:
+                            opts = {f"#{r['KAT_STR']} - {get_full_label(r)}": r['KAT_STR'] for _, r in pool.iterrows()}
+                            
+                            # Wir nutzen exakt deine originalen v_keys, damit Test-Stimmen auch real zählen!
+                            v_key = f"v_{tag}_{active_cat}_{label}_{active_j}"
+                            curr = store.data["votes"].get(v_key, "Keine Wahl")
+                            
+                            sel = st.radio("Favorit:", ["Keine Wahl/Not chosen yet"] + list(opts.keys()), index=(list(opts.values()).index(curr)+1) if curr in opts.values() else 0, key=f"r_test_{v_key}")
+                            store.data["votes"][v_key] = opts[sel] if sel != "Keine Wahl/Not chosen yet" else "Keine Wahl/Not chosen yet"
+                        else:
+                            st.info("ℹ️ Keine nominierten Katzen in dieser Klasse vorhanden.")
+
         
         
         
