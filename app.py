@@ -309,7 +309,8 @@ st.markdown("""
     .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(3) button:hover { background-color: #e0a800 !important; }
     .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(4) button:hover { background-color: #5a6268 !important; }
     
-        
+    .tag-wirdgerichtet { background-color: #ff9800 !important; animation: blink 1.5s infinite; color: white; }
+   
 </style>
 
 
