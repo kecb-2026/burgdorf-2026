@@ -2109,7 +2109,7 @@ elif st.session_state.view == "Admin_Panel":
 # ==============================================================================
 # NEUER MENÜPUNKT: TEST LIVE-VOTING (RICHTER)
 # ==============================================================================
-elif st.session_state.view == "🏆 [Test] Live-Voting (Richter)":
+elif st.session_state.view == "Test_Live_Voting":
     display_header_with_logo("🗳️ [TEST] Richter-Voting (Live-Takt)")
     
     df_full = load_labels()
@@ -2184,7 +2184,7 @@ elif st.session_state.view == "🏆 [Test] Live-Voting (Richter)":
 # ==============================================================================
 # NEUER SEPARATER MENÜPUNKT: 🎛️ [Test] Live-Admin
 # ==============================================================================
-elif st.session_state.view == "🎛️ [Test] Live-Admin":
+elif st.session_state.view == "Test_Live_Admin":
     display_header_with_logo("👑 BIS Admin Control")
     df_full = load_labels()
     
