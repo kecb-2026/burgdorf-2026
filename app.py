@@ -153,45 +153,98 @@ st.markdown("""
         border-radius: 8px !important;
     }
 
-    /* Spalten-spezifische Button-Farben für das Steward-Pult */
+    /* Spalten-spezifische Button-Farben für das Steward-    /* --- KEYFRAMES FÜR DAS FARBLICHE PULSIEREN (OHNE TEXT-BLINKEN) --- */
+    @keyframes pulseBlue   { 0% { background-color: #007bff; } 50% { background-color: #0044aa; } 100% { background-color: #007bff; } }
+    @keyframes pulseOrange { 0% { background-color: #ff9800; } 50% { background-color: #cc6600; } 100% { background-color: #ff9800; } }
+    @keyframes pulseGreen  { 0% { background-color: #28a745; } 50% { background-color: #1a662c; } 100% { background-color: #28a745; } }
+    @keyframes pulseYellow { 0% { background-color: #ffc107; } 50% { background-color: #cca300; } 100% { background-color: #ffc107; } }
+
+    /* Spalten-spezifische Button-Farben & einheitliche Größen für das Steward-Pult */
+    
     /* SPALTE 1: AUFRUFEN -> BLAU */
     div[data-testid="stHorizontalBlock"] > div:nth-child(1) button {
         background-color: #007bff !important;
-        border: 2px solid #0056b3 !important;
+        border: none !important;
         color: white !important;
+        width: 100% !important;
+        height: 35px !important;
     }
+    /* Wenn Aktiv: Blau pulsieren */
+    .st-blink-btn div[data-testid="stHorizontalBlock"] > div:nth-child(1) button,
+    div:nth-child(1) .st-blink-btn button {
+        animation: pulseBlue 1.5s infinite ease-in-out !important;
+        box-shadow: 0 0 12px rgba(0, 123, 255, 0.5) !important;
+    }
+    
     /* SPALTE 2: WIRD GERICHTET -> ORANGE */
     div[data-testid="stHorizontalBlock"] > div:nth-child(2) button {
         background-color: #ff9800 !important;
-        border: 2px solid #d37e00 !important;
+        border: none !important;
         color: white !important;
+        width: 100% !important;
+        height: 35px !important;
     }
+    /* Wenn Aktiv: Orange pulsieren */
+    .st-blink-btn div[data-testid="stHorizontalBlock"] > div:nth-child(2) button,
+    div:nth-child(2) .st-blink-btn button {
+        animation: pulseOrange 1.5s infinite ease-in-out !important;
+        box-shadow: 0 0 12px rgba(255, 152, 0, 0.5) !important;
+    }
+    
     /* SPALTE 3: BIV -> GRÜN */
     div[data-testid="stHorizontalBlock"] > div:nth-child(3) button {
         background-color: #28a745 !important;
-        border: 2px solid #1e7e34 !important;
+        border: none !important;
         color: white !important;
+        width: 100% !important;
+        height: 35px !important;
     }
+    /* Wenn Aktiv: Grün pulsieren */
+    .st-blink-btn div[data-testid="stHorizontalBlock"] > div:nth-child(3) button,
+    div:nth-child(3) .st-blink-btn button {
+        animation: pulseGreen 1.5s infinite ease-in-out !important;
+        box-shadow: 0 0 12px rgba(40, 167, 69, 0.5) !important;
+    }
+    
     /* SPALTE 4: NOM -> GELB */
     div[data-testid="stHorizontalBlock"] > div:nth-child(4) button {
         background-color: #ffc107 !important;
-        border: 2px solid #d39e00 !important;
+        border: none !important;
         color: black !important;
+        width: 100% !important;
+        height: 35px !important;
     }
-    /* SPALTE 5: GERICHTET -> GRAU */
+    /* Wenn Aktiv: Gelb pulsieren */
+    .st-blink-btn div[data-testid="stHorizontalBlock"] > div:nth-child(4) button,
+    div:nth-child(4) .st-blink-btn button {
+        animation: pulseYellow 1.5s infinite ease-in-out !important;
+        box-shadow: 0 0 12px rgba(255, 193, 7, 0.5) !important;
+    }
+    
+    /* SPALTE 5: GERICHTET -> GRAU (Erledigt braucht kein Blinken) */
     div[data-testid="stHorizontalBlock"] > div:nth-child(5) button {
         background-color: #6c757d !important;
-        border: 2px solid #545b62 !important;
+        border: none !important;
         color: white !important;
+        width: 100% !important;
+        height: 35px !important;
     }
 
+    /* Erweiterte Hover Effekte für ein haptisches Feedback */
+    div[data-testid="stHorizontalBlock"] > div > button:hover {
+        transform: scale(1.02);           /* Button wird beim Drüberfahren minimal größer */
+        cursor: pointer;                  /* Mauszeiger wird zur Hand */
+        filter: brightness(110%);         /* Macht die Farbe einen Tick leuchtender statt nur dunkler */
+        transition: all 0.2s ease-in-out; /* Lässt die Änderung sanft gleiten, nicht hart springen */
+    }
 
-    /* Spalten-spezifische Button-Farben für das Steward-Pult (Flexibel für aktive Blink-Zustände) */
-    div[data-testid="stHorizontalBlock"] > div:nth-child(1) button { background-color: #007bff !important; border: 2px solid #0056b3 !important; color: white !important; }
-    div[data-testid="stHorizontalBlock"] > div:nth-child(2) button { background-color: #ff9800 !important; border: 2px solid #d37e00 !important; color: white !important; }
-    div[data-testid="stHorizontalBlock"] > div:nth-child(3) button { background-color: #28a745 !important; border: 2px solid #1e7e34 !important; color: white !important; }
-    div[data-testid="stHorizontalBlock"] > div:nth-child(4) button { background-color: #ffc107 !important; border: 2px solid #d39e00 !important; color: black !important; }
-    div[data-testid="stHorizontalBlock"] > div:nth-child(5) button { background-color: #6c757d !important; border: 2px solid #545b62 !important; color: white !important; }
+    /* Individuelle Anpassung, falls du bei den spezifischen Farben bleiben willst: */
+    div[data-testid="stHorizontalBlock"] > div:nth-child(1) button:hover { background-color: #0069d9 !important; }
+    div[data-testid="stHorizontalBlock"] > div:nth-child(2) button:hover { background-color: #e68a00 !important; }
+    div[data-testid="stHorizontalBlock"] > div:nth-child(3) button:hover { background-color: #218838 !important; }
+    div[data-testid="stHorizontalBlock"] > div:nth-child(4) button:hover { background-color: #e0a800 !important; }
+    div[data-testid="stHorizontalBlock"] > div:nth-child(5) button:hover { background-color: #5a6268 !important; }
+
 
     /* Hover Effekte (Ebenfalls flexibel für aktive Blink-Zustände) */
     div[data-testid="stHorizontalBlock"] > div:nth-child(1) button:hover { background-color: #0069d9 !important; }
