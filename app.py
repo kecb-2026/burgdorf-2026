@@ -965,9 +965,26 @@ elif st.session_state.view == "BIS_Public":
                                if key.startswith(prefix) and val != "Keine Wahl" and val != "Keine Wahl/Not chosen yet"]
                 for j in abgestimmte:
                     style_rules += f".judge-{str(j).replace(' ', '_')} {{ background-color: #28a745 !important; }}"
+
+	        # --- HIER DIE FARBE DER GEWINNER-KARTE ANPASSEN ---
+        style_rules += """
+        .winner-card {
+            background-color: #ffd700 !important;  /* Hintergrundfarbe (z.B. Gold) */
+            border: 2px solid #d4af37 !important;  /* Rahmenfarbe */
+            color: #000000 !important;             /* Textfarbe für Details */
+        }
+        .winner-card .cat-number {
+            color: #000000 !important;             /* Textfarbe für die Startnummer */
+            font-weight: bold !important;
+        }
+        """
         
-        if style_rules:
-            st.markdown(f"<style>{style_rules}</style>", unsafe_allow_html=True)
+        # Da style_rules jetzt niemals leer ist, rendern wir das Stylesheet direkt
+        st.markdown(f"<style>{style_rules}</style>", unsafe_allow_html=True)
+
+        
+        # if style_rules:
+           # st.markdown(f"<style>{style_rules}</style>", unsafe_allow_html=True)
 
         # --- STATISCHER HEADER (oben, einmalig) ---
         cols = st.columns([0.8] + [1.2]*len(judges) + [0.8])
