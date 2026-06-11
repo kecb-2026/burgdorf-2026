@@ -1033,7 +1033,8 @@ elif st.session_state.view == "BIS_Public":
                         if not m_w.empty: st.markdown(f"<div class='cat-card winner-card'><div class='cat-number'>{winner_nr}</div><div class='cat-details'>{get_full_label(m_w.iloc[0])}</div></div>", unsafe_allow_html=True)
                 else: st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
 
-    time.sleep(3); st.rerun()
+    # time.sleep(3); st.rerun()
+    st_autorefresh(interval=3000, key="bis_refresh")
 
 # LIVE DASHBOARD
 elif st.session_state.view == "Dashboard":
