@@ -2529,7 +2529,7 @@ elif st.session_state.view == "Admin_Panel":
 # NEUER MENÜPUNKT: TEST LIVE-VOTING (RICHTER)
 # ==============================================================================
 elif st.session_state.view == "Test_Live_Voting":
-    display_header_with_logo("🗳️ [TEST] Richter-Voting (Live-Takt)")
+    display_header_with_logo("🗳️  Judge Live Voting")
     
     df_full = load_labels()
     if df_full is not None:
@@ -2548,14 +2548,14 @@ elif st.session_state.view == "Test_Live_Voting":
         
         # 2. WENN NOCH KEIN HÄKCHEN IM TEST-ADMIN GESETZT WURDE -> WARTE-BILDSCHIRM
         if not active_cat or not active_label:
-            st.info("⏳ **Bitte warten...** Die Ausstellungsleitung hat für den Test aktuell noch keine Abstimmungsrunde freigeschaltet.")
+            st.info("⏳ **Bitte warten...** Die Ausstellungsleitung hat für den Test aktuell noch keine Abstimmungsrunde freigeschaltet. Please wait, the Admin will release the voting shortly.")
             st.stop()
             
         # 3. GELBER LIVE-BANNER FÜR DEN RICHTER
         st.markdown(
             f"<div style='background-color:#fff3cd; padding:15px; border-radius:8px; border-left:5px solid #ffc107; margin-bottom:20px;'>"
-            f"📢 <b>[TEST-MODUS] AKTIVE RUNDE VOM ADMIN-PULT:</b><br>"
-            f"<span style='font-size:20px; color:#856404;'><b>Kategorie {active_cat} — {active_label}</b></span>"
+            f"📢 <b>[TEST-MODUS] AKTIVE RUNDE - ACTIVE ROUND:</b><br>"
+            f"<span style='font-size:20px; color:#856404;'><b>Kategorie - Category {active_cat} — {active_label}</b></span>"
             f"</div>", 
             unsafe_allow_html=True
         )
@@ -2566,7 +2566,7 @@ elif st.session_state.view == "Test_Live_Voting":
         
         if url_judge_name in all_judges and st.session_state.user_role != "Admin":
             active_j = url_judge_name
-            c1.markdown(f"<div><b>Eingeloggt als Richter:</b> <span style='color:#1a4a9e; font-size:18px;'>{active_j}</span></div>", unsafe_allow_html=True)
+            c1.markdown(f"<div><b>Eingeloggt als Richter - Logged in as:</b> <span style='color:#1a4a9e; font-size:18px;'>{active_j}</span></div>", unsafe_allow_html=True)
         else:
             active_j = c1.selectbox("Identität/Identity wählen:", ["--"] + all_judges, key="test_live_vote_j_box")
 
