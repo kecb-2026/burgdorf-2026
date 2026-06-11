@@ -1203,19 +1203,22 @@ elif st.session_state.view == "Steward_Panel":
                 if isinstance(geb_datum, pd.Timestamp): geb_datum = geb_datum.strftime('%d.%m.%Y')
                 elif pd.isna(geb_datum) or str(geb_datum).strip().lower() == "nan": geb_datum = "N/A"
                 
-                # --- NEU: STRUKTUR UM DIE NEUE FLAG "Wird gerichtet" ERWEITERN ---
+				
+				# --- STRUKTUR INITIALISIEREN UND LOKALEN ZUSTAND HOLEN ---
+                # ÄNDERUNG: DATEN WERDEN IN EINE LOKALE KOPIE (cat_state) GELESEN, DAMIT WIR SIE PER SETTER SPEICHERN KÖNNEN
                 if k not in store.data or not isinstance(store.data[k], dict) or "flags" not in store.data[k]: 
-                    store.data[k] = {
+                    cat_state = {
                         "flags": {"Zum Richten": False, "Wird gerichtet": False, "BIV": False, "NOM": False, "Gerichtet": False},
                         "timestamp": 0
                     }
-                elif "Wird gerichtet" not in store.data[k]["flags"]:
-                    store.data[k]["flags"]["Wird gerichtet"] = False
+                else:
+                    cat_state = store.data[k].copy()
+                    if "Wird gerichtet" not in cat_state["flags"]:
+                        cat_state["flags"]["Wird gerichtet"] = False
                 # -----------------------------------------------------------------
                 
-                flags = store.data[k]["flags"]
+                flags = cat_state["flags"]
                 card_class = "steward-card-wrapper gerichtet" if flags.get("Gerichtet") else "steward-card-wrapper"
-                
                 # START DES GRAUEN RECHTECKS
                 st.markdown(f"""
                 <div class="{card_class}">
