@@ -2572,7 +2572,10 @@ elif st.session_state.view == "Test_Live_Voting":
 
         # Wenn ein Richter gewählt/eingeloggt ist, zeigen wir EXKLUSIV die eine aktive Klasse
         if active_j != "--":
-            if "votes" not in store.data: store.data["votes"] = {}
+            # ÄNDERUNG: SICHERSTELLEN, DASS DER VOTES-KEY IM SPEICHER EXISTIERT
+            if "votes" not in store.data or not isinstance(store.data["votes"], dict): 
+                store.data["votes"] = {}
+                
             bis_defs = [
                 ("Adult Male", [1,3,5,7,9], "M"), ("Adult Female", [1,3,5,7,9], "W"), 
                 ("Neuter Male", [2,4,6,8,10], "M"), ("Neuter Female", [2,4,6,8,10], "W"), 
@@ -2593,11 +2596,25 @@ elif st.session_state.view == "Test_Live_Voting":
                             v_key = f"v_{tag}_{active_cat}_{label}_{active_j}"
                             curr = store.data["votes"].get(v_key, "Keine Wahl")
                             
-                            sel = st.radio("Favorit:", ["Keine Wahl/Not chosen yet"] + list(opts.keys()), index=(list(opts.values()).index(curr)+1) if curr in opts.values() else 0, key=f"r_test_{v_key}")
-                            store.data["votes"][v_key] = opts[sel] if sel != "Keine Wahl/Not chosen yet" else "Keine Wahl/Not chosen yet"
+                            # ÄNDERUNG: VERHINDERT ABSTURZ BEI RERUNS DURCH BEREINIGTEN INDEX
+                            try:
+                                default_index = (list(opts.values()).index(curr) + 1) if curr in opts.values() else 0
+                            except ValueError:
+                                default_index = 0
+
+                            sel = st.radio("Favorit:", ["Keine Wahl/Not chosen yet"] + list(opts.keys()), index=default_index, key=f"r_test_{v_key}")
+                            
+                            # NEUER WERT ERMITTELN
+                            neue_wahl = opts[sel] if sel != "Keine Wahl/Not chosen yet" else "Keine Wahl/Not chosen yet"
+                            
+                            # ÄNDERUNG: NUR SPEICHERN UND RERUN AUSLÖSEN, WENN SICH DIE WAHL TATSÄCHLICH GEÄNDERT HAT
+                            if store.data["votes"].get(v_key) != neue_wahl:
+                                store.data["votes"][v_key] = neue_wahl
+                                # JEDEN KLICK SOFORT AUF DIE FESTPLATTE SPEICHERN
+                                store.save_backup()
+                                st.rerun()
                         else:
                             st.info("ℹ️ Keine nominierten Katzen in dieser Klasse vorhanden.")
-
 
 
 # ==============================================================================
