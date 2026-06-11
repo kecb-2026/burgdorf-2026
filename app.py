@@ -460,7 +460,7 @@ if "auth" in q_params and q_params["auth"] == "true":
         elif v_param == "admin": st.session_state.view = "Home"
         elif v_param == "bis-admin": st.session_state.view = "BIS_Admin_Control"
         elif v_param == "qr": st.session_state.view = "QR_Codes"
-		elif v_param == "qr-gen": st.session_state.view = "QR_Codes_Gen"
+        elif v_param == "qr-gen": st.session_state.view = "QR_Codes_Gen"
         elif v_param == "nominated": st.session_state.view = "Nominated_Cats"
 		
         # --- NEU: URL-PARAMETER FÜR DIE BEIDEN TEST-SEITEN ---
