@@ -429,7 +429,7 @@ class GlobalStore:
             except Exception as e:
                 st.error(f"Fehler beim Laden des Notfall-Backups: {e}")
 				
-	def set_data(self, key, value):
+    def set_data(self, key, value):
         """Zentraler Setter, der IMMER sofort speichert"""
         self.data[key] = value
         self.save_backup()
