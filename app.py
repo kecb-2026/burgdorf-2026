@@ -1233,21 +1233,25 @@ elif st.session_state.view == "Steward_Panel":
                 """, unsafe_allow_html=True)
                 
                 # --- ÄNDERUNG: ERWEITERT VON 4 AUF 5 SPALTEN FÜR DIE BUTTONS ---
-                c1, c2, c3, c4, c5 = st.columns(5, vertical_alignment="center")
-                
-                # BUTTON 1: AUFRUFEN (Blau)
+                c1, c2, c3, c4, c5 = st.columns(5, vertical_alignment="center")               
+				
+				# BUTTON 1: AUFRUFEN (Blau)
                 is_rich = flags.get("Zum Richten")
                 with c1:
                     # HIER DIE AUSNAHME: WENN DIE KATZE SCHON BEIM RICHTER IST, BLINKT DER BLAUE BUTTON HIER NICHT MEHR
                     if is_rich and not flags.get("Wird gerichtet"): st.markdown('<div class="st-blink-btn">', unsafe_allow_html=True)
                     if st.button("⚠️ [ AKTIV ] AUFGERUFEN ⚠️" if (is_rich and not flags.get("Wird gerichtet")) else "AUFRUFEN", key=f"btn_rich_{k}"):
-                        store.data[k]["flags"]["Zum Richten"] = not is_rich
-                        if store.data[k]["flags"]["Zum Richten"]:
-                            store.data[k]["flags"]["Gerichtet"] = False
-                            store.data[k]["timestamp"] = time.time()
+                        # ÄNDERUNG: ZUWEISUNGEN ERFOLGEN JETZT IM LOKALEN cat_state OBJEKT
+                        cat_state["flags"]["Zum Richten"] = not is_rich
+                        if cat_state["flags"]["Zum Richten"]:
+                            cat_state["flags"]["Gerichtet"] = False
+                            cat_state["timestamp"] = time.time()
                         else:
                             # FALLS AUFRUF ENTFERNT WIRD, GEHT AUCH AUTOMATISCH "WIRD GERICHTET" WEG
-                            store.data[k]["flags"]["Wird gerichtet"] = False
+                            cat_state["flags"]["Wird gerichtet"] = False
+                        
+                        # ÄNDERUNG: NUTZUNG DES SETTERS FÜR PERMANENTES SPEICHERN IN JSON
+                        store.set_data(k, cat_state)
                         st.rerun()
                     if is_rich and not flags.get("Wird gerichtet"): st.markdown('</div>', unsafe_allow_html=True)
                 
@@ -1256,13 +1260,17 @@ elif st.session_state.view == "Steward_Panel":
                 with c2:
                     if is_busy: st.markdown('<div class="st-blink-btn">', unsafe_allow_html=True) # NUTZT DEIN BLINK-STYLESHEET
                     if st.button("⏳ TISCH / RICHTEN ⏳" if is_busy else "WIRD GERICHTET", key=f"btn_busy_{k}"):
-                        store.data[k]["flags"]["Wird gerichtet"] = not is_busy
-                        if store.data[k]["flags"]["Wird gerichtet"]:
+                        # ÄNDERUNG: ZUWEISUNGEN ERFOLGEN JETZT IM LOKALEN cat_state OBJEKT
+                        cat_state["flags"]["Wird gerichtet"] = not is_busy
+                        if cat_state["flags"]["Wird gerichtet"]:
                             # LOGIK: WENN SIE GERICHTET WIRD, MUSS SIE AUCH AUTOMATISCH ALS "ZUM RICHTEN" GEKENNZEICHNET SEIN, 
                             # DAMIT SIE AUF DEM LIVE-DASHBOARD IN DER RICHTER-SPALTE BLIEBT
-                            store.data[k]["flags"]["Zum Richten"] = True 
-                            store.data[k]["flags"]["Gerichtet"] = False
-                            store.data[k]["timestamp"] = time.time()
+                            cat_state["flags"]["Zum Richten"] = True 
+                            cat_state["flags"]["Gerichtet"] = False
+                            cat_state["timestamp"] = time.time()
+                        
+                        # ÄNDERUNG: NUTZUNG DES SETTERS FÜR PERMANENTES SPEICHERN IN JSON
+                        store.set_data(k, cat_state)
                         st.rerun()
                     if is_busy: st.markdown('</div>', unsafe_allow_html=True)
                 # ----------------------------------------------------------------------
@@ -1272,8 +1280,12 @@ elif st.session_state.view == "Steward_Panel":
                 with c3:
                     if is_biv: st.markdown('<div class="st-blink-btn">', unsafe_allow_html=True)
                     if st.button("⚠️ [ AKTIV ] BIV ⚠️" if is_biv else "BIV", key=f"btn_biv_{k}"):
-                        store.data[k]["flags"]["BIV"] = not is_biv
-                        store.data[k]["timestamp"] = time.time()
+                        # ÄNDERUNG: ZUWEISUNGEN ERFOLGEN JETZT IM LOKALEN cat_state OBJEKT
+                        cat_state["flags"]["BIV"] = not is_biv
+                        cat_state["timestamp"] = time.time()
+                        
+                        # ÄNDERUNG: NUTZUNG DES SETTERS FÜR PERMANENTES SPEICHERN IN JSON
+                        store.set_data(k, cat_state)
                         st.rerun()
                     if is_biv: st.markdown('</div>', unsafe_allow_html=True)
                 
@@ -1282,9 +1294,13 @@ elif st.session_state.view == "Steward_Panel":
                 with c4:
                     if is_nom: st.markdown('<div class="st-blink-btn">', unsafe_allow_html=True)
                     if st.button("⚠️ [ AKTIV ] NOM ⚠️" if is_nom else "NOM", key=f"btn_nom_{k}"):
-                        store.data[k]["flags"]["NOM"] = not is_nom
-                        if store.data[k]["flags"]["NOM"]:
-                            store.data[k]["timestamp"] = time.time()
+                        # ÄNDERUNG: ZUWEISUNGEN ERFOLGEN JETZT IM LOKALEN cat_state OBJEKT
+                        cat_state["flags"]["NOM"] = not is_nom
+                        if cat_state["flags"]["NOM"]:
+                            cat_state["timestamp"] = time.time()
+                        
+                        # ÄNDERUNG: NUTZUNG DES SETTERS FÜR PERMANENTES SPEICHERN IN JSON
+                        store.set_data(k, cat_state)
                         st.rerun()
                     if is_nom: st.markdown('</div>', unsafe_allow_html=True)
                 
@@ -1292,21 +1308,26 @@ elif st.session_state.view == "Steward_Panel":
                 is_done = flags.get("Gerichtet")
                 with c5:
                     if st.button("[ ERLEDIGT ] GERICHTET" if is_done else "GERICHTET", key=f"btn_done_{k}"):
+                        # ÄNDERUNG: ZUWEISUNGEN ERFOLGEN JETZT IM LOKALEN cat_state OBJEKT
                         if not is_done:
-                            store.data[k]["flags"]["Zum Richten"] = False
+                            cat_state["flags"]["Zum Richten"] = False
                             
                             # --- NEU: SCHALTE HIER AUCH DAS ORANGE "WIRD GERICHTET" AB, SOBALD ERLEDIGT KLICKT WIRD ---
-                            store.data[k]["flags"]["Wird gerichtet"] = False
+                            cat_state["flags"]["Wird gerichtet"] = False
                             # -----------------------------------------------------------------------------
                             
-                            store.data[k]["flags"]["Gerichtet"] = True
+                            cat_state["flags"]["Gerichtet"] = True
                         else:
-                            store.data[k]["flags"]["Gerichtet"] = False
+                            cat_state["flags"]["Gerichtet"] = False
+                        
+                        # ÄNDERUNG: NUTZUNG DES SETTERS FÜR PERMANENTES SPEICHERN IN JSON
+                        store.set_data(k, cat_state)
                         st.rerun()
                                 
                 # ENDE DES GRAUEN RECHTECKS
                 st.markdown("</div>", unsafe_allow_html=True)
                 st.markdown('<hr style="border: none; border-top: 2px solid #000; margin-top: 0px; margin-bottom: 30px;">', unsafe_allow_html=True)
+
 
 # JUDGE VOTING
 elif st.session_state.view == "Judge_Voting":
