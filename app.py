@@ -2622,10 +2622,7 @@ elif st.session_state.view == "Test_Live_Voting":
                                 store.save_backup()
                                 st.rerun()
                         else:
-                            st.info("ℹ️ Keine nominierten Katzen in dieser Klasse vorhanden.")
-# Nur zum Testen im Voting-Bereich einfügen:
-st.write("Debug - Aktuelle Daten aus der Cloud:", store.data)
-
+                            st.info("ℹ️ Keine nominierten Katzen in dieser Klasse 
 
 # ==============================================================================
 # NEUER SEPARATER MENÜPUNKT: 🎛️ [Test] Live-Admin
