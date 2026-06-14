@@ -404,42 +404,50 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # --- 2. GLOBALER SPEICHER ---
+# --- 2. GLOBALER SPEICHER (SUPABASE-VERSION) ---
+from supabase import create_client, Client
+import streamlit as st
+
 class GlobalStore:
     def __init__(self):
-        self.data = {} 
+        # Hier nutzen wir die Werte aus deinen Secrets
+        url = st.secrets["NEXT_PUBLIC_SUPABASE_URL"]
+        key = st.secrets["NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"]
+        
+        self.client: Client = create_client(url, key)
+        self.data = {"votes": {}} 
         self.active_overlay = None
         self.overlay_start_time = 0
+        self.load_backup()
 
     def save_backup(self):
-        """Sichert den aktuellen Speicherzustand in einer JSON-Datei auf dem Server"""
+        """Speichert in der Supabase-Tabelle."""
         try:
-            with open("store_backup.json", "w", encoding="utf-8") as f:
-                json.dump(self.data, f, ensure_ascii=False, indent=4)
-        except Exception as e:
-            pass  # Verhindert, dass ein Fehler beim Schreiben die App blockiert
+            self.client.table("app_data").upsert({"id": 1, "content": self.data}).execute()
+        except Exception:
+            pass
 
     def load_backup(self):
-        """Lädt die Daten aus dem Backup, falls der Server neu gestartet wurde"""
-        if os.path.exists("store_backup.json"):
-            try:
-                with open("store_backup.json", "r", encoding="utf-8") as f:
-                    backup_data = json.load(f)
-                    if backup_data:
-                        self.data = backup_data
-            except Exception as e:
-                st.error(f"Fehler beim Laden des Notfall-Backups: {e}")
-				
-    def set_data(self, key, value):
-        """Zentraler Setter, der IMMER sofort speichert"""
-        self.data[key] = value
+        """Lädt aus der Supabase-Tabelle."""
+        try:
+            res = self.client.table("app_data").select("content").eq("id", 1).execute()
+            if res.data:
+                self.data = res.data[0]["content"]
+        except Exception:
+            self.data = {"votes": {}}
+
+    def set_data(self, key, field=None, value=None):
+        if field is None:
+            self.data[key] = value
+        else:
+            if key not in self.data:
+                self.data[key] = {}
+            self.data[key][field] = value
         self.save_backup()
 
 @st.cache_resource
 def get_store():
-    store_instance = GlobalStore()
-    # Beim allerersten Start der App prüfen, ob ein Backup bereitliegt
-    store_instance.load_backup()
-    return store_instance
+    return GlobalStore()
 
 store = get_store()
 
