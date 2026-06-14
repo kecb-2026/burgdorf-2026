@@ -2540,9 +2540,6 @@ elif st.session_state.view == "Test_Live_Voting":
     display_header_with_logo("🗳️  Judge Live Voting")
    
 	
-	# Nur zum Testen im Voting-Bereich einfügen:
-    st.write("Debug - Aktuelle Daten aus der Cloud:", store.data)
-
     df_full = load_labels()
     if df_full is not None:
         # AUTOMATISCHE TAGES-SYNCHRONISATION
