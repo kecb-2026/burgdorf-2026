@@ -6,3 +6,4 @@ streamlit_autorefresh
 qrcode
 pillow
 reportlab
+supabase
