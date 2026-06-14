@@ -2622,8 +2622,9 @@ elif st.session_state.view == "Test_Live_Voting":
                                 store.save_backup()
                                 st.rerun()
                         else:
-                            st.info("ℹ️ Keine nominierten Katzen in dieser Klasse 
+                            st.info("ℹ️ Keine nominierten Katzen in dieser Klasse vorhanden.")
 
+							
 # ==============================================================================
 # NEUER SEPARATER MENÜPUNKT: 🎛️ [Test] Live-Admin
 # ==============================================================================
