@@ -2519,6 +2519,7 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
         if st.button("⬅️ Zurück zum Hauptmenü", key="back_from_labels"):
             set_view("Home")
 
+
 			
 # ADMIN PANEL
 elif st.session_state.view == "Admin_Panel":
@@ -2527,15 +2528,17 @@ elif st.session_state.view == "Admin_Panel":
         store.data = {}
         store.active_overlay = None
         st.success("Speicher geleert!")
-        
-    if st.button("⬅️ Zurück zum Hauptmenü", key="back_from_admin"):
-        set_view("Home")
-		
+
 st.subheader("🔄 Cache-Management")
 if st.button("🔥 Excel-Daten JETZT sofort neu einlesen", key="clear_cache_button"):
     load_labels.clear()  # Löscht den 10-Minuten-Cache sofort
     st.success("Der Cache wurde geleert! Beim nächsten Klick werden die Daten frisch geladen.")
     st.rerun()
+        
+    if st.button("⬅️ Zurück zum Hauptmenü", key="back_from_admin"):
+        set_view("Home")
+		
+
 
 
 
