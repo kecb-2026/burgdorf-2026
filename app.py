@@ -547,7 +547,7 @@ def roman_to_numeric(text):
         res = re.sub(rf'\b{rom}\b', num, res)
     return res
 
-@st.cache_data(ttl=1)
+@st.cache_data(ttl=600)
 def load_labels():
     try:
         df = pd.read_excel("2026.xlsx", engine='openpyxl', header=0)
