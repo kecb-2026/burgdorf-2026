@@ -2520,25 +2520,29 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
             set_view("Home")
 
 
-			
 # ADMIN PANEL
 elif st.session_state.view == "Admin_Panel":
     display_header_with_logo("⚙️ Admin-Konsole")
+    
     if st.button("ALLE DATEN ZURÜCKSETZEN"):
         store.data = {}
         store.active_overlay = None
         st.success("Speicher geleert!")
 
-		
-   st.subheader("🔄 Cache-Management")
-       if st.button("🔥 Excel-Daten JETZT sofort neu einlesen", key="clear_cache_button"):
+    # --- HIER IST DER NEUE BUTTON SAUBER EINIGERÜCKT ---
+    st.markdown("---")  # Eine kleine Trennlinie für die Optik
+    st.subheader("🔄 Excel-Cache")
+    st.write("Die Excel-Datei wird automatisch alle 10 Minuten neu eingelesen. Hier kannst du das Laden sofort erzwingen:")
+    
+    if st.button("🔥 Excel-Daten JETZT sofort neu einlesen", key="clear_cache_button"):
         load_labels.clear()  # Löscht den 10-Minuten-Cache sofort
-        st.success("Der Cache wurde geleert! Beim nächsten Klick werden die Daten frisch geladen.")
+        st.success("Der Cache wurde geleert! Die Excel-Datei wird beim nächsten Aufruf frisch geladen.")
         st.rerun()
-
+    st.markdown("---")
         
     if st.button("⬅️ Zurück zum Hauptmenü", key="back_from_admin"):
         set_view("Home")
+
 		
 
 
