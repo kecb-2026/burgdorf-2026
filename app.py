@@ -2686,18 +2686,47 @@ elif st.session_state.view == "Test_Live_Voting":
                                 )
 
                             # --------------------------------------------------
-                            # 4. RADIO-BUTTON & SPEICHER-LOGIK
+                            # 4. RADIO-BUTTON & SPEICHER-LOGIK (Zwei-Stufen)
                             # --------------------------------------------------
-                            sel = st.radio("Favorit wählen / Choose favorite:", ["Keine Wahl/Not chosen yet"] + list(opts.keys()), index=default_index, key=f"r_test_{v_key}")
-                            
-                            # Neuen Wert für die DB ermitteln
-                            neue_wahl = opts[sel]["kat_nr"] if sel != "Keine Wahl/Not chosen yet" else "Keine Wahl/Not chosen yet"
-                            
-                            # Nur speichern und Rerun auslösen, wenn sich die Wahl tatsächlich geändert hat
-                            if store.data["votes"].get(v_key) != neue_wahl:
-                                store.data["votes"][v_key] = neue_wahl
+                            # Hilfsfunktion, die sofort feuert, sobald der Richter die Radiobox anklickt
+                            def on_radio_change():
+                                current_radio_val = st.session_state[f"r_test_{v_key}"]
+                                if current_radio_val != "Keine Wahl/Not chosen yet":
+                                    kat_nummer = opts[current_radio_val]["kat_nr"]
+                                    # Status auf "wählt" setzen (Draft/Entwurf)
+                                    store.data["votes"][v_key] = {
+                                        "katze": kat_nummer,
+                                        "status": "wählt"
+                                    }
+                                else:
+                                    store.data["votes"][v_key] = "Keine Wahl/Not chosen yet"
                                 store.save_backup()
-                                st.rerun()
+
+                            # Der Radio-Button nutzt nun 'on_change' für Echtzeit-Übertragung des Entwurfs
+                            sel = st.radio(
+                                "Favorit wählen / Choose favorite:", 
+                                ["Keine Wahl/Not chosen yet"] + list(opts.keys()), 
+                                index=default_index, 
+                                key=f"r_test_{v_key}",
+                                on_change=on_radio_change
+                            )
+                            
+                            # HIER IST DER BUTTON ZUM BESTÄTIGEN (COMMIT)
+                            if sel != "Keine Wahl/Not chosen yet":
+                                st.write("") # Kleiner optischer Abstandhalter
+                                if st.button("🚀 Stimme offiziell bestätigen / Confirm Vote", key=f"btn_confirm_{v_key}", use_container_width=True):
+                                    # Wir holen die Kat-Nummer aus der aktuellen Radiobox-Auswahl
+                                    finale_katze = opts[sel]["kat_nr"]
+                                    
+                                    # Status auf "bestaerkt" setzen (Bestätigt)
+                                    store.data["votes"][v_key] = {
+                                        "katze": finale_katze,
+                                        "status": "bestaerkt"
+                                    }
+                                    store.save_backup()
+                                    st.success(f"Katze #{finale_katze} erfolgreich bestätigt!")
+                                    st.rerun()
+                                    
                         else:
                             st.info("ℹ️ Keine nominierten Katzen in dieser Klasse vorhanden.")
 
