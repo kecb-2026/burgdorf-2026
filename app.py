@@ -901,11 +901,11 @@ elif st.session_state.view == "BIS_Public":
         else: 
             store.active_overlay = None
             st.rerun()
-    else:
-        # NUR WENN KEIN OVERLAY LÄUFT, existiert dieses Widget überhaupt im Code!
-        # Jetzt kann es der Schleife oben NIEMALS mehr in die Parade fahren.
-        st_autorefresh(interval=3000, key="bis_public_live_ticker")
+            
+    # WIR NUTZEN EINFACH KEIN ST_AUTOREFRESH HIER OBEN.
+    # Dadurch läuft deine alte Version absolut stabil und dein Overlay bleibt stehen!
     # ==========================================================================
+
 
     def get_initials(name):
         parts = str(name).split()
