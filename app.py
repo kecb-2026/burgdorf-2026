@@ -2785,27 +2785,23 @@ elif st.session_state.view == "Test_Live_Voting":
 # NEUER SEPARATER MENÜPUNKT: 🎛️ [Test] Live-Admin
 # ==============================================================================
 elif st.session_state.view == "Test_Live_Admin":
-    # --- AUTOMATISCHER REFRESH FÜR ECHTEZEIT-ANZEIGE ---
-    # Aktualisiert das Admin-Panel alle 2000 Millisekunden (2 Sekunden) von selbst.
-    # Da wir nur das RAM abfragen, ist das extrem performant und flackerfrei!
+    # Automatische Aktualisierung alle 2 Sekunden, um Richterstimmen live zu sehen
     st_autorefresh(interval=2000, key="live_admin_auto_refresh")
-
-	
+    
     display_header_with_logo("👑 BIS Admin Control")
     df_full = load_labels()
     
     if df_full is not None:
-        # --- HIER DIE NEUE RADIO-BOX FÜR DIE TAGE EINFÜGEN ---
+        # --- HIER DIE RADIO-BOX FÜR DIE TAGE ---
         admin_tag = st.radio("Ausstellungstag verwalten:", ["Tag 1", "Tag 2"], horizontal=True, key="admin_day_selector").upper()
         
         # Spaltenname dynamisch bestimmen (SELECTION 1 oder SELECTION 2)
         sel_col = f"SELECTION {admin_tag.replace('TAG ', '')}"
         
         # Wir überschreiben temporär im geladenen Dataframe die 'SELECTION' Spalte,
-        # damit alle nachfolgenden Filter im originalen Code (pool = df_full[df_full['SELECTION']...]) unverändert weiterlaufen!
+        # damit alle nachfolgenden Filter im originalen Code unverändert weiterlaufen!
         if sel_col in df_full.columns:
             df_full['SELECTION'] = df_full[sel_col]
-        # -----------------------------------------------------
 
     if df_full is not None:
         # Auch die Kategorie-Auswahl braucht einen tagesabhängigen Key
@@ -2817,53 +2813,75 @@ elif st.session_state.view == "Test_Live_Admin":
             with st.expander(f"KLASSE: {label} ({admin_tag})", expanded=True):
                 c_ctrl, c_votes = st.columns([1, 1.2])
                 
-                # Der v_prefix enthält jetzt den Tag, damit die Stimmen von Tag 1 und Tag 2 getrennt gesucht werden
+                # Der v_prefix enthält den Tag, damit die Stimmen von Tag 1 und Tag 2 getrennt gesucht werden
                 v_prefix = f"v_{admin_tag}_{sel_cat}_{label}_"
                 
                 with c_ctrl:
                     st.markdown("**Steuerung**")
                     
-                    # Die Datenschlüssel im store.data erhalten den Tag, damit Werte getrennt gespeichert werden
+                    # Die Datenschlüssel im store.data erhalten den Tag
                     key_reveal = f"reveal_{admin_tag}_{sel_cat}_{label}"
                     key_winner_reveal = f"winner_reveal_{admin_tag}_{sel_cat}_{label}"
                     key_override = f"override_{admin_tag}_{sel_cat}_{label}"
                     
-                    # Die Widget-Keys (key=...) erhalten ebenfalls das admin_tag, was Streamlit zum sauberen Reset zwingt
-                    store.data[key_reveal] = st.checkbox("Nominationen anzeigen", value=store.data.get(key_reveal, False), key=f"cb1_{key_reveal}")
-                    store.data[key_winner_reveal] = st.checkbox("BIS Gewinner anzeigen", value=store.data.get(key_winner_reveal, False), key=f"cb2_{key_winner_reveal}")
+                    # Widget-Werte abfangen, um Änderungen bei Klick sofort in der Cloud zu sichern
+                    old_reveal = store.data.get(key_reveal, False)
+                    old_winner_reveal = store.data.get(key_winner_reveal, False)
                     
-                    # --- ANFANG DER NEUEN ZUSÄTZLICHEN CHECKBOX ---
-                    # HIER PRÜFEN WIR, OB DIESE KLASSE GERADE ALS AKTIVE TEST-RUNDE GESPEICHERT IST
+                    cb_reveal = st.checkbox("Nominationen anzeigen", value=old_reveal, key=f"cb1_{key_reveal}")
+                    cb_winner_reveal = st.checkbox("BIS Gewinner anzeigen", value=old_winner_reveal, key=f"cb2_{key_winner_reveal}")
+                    
+                    # Falls der Admin ein Häkchen ändert, sofort sichern
+                    if cb_reveal != old_reveal:
+                        store.data[key_reveal] = cb_reveal
+                        store.save_backup()
+                        st.rerun()
+                        
+                    if cb_winner_reveal != old_winner_reveal:
+                        store.data[key_winner_reveal] = cb_winner_reveal
+                        store.save_backup()
+                        st.rerun()
+                    
+                    # --- LIVE-RUNDEN FREISCHALTUNG (HIER WAR DER FEHLER) ---
                     is_live_now = (store.data.get("test_live_cat") == sel_cat) and (store.data.get("test_live_label") == label) and (store.data.get("test_live_tag") == admin_tag)
-                    
                     activate_voting = st.checkbox("🟢 Diese Klasse für Richter freischalten (Live-Voting)", value=is_live_now, key=f"live_vote_{admin_tag}_{sel_cat}_{label}")
                     
-                    if activate_voting:
-                        store.data["test_live_cat"] = sel_cat
-                        store.data["test_live_label"] = label
-                        store.data["test_live_tag"] = admin_tag
-                    elif is_live_now and not activate_voting:
-                        store.data["test_live_cat"] = None
-                        store.data["test_live_label"] = None
-                        store.data["test_live_tag"] = None
-                    # --- ENDE DER NEUEN ZUSÄTZLICHEN CHECKBOX ---
+                    if activate_voting != is_live_now:
+                        if activate_voting:
+                            store.data["test_live_cat"] = sel_cat
+                            store.data["test_live_label"] = label
+                            store.data["test_live_tag"] = admin_tag
+                        else:
+                            store.data["test_live_cat"] = None
+                            store.data["test_live_label"] = None
+                            store.data["test_live_tag"] = None
+                        
+                        # Änderungen in DB schreiben und UI sofort updaten
+                        store.save_backup()
+                        st.rerun()
+                    # --- ENDE DER LIVE-RUNDEN FREISCHALTUNG ---
                     
                     pool = df_full[(df_full['SELECTION'].astype(str).str.upper() == 'X') & (df_full['KATEGORIE'] == sel_cat) & (df_full['KLASSE_INTERNAL'].isin(klassen)) & (df_full['GESCHLECHT'].astype(str).str.upper() == geschl)]
                     options = ["Automatisch (Stimmen)"] + sorted(pool['KAT_STR'].unique().tolist())
                     
-                    store.data[key_override] = st.selectbox(f"Gewinner festlegen:", options, index=options.index(store.data.get(key_override, "Automatisch (Stimmen)")) if store.data.get(key_override) in options else 0, key=f"sb_{key_override}")
+                    old_override = store.data.get(key_override, "Automatisch (Stimmen)")
+                    sb_override = st.selectbox(f"Gewinner festlegen:", options, index=options.index(old_override) if old_override in options else 0, key=f"sb_{key_override}")
+                    
+                    if sb_override != old_override:
+                        store.data[key_override] = sb_override
+                        store.save_backup()
+                        st.rerun()
                     
                     final_nr = None
                     if store.data[key_override] != "Automatisch (Stimmen)": 
                         final_nr = store.data[key_override]
                     elif "votes" in store.data:
-                        # ERGÄNZUNG: Für die automatische Ermittlung des Gewinners zählen NUR "bestaerkt" (bestätigte) Stimmen!
                         vts = []
                         for k, v in store.data["votes"].items():
                             if k.startswith(v_prefix) and v != "Keine Wahl" and v != "Keine Wahl/Not chosen yet":
                                 if isinstance(v, dict) and v.get("status") == "bestaerkt":
                                     vts.append(v.get("katze"))
-                                elif isinstance(v, str): # Kompatibilität für alte Plain-Strings
+                                elif isinstance(v, str): 
                                     vts.append(v)
                         if vts: 
                             final_nr = pd.Series(vts).value_counts().index[0]
@@ -2880,39 +2898,30 @@ elif st.session_state.view == "Test_Live_Admin":
                 with c_votes:
                     st.markdown("**Stimmen-Details**")
                     if "votes" in store.data:
-                        # ERGÄNZUNG: Filtert alle Stimmen für diese Klasse heraus und bereitet die Visualisierung vor
                         rows = []
                         confirmed_votes_for_summary = []
                         
                         for k, v in store.data["votes"].items():
                             if k.startswith(v_prefix) and v != "Keine Wahl" and v != "Keine Wahl/Not chosen yet":
                                 r_name = k.replace(v_prefix, "")
-                                
-                                # Struktur aufdröseln (Dict vs. Alt-String)
                                 if isinstance(v, dict):
                                     kat_nr = v.get("katze", "N/A")
                                     status = v.get("status", "wählt")
                                 else:
                                     kat_nr = v
-                                    status = "bestaerkt" # Alte Einträge werten wir direkt als bestätigt
+                                    status = "bestaerkt"
                                 
-                                # Status-Emoji bestimmen
                                 status_emoji = "✅ Bestätigt" if status == "bestaerkt" else "⏳ Wählt..."
-                                
                                 rows.append({
                                     "Richter": r_name, 
                                     "Wahl (Kat Nr.)": f"#{kat_nr}",
                                     "Status": status_emoji
                                 })
-                                
-                                # Für die mathematische Zusammenfassung zählen nur bestätigte Stimmen
                                 if status == "bestaerkt":
                                     confirmed_votes_for_summary.append(kat_nr)
                         
                         if rows:
                             vote_df = pd.DataFrame(rows)
-                            
-                            # Schickes farbliches Highlight-Styling für die Tabelle (Grün für Bestätigt, Gelb für Entwurf)
                             def highlight_status(row):
                                 if "✅" in str(row["Status"]):
                                     return ['background-color: #d4edda; color: #155724'] * len(row)
