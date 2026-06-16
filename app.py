@@ -2616,27 +2616,86 @@ elif st.session_state.view == "Test_Live_Voting":
                         pool = df_full[(df_full['SELECTION'].astype(str).str.upper() == 'X') & (df_full['KATEGORIE'] == active_cat) & (df_full['KLASSE_INTERNAL'].isin(klassen)) & (df_full['GESCHLECHT'].astype(str).str.upper() == geschl)]
                         
                         if not pool.empty:
-                            opts = {f"#{r['KAT_STR']} - {get_full_label(r)}": r['KAT_STR'] for _, r in pool.iterrows()}
+                            # --------------------------------------------------
+                            # 1. DETAIL-ERMITTLUNG (SCHLEIFE FÜR DATUM & GESCHLECHT)
+                            # --------------------------------------------------
+                            opts = {}
+                            for _, r in pool.iterrows():
+                                # Geburtsdatum-Spalte flexibel ermitteln
+                                geb_cols = [c for c in r.index if "GEB" in str(c) or "GEBURT" in str(c)]
+                                geb_datum = r[geb_cols[0]] if geb_cols else r.get('GEB_DATUM', 'N/A')
+                                
+                                # Datum formatieren, falls es ein Timestamp ist
+                                if isinstance(geb_datum, pd.Timestamp):
+                                    geb_datum = geb_datum.strftime('%d.%m.%Y')
+                                elif pd.isna(geb_datum) or str(geb_datum).strip().lower() == "nan":
+                                    geb_datum = "N/A"
+                                
+                                geschlecht_val = r.get('GESCHLECHT', 'N/A')
+                                rasse_gruppe = get_full_label(r)
+                                
+                                # Label für den Radio-Button zusammenbauen
+                                full_option_text = f"#{r['KAT_STR']} - {rasse_gruppe} [{geschlecht_val}, *{geb_datum}]"
+                                
+                                # Strukturiert speichern für die spätere Anzeige in der Box
+                                opts[full_option_text] = {
+                                    "kat_nr": r['KAT_STR'],
+                                    "details": f"{rasse_gruppe} [{geschlecht_val}, *{geb_datum}]"
+                                }
                             
-                            # Wir nutzen exakt deine originalen v_keys, damit Test-Stimmen auch real zählen!
                             v_key = f"v_{tag}_{active_cat}_{label}_{active_j}"
                             curr = store.data["votes"].get(v_key, "Keine Wahl")
                             
-                            # ÄNDERUNG: VERHINDERT ABSTURZ BEI RERUNS DURCH BEREINIGTEN INDEX
+                            # --------------------------------------------------
+                            # 2. DEINE ABSTURZ-SICHERUNG (RE-AKTIVIERT & ANGEPASST)
+                            # --------------------------------------------------
+                            default_index = 0
+                            current_option_text = "Keine Wahl/Not chosen yet"
+                            
                             try:
-                                default_index = (list(opts.values()).index(curr) + 1) if curr in opts.values() else 0
-                            except ValueError:
+                                # Reine Katalognummern für die Index-Suche extrahieren
+                                pure_numbers = [info["kat_nr"] for info in opts.values()]
+                                if curr in pure_numbers:
+                                    default_index = pure_numbers.index(curr) + 1
+                                    # Holt den passenden Text-Key für die rote Box
+                                    current_option_text = list(opts.keys())[default_index - 1]
+                            except (ValueError, IndexError):
                                 default_index = 0
+                                current_option_text = "Keine Wahl/Not chosen yet"
+                            
+                            # --------------------------------------------------
+                            # 3. GEWÄHLTE KATZE GROSS ANZEIGEN (ROTE BANNER-BOX)
+                            # --------------------------------------------------
+                            if curr != "Keine Wahl" and curr != "Keine Wahl/Not chosen yet" and current_option_text in opts:
+                                selected_data = opts[current_option_text]
+                                st.markdown(
+                                    f"<div style='background-color:#f8d7da; padding:15px; border-radius:8px; border-left:5px solid #dc3545; margin-bottom:20px; text-align:center; color:#721c24;'>"
+                                    f"<div style='font-size:14px; text-transform:uppercase; letter-spacing:1px; font-weight:bold;'>Abgestimmt für / Voted for:</div>"
+                                    f"<div style='font-size:54px; font-weight:900; line-height:1; margin:10px 0;'>#{selected_data['kat_nr']}</div>"
+                                    f"<div style='font-size:16px; font-weight:500;'>{selected_data['details']}</div>"
+                                    f"</div>", 
+                                    unsafe_allow_html=True
+                                )
+                            else:
+                                # Neutrale Graubox, wenn noch nichts gewählt wurde
+                                st.markdown(
+                                    f"<div style='background-color:#e2e3e5; padding:12px; border-radius:8px; border-left:5px solid #6c757d; margin-bottom:20px; text-align:center; color:#383d41; font-style:italic;'>"
+                                    f"Noch keine Stimme abgegeben / No vote cast yet."
+                                    f"</div>", 
+                                    unsafe_allow_html=True
+                                )
 
-                            sel = st.radio("Favorit:", ["Keine Wahl/Not chosen yet"] + list(opts.keys()), index=default_index, key=f"r_test_{v_key}")
+                            # --------------------------------------------------
+                            # 4. RADIO-BUTTON & SPEICHER-LOGIK
+                            # --------------------------------------------------
+                            sel = st.radio("Favorit wählen / Choose favorite:", ["Keine Wahl/Not chosen yet"] + list(opts.keys()), index=default_index, key=f"r_test_{v_key}")
                             
-                            # NEUER WERT ERMITTELN
-                            neue_wahl = opts[sel] if sel != "Keine Wahl/Not chosen yet" else "Keine Wahl/Not chosen yet"
+                            # Neuen Wert für die DB ermitteln
+                            neue_wahl = opts[sel]["kat_nr"] if sel != "Keine Wahl/Not chosen yet" else "Keine Wahl/Not chosen yet"
                             
-                            # ÄNDERUNG: NUR SPEICHERN UND RERUN AUSLÖSEN, WENN SICH DIE WAHL TATSÄCHLICH GEÄNDERT HAT
+                            # Nur speichern und Rerun auslösen, wenn sich die Wahl tatsächlich geändert hat
                             if store.data["votes"].get(v_key) != neue_wahl:
                                 store.data["votes"][v_key] = neue_wahl
-                                # JEDEN KLICK SOFORT AUF DIE FESTPLATTE SPEICHERN
                                 store.save_backup()
                                 st.rerun()
                         else:
