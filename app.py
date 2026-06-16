@@ -2580,7 +2580,7 @@ elif st.session_state.view == "Test_Live_Voting":
         # 3. GELBER LIVE-BANNER FÜR DEN RICHTER
         st.markdown(
             f"<div style='background-color:#fff3cd; padding:15px; border-radius:8px; border-left:5px solid #ffc107; margin-bottom:20px;'>"
-            f"📢 <b>[TEST-MODUS] AKTIVE RUNDE - ACTIVE ROUND:</b><br>"
+            f"📢 <b>AKTIVE RUNDE - ACTIVE ROUND:</b><br>"
             f"<span style='font-size:20px; color:#856404;'><b>Kategorie - Category {active_cat} — {active_label}</b></span>"
             f"</div>", 
             unsafe_allow_html=True
