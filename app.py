@@ -889,10 +889,7 @@ elif st.session_state.view == "BIS_Admin_Control":
 # BIS PUBLIC VIEW
 # BIS PUBLIC VIEW NEW
 # BIS PUBLIC VIEW NEW
-elif st.session_state.view == "BIS_Public":
-# BIS PUBLIC VIEW
-# BIS PUBLIC VIEW NEW
-# BIS PUBLIC VIEW NEW
+
 elif st.session_state.view == "BIS_Public":
     # --- JETZT FRISCH AUS DER DATENBANK SYNCHRONISIEREN ---
     if hasattr(store, 'load_backup'):
