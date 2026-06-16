@@ -2686,14 +2686,14 @@ elif st.session_state.view == "Test_Live_Voting":
                                 )
 
                             # --------------------------------------------------
-                            # 4. RADIO-BUTTON & SPEICHER-LOGIK (Zwei-Stufen)
+                            # 4. RADIO-BUTTON & SPEICHER-LOGIK (Zwei-Stufen-Ergänzung)
                             # --------------------------------------------------
-                            # Hilfsfunktion, die sofort feuert, sobald der Richter die Radiobox anklickt
+                            # Hilfsfunktion, die feuert, sobald eine Radiobox angeklickt wird (Draft an Admin senden)
                             def on_radio_change():
                                 current_radio_val = st.session_state[f"r_test_{v_key}"]
                                 if current_radio_val != "Keine Wahl/Not chosen yet":
                                     kat_nummer = opts[current_radio_val]["kat_nr"]
-                                    # Status auf "wählt" setzen (Draft/Entwurf)
+                                    # Status auf "wählt" setzen (Entwurf)
                                     store.data["votes"][v_key] = {
                                         "katze": kat_nummer,
                                         "status": "wählt"
@@ -2702,7 +2702,8 @@ elif st.session_state.view == "Test_Live_Voting":
                                     store.data["votes"][v_key] = "Keine Wahl/Not chosen yet"
                                 store.save_backup()
 
-                            # Der Radio-Button nutzt nun 'on_change' für Echtzeit-Übertragung des Entwurfs
+                            # WICHTIG: Der Radio-Button MUSS vor dem Banner definiert werden,
+                            # damit wir den aktuellen Zustand der Auswahl direkt abfragen können!
                             sel = st.radio(
                                 "Favorit wählen / Choose favorite:", 
                                 ["Keine Wahl/Not chosen yet"] + list(opts.keys()), 
@@ -2710,12 +2711,33 @@ elif st.session_state.view == "Test_Live_Voting":
                                 key=f"r_test_{v_key}",
                                 on_change=on_radio_change
                             )
+
+                            # --------------------------------------------------
+                            # 3. GEWÄHLTE KATZE GROSS ANZEIGEN (REAKTIV NACH OBEN GEZOGEN)
+                            # --------------------------------------------------
+                            if sel != "Keine Wahl/Not chosen yet" and sel in opts:
+                                selected_data = opts[sel]
+                                st.markdown(
+                                    f"<div style='background-color:#f8d7da; padding:15px; border-radius:8px; border-left:5px solid #dc3545; margin-bottom:20px; text-align:center; color:#721c24;'>"
+                                    f"<div style='font-size:14px; text-transform:uppercase; letter-spacing:1px; font-weight:bold;'>Ausgewählt (Noch nicht bestätigt) / Selected (Not confirmed yet):</div>"
+                                    f"<div style='font-size:54px; font-weight:900; line-height:1; margin:10px 0;'>#{selected_data['kat_nr']}</div>"
+                                    f"<div style='font-size:16px; font-weight:500;'>{selected_data['details']}</div>"
+                                    f"</div>", 
+                                    unsafe_allow_html=True
+                                )
+                            else:
+                                # Neutrale Graubox, wenn noch nichts gewählt wurde
+                                st.markdown(
+                                    f"<div style='background-color:#e2e3e5; padding:12px; border-radius:8px; border-left:5px solid #6c757d; margin-bottom:20px; text-align:center; color:#383d41; font-style:italic;'>"
+                                    f"Noch keine Stimme abgegeben / No vote cast yet."
+                                    f"</div>", 
+                                    unsafe_allow_html=True
+                                )
                             
-                            # HIER IST DER BUTTON ZUM BESTÄTIGEN (COMMIT)
+                            # Bestätigungs-Button wird nur eingeblendet, wenn eine Katze gewählt ist
                             if sel != "Keine Wahl/Not chosen yet":
                                 st.write("") # Kleiner optischer Abstandhalter
                                 if st.button("🚀 Stimme offiziell bestätigen / Confirm Vote", key=f"btn_confirm_{v_key}", use_container_width=True):
-                                    # Wir holen die Kat-Nummer aus der aktuellen Radiobox-Auswahl
                                     finale_katze = opts[sel]["kat_nr"]
                                     
                                     # Status auf "bestaerkt" setzen (Bestätigt)
@@ -2726,9 +2748,6 @@ elif st.session_state.view == "Test_Live_Voting":
                                     store.save_backup()
                                     st.success(f"Katze #{finale_katze} erfolgreich bestätigt!")
                                     st.rerun()
-                                    
-                        else:
-                            st.info("ℹ️ Keine nominierten Katzen in dieser Klasse vorhanden.")
 
 							
 # ==============================================================================
