@@ -890,11 +890,17 @@ elif st.session_state.view == "BIS_Admin_Control":
 # BIS PUBLIC VIEW NEW
 # BIS PUBLIC VIEW NEW
 elif st.session_state.view == "BIS_Public":
-    if hasattr(store, 'active_overlay') and store.active_overlay:
+    # --- SCHALTWEICHE 1: OVERLAY AKTIVIERUNG PRÜFEN ---
+    is_overlay_active = hasattr(store, 'active_overlay') and store.active_overlay is not None
+
+    if is_overlay_active:
         if time.time() - store.overlay_start_time < 20:
             st.markdown(render_overlay_html(store.active_overlay), unsafe_allow_html=True)
-            time.sleep(1); st.rerun() 
-        else: store.active_overlay = None; st.rerun()
+            time.sleep(1)
+            st.rerun() 
+        else: 
+            store.active_overlay = None
+            st.rerun()
 
     def get_initials(name):
         parts = str(name).split()
@@ -1070,9 +1076,9 @@ elif st.session_state.view == "BIS_Public":
                         if not m_w.empty: st.markdown(f"<div class='cat-card winner-card'><div class='cat-number'>{winner_nr}</div><div class='cat-details'>{get_full_label(m_w.iloc[0])}</div></div>", unsafe_allow_html=True)
                 else: st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
 
-    # time.sleep(3); st.rerun()
-    st_autorefresh(interval=3000, key="bis_refresh")
-
+    # --- SCHALTWEICHE 2: REFRESH NUR LADEN, WENN KEIN OVERLAY ZEIGT ---
+    if not is_overlay_active:
+        st_autorefresh(interval=3000, key="bis_refresh")
 
 
 # LIVE DASHBOARD
