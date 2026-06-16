@@ -2817,7 +2817,14 @@ elif st.session_state.view == "Test_Live_Admin":
                     if store.data[key_override] != "Automatisch (Stimmen)": 
                         final_nr = store.data[key_override]
                     elif "votes" in store.data:
-                        vts = [v for k, v in store.data["votes"].items() if k.startswith(v_prefix) and v != "Keine Wahl"]
+                        # ERGÄNZUNG: Für die automatische Ermittlung des Gewinners zählen NUR "bestaerkt" (bestätigte) Stimmen!
+                        vts = []
+                        for k, v in store.data["votes"].items():
+                            if k.startswith(v_prefix) and v != "Keine Wahl" and v != "Keine Wahl/Not chosen yet":
+                                if isinstance(v, dict) and v.get("status") == "bestaerkt":
+                                    vts.append(v.get("katze"))
+                                elif isinstance(v, str): # Kompatibilität für alte Plain-Strings
+                                    vts.append(v)
                         if vts: 
                             final_nr = pd.Series(vts).value_counts().index[0]
                             
@@ -2833,14 +2840,54 @@ elif st.session_state.view == "Test_Live_Admin":
                 with c_votes:
                     st.markdown("**Stimmen-Details**")
                     if "votes" in store.data:
-                        current_votes = {k.replace(v_prefix, ""): v for k, v in store.data["votes"].items() if k.startswith(v_prefix) and v != "Keine Wahl"}
-                        if current_votes:
-                            vote_df = pd.DataFrame([{"Richter": r, "Wahl (Kat Nr.)": f"#{v}"} for r, v in current_votes.items()])
-                            st.table(vote_df)
-                            summary = pd.Series(current_votes.values()).value_counts()
-                            st.write("**Zwischenstand:**")
-                            for nr, count in summary.items(): 
-                                st.write(f"Katze #{nr}: {count} Stimme(n)")
+                        # ERGÄNZUNG: Filtert alle Stimmen für diese Klasse heraus und bereitet die Visualisierung vor
+                        rows = []
+                        confirmed_votes_for_summary = []
+                        
+                        for k, v in store.data["votes"].items():
+                            if k.startswith(v_prefix) and v != "Keine Wahl" and v != "Keine Wahl/Not chosen yet":
+                                r_name = k.replace(v_prefix, "")
+                                
+                                # Struktur aufdröseln (Dict vs. Alt-String)
+                                if isinstance(v, dict):
+                                    kat_nr = v.get("katze", "N/A")
+                                    status = v.get("status", "wählt")
+                                else:
+                                    kat_nr = v
+                                    status = "bestaerkt" # Alte Einträge werten wir direkt als bestätigt
+                                
+                                # Status-Emoji bestimmen
+                                status_emoji = "✅ Bestätigt" if status == "bestaerkt" else "⏳ Wählt..."
+                                
+                                rows.append({
+                                    "Richter": r_name, 
+                                    "Wahl (Kat Nr.)": f"#{kat_nr}",
+                                    "Status": status_emoji
+                                })
+                                
+                                # Für die mathematische Zusammenfassung zählen nur bestätigte Stimmen
+                                if status == "bestaerkt":
+                                    confirmed_votes_for_summary.append(kat_nr)
+                        
+                        if rows:
+                            vote_df = pd.DataFrame(rows)
+                            
+                            # Schickes farbliches Highlight-Styling für die Tabelle (Grün für Bestätigt, Gelb für Entwurf)
+                            def highlight_status(row):
+                                if "✅" in str(row["Status"]):
+                                    return ['background-color: #d4edda; color: #155724'] * len(row)
+                                return ['background-color: #fff3cd; color: #856404'] * len(row)
+                            
+                            styled_df = vote_df.style.apply(highlight_status, axis=1)
+                            st.dataframe(styled_df, use_container_width=True, hide_index=True)
+                            
+                            st.write("**Gezählte Zwischenstände (Nur bestätigte Stimmen):**")
+                            if confirmed_votes_for_summary:
+                                summary = pd.Series(confirmed_votes_for_summary).value_counts()
+                                for nr, count in summary.items(): 
+                                    st.write(f"Katze #{nr}: **{count} Stimme(n)**")
+                            else:
+                                st.info("Es wurden noch keine Stimmen final bestätigt.")
                                 
     if st.button("⬅️ Zurück zum Hauptmenü", key="back_from_bisadmin"):
         set_view("Home")
