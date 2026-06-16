@@ -890,28 +890,11 @@ elif st.session_state.view == "BIS_Admin_Control":
 # BIS PUBLIC VIEW NEW
 # BIS PUBLIC VIEW NEW
 elif st.session_state.view == "BIS_Public":
-    # ==========================================================================
-    # DIE SÄUBERLICHE SCHALT-WEICHE: ENTWEDER OVERLAY ODER REFRESH
-    # ==========================================================================
     if hasattr(store, 'active_overlay') and store.active_overlay:
         if time.time() - store.overlay_start_time < 20:
             st.markdown(render_overlay_html(store.active_overlay), unsafe_allow_html=True)
-            time.sleep(1)
-            st.rerun() 
-        else: 
-            store.active_overlay = None
-            st.rerun()
-            
-    # WIR NUTZEN EINFACH KEIN ST_AUTOREFRESH HIER OBEN.
-    # Dadurch läuft deine alte Version absolut stabil und dein Overlay bleibt stehen!
-    # ==========================================================================
-
-
-    def get_initials(name):
-        parts = str(name).split()
-        if len(parts) >= 2:
-            return (parts[0][0] + parts[-1][0]).upper()
-        return str(name)[:2].upper()
+            time.sleep(1); st.rerun() 
+        else: store.active_overlay = None; st.rerun()
 
     def get_initials(name):
         parts = str(name).split()
@@ -997,20 +980,12 @@ elif st.session_state.view == "BIS_Public":
         for label, klassen, geschl in bis_defs:
             if not store.data.get(f"winner_reveal_{tag}_{sel_cat}_{label}", False):
                 prefix = f"v_{tag}_{sel_cat}_{label}_"
-                abgestimmte = []
-                for key, val in store.data.get("votes", {}).items():
-                    if key.startswith(prefix) and val != "Keine Wahl" and val != "Keine Wahl/Not chosen yet":
-                        # Weiche für Dictionary- oder String-Struktur
-                        if isinstance(val, dict):
-                            if val.get("katze") not in ["Keine Wahl", "Keine Wahl/Not chosen yet"]:
-                                abgestimmte.append(key.replace(prefix, ""))
-                        elif str(val) not in ["Keine Wahl", "Keine Wahl/Not chosen yet"]:
-                            abgestimmte.append(key.replace(prefix, ""))
-                
+                abgestimmte = [key.replace(prefix, "") for key, val in store.data.get("votes", {}).items() 
+                               if key.startswith(prefix) and val != "Keine Wahl" and val != "Keine Wahl/Not chosen yet"]
                 for j in abgestimmte:
                     style_rules += f".judge-{str(j).replace(' ', '_')} {{ background-color: #28a745 !important; }}"
 
-	    # --- HIER DIE FARBE DER GEWINNER-KARTE ANPASSEN ---
+	        # --- HIER DIE FARBE DER GEWINNER-KARTE ANPASSEN ---
         style_rules += """
         .winner-card {
             background-color: #ffd700 !important;  /* Hintergrundfarbe (z.B. Gold) */
@@ -1025,6 +1000,10 @@ elif st.session_state.view == "BIS_Public":
         
         # Da style_rules jetzt niemals leer ist, rendern wir das Stylesheet direkt
         st.markdown(f"<style>{style_rules}</style>", unsafe_allow_html=True)
+
+        
+        # if style_rules:
+           # st.markdown(f"<style>{style_rules}</style>", unsafe_allow_html=True)
 
         # --- STATISCHER HEADER (oben, einmalig) ---
         cols = st.columns([0.8] + [1.2]*len(judges) + [0.8])
@@ -1052,13 +1031,7 @@ elif st.session_state.view == "BIS_Public":
                             if winner_revealed:
                                 prefix = f"v_{tag}_{sel_cat}_{label}_"
                                 all_votes = store.data.get("votes", {})
-                                voters = []
-                                for v_key, v_val in all_votes.items():
-                                    if v_key.startswith(prefix):
-                                        # Auslesen der Katalognummer aus Dict oder Plain-String
-                                        voted_cat = v_val.get("katze") if isinstance(v_val, dict) else v_val
-                                        if str(voted_cat) == str(kat_nr):
-                                            voters.append(v_key.replace(prefix, ""))
+                                voters = [v_key.replace(prefix, "") for v_key, v_val in all_votes.items() if v_key.startswith(prefix) and str(v_val) == str(kat_nr)]
                                 if voters:
                                     circles = "".join([f"<div class='judge-circle' title='{v}'>{get_initials(v)}</div>" for v in voters])
                                     circles_html = f"<div class='judge-initials-container'>{circles}</div>"
@@ -1072,22 +1045,15 @@ elif st.session_state.view == "BIS_Public":
                     prefix = f"v_{tag}_{sel_cat}_{label}_"
                     winner_nr = store.data.get(f"override_{tag}_{sel_cat}_{label}", "Automatisch (Stimmen)")
                     if winner_nr == "Automatisch (Stimmen)" and "votes" in store.data:
-                        vts = []
-                        for k, v in store.data["votes"].items():
-                            if k.startswith(prefix) and v != "Keine Wahl" and v != "Keine Wahl/Not chosen yet":
-                                # Wir werten für das öffentliche Endergebnis nur bestätigte Stimmen!
-                                if isinstance(v, dict):
-                                    if v.get("status") == "bestaerkt":
-                                        vts.append(v.get("katze"))
-                                else:
-                                    vts.append(v)
+                        vts = [v for k, v in store.data["votes"].items() if k.startswith(prefix) and v != "Keine Wahl"]
                         if vts: winner_nr = pd.Series(vts).value_counts().index[0]
                     if winner_nr and winner_nr != "Automatisch (Stimmen)":
                         m_w = df_full[df_full['KAT_STR'] == str(winner_nr)]
                         if not m_w.empty: st.markdown(f"<div class='cat-card winner-card'><div class='cat-number'>{winner_nr}</div><div class='cat-details'>{get_full_label(m_w.iloc[0])}</div></div>", unsafe_allow_html=True)
                 else: st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
 
-
+    # time.sleep(3); st.rerun()
+    st_autorefresh(interval=3000, key="bis_refresh")
 # LIVE DASHBOARD
 elif st.session_state.view == "Dashboard":
     display_header_with_logo("📢 Live-Aufruf & Status")
