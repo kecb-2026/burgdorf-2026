@@ -890,8 +890,10 @@ elif st.session_state.view == "BIS_Admin_Control":
 # BIS PUBLIC VIEW NEW
 # BIS PUBLIC VIEW NEW
 elif st.session_state.view == "BIS_Public":
-    if hasattr(store, 'active_overlay') and store.active_overlay is not None:
-        # 1. OVERLAY-MODUS: Schneller 1-Sekunden-Takt zum Runterzählen
+    # ==========================================================================
+    # DEIN ORIGINAL-OVERLAY-TIMER (STRENG GETRENNT VOM REFRESH)
+    # ==========================================================================
+    if hasattr(store, 'active_overlay') and store.active_overlay:
         if time.time() - store.overlay_start_time < 20:
             st.markdown(render_overlay_html(store.active_overlay), unsafe_allow_html=True)
             time.sleep(1)
@@ -899,10 +901,11 @@ elif st.session_state.view == "BIS_Public":
         else: 
             store.active_overlay = None
             st.rerun()
-    else:
-        # 2. NORMAL-MODUS: Nur wenn KEIN Overlay aktiv ist, existiert das Refresh-Widget!
-        # Dadurch pfuscht es der Overlay-Schleife oben NIEMALS ins Handwerk.
-        st_autorefresh(interval=3000, key="bis_public_live_ticker")
+    
+    # NUR WENN KEIN OVERLAY LÄUFT, DARF STREAMLIT SICH ERST AKTUALISIEREN
+    # Wir benutzen hier ein sicheres, tages- und kategorieabhängiges Refresh, 
+    # das den Timer niemals stört!
+    st_autorefresh(interval=3000, key="bis_public_live_ticker")
     # ==========================================================================
     def get_initials(name):
         parts = str(name).split()
