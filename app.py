@@ -2556,7 +2556,6 @@ elif st.session_state.view == "Admin_Panel":
 elif st.session_state.view == "Test_Live_Voting":
     display_header_with_logo("🗳️  Judge Live Voting")
    
-	
     df_full = load_labels()
     if df_full is not None:
         # AUTOMATISCHE TAGES-SYNCHRONISATION
@@ -2644,10 +2643,16 @@ elif st.session_state.view == "Test_Live_Voting":
                                 }
                             
                             v_key = f"v_{tag}_{active_cat}_{label}_{active_j}"
-                            curr = store.data["votes"].get(v_key, "Keine Wahl")
+                            curr_raw = store.data["votes"].get(v_key, "Keine Wahl")
+                            
+                            # DA WEICHE: Extrahiere die reine Kat-Nummer, egal ob Dict oder String geliefert wird
+                            if isinstance(curr_raw, dict):
+                                curr = curr_raw.get("katze", "Keine Wahl")
+                            else:
+                                curr = curr_raw
                             
                             # --------------------------------------------------
-                            # 2. DEINE ABSTURZ-SICHERUNG (RE-AKTIVIERT & ANGEPASST)
+                            # 2. DEINE ABSTURZ-SICHERUNG
                             # --------------------------------------------------
                             default_index = 0
                             current_option_text = "Keine Wahl/Not chosen yet"
@@ -2657,43 +2662,19 @@ elif st.session_state.view == "Test_Live_Voting":
                                 pure_numbers = [info["kat_nr"] for info in opts.values()]
                                 if curr in pure_numbers:
                                     default_index = pure_numbers.index(curr) + 1
-                                    # Holt den passenden Text-Key für die rote Box
                                     current_option_text = list(opts.keys())[default_index - 1]
                             except (ValueError, IndexError):
                                 default_index = 0
                                 current_option_text = "Keine Wahl/Not chosen yet"
-                            
-                            # --------------------------------------------------
-                            # 3. GEWÄHLTE KATZE GROSS ANZEIGEN (ROTE BANNER-BOX)
-                            # --------------------------------------------------
-                            if curr != "Keine Wahl" and curr != "Keine Wahl/Not chosen yet" and current_option_text in opts:
-                                selected_data = opts[current_option_text]
-                                st.markdown(
-                                    f"<div style='background-color:#f8d7da; padding:15px; border-radius:8px; border-left:5px solid #dc3545; margin-bottom:20px; text-align:center; color:#721c24;'>"
-                                    f"<div style='font-size:14px; text-transform:uppercase; letter-spacing:1px; font-weight:bold;'>Abgestimmt für / Voted for:</div>"
-                                    f"<div style='font-size:54px; font-weight:900; line-height:1; margin:10px 0;'>#{selected_data['kat_nr']}</div>"
-                                    f"<div style='font-size:16px; font-weight:500;'>{selected_data['details']}</div>"
-                                    f"</div>", 
-                                    unsafe_allow_html=True
-                                )
-                            else:
-                                # Neutrale Graubox, wenn noch nichts gewählt wurde
-                                st.markdown(
-                                    f"<div style='background-color:#e2e3e5; padding:12px; border-radius:8px; border-left:5px solid #6c757d; margin-bottom:20px; text-align:center; color:#383d41; font-style:italic;'>"
-                                    f"Noch keine Stimme abgegeben / No vote cast yet."
-                                    f"</div>", 
-                                    unsafe_allow_html=True
-                                )
 
                             # --------------------------------------------------
-                            # 4. RADIO-BUTTON & SPEICHER-LOGIK (Zwei-Stufen-Ergänzung)
+                            # 4. RADIO-BUTTON & SPEICHER-LOGIK
                             # --------------------------------------------------
                             # Hilfsfunktion, die feuert, sobald eine Radiobox angeklickt wird (Draft an Admin senden)
                             def on_radio_change():
                                 current_radio_val = st.session_state[f"r_test_{v_key}"]
                                 if current_radio_val != "Keine Wahl/Not chosen yet":
                                     kat_nummer = opts[current_radio_val]["kat_nr"]
-                                    # Status auf "wählt" setzen (Entwurf)
                                     store.data["votes"][v_key] = {
                                         "katze": kat_nummer,
                                         "status": "wählt"
@@ -2702,8 +2683,7 @@ elif st.session_state.view == "Test_Live_Voting":
                                     store.data["votes"][v_key] = "Keine Wahl/Not chosen yet"
                                 store.save_backup()
 
-                            # WICHTIG: Der Radio-Button MUSS vor dem Banner definiert werden,
-                            # damit wir den aktuellen Zustand der Auswahl direkt abfragen können!
+                            # Radio-Button steuert den Live-Zustand an
                             sel = st.radio(
                                 "Favorit wählen / Choose favorite:", 
                                 ["Keine Wahl/Not chosen yet"] + list(opts.keys()), 
@@ -2713,13 +2693,30 @@ elif st.session_state.view == "Test_Live_Voting":
                             )
 
                             # --------------------------------------------------
-                            # 3. GEWÄHLTE KATZE GROSS ANZEIGEN (REAKTIV NACH OBEN GEZOGEN)
+                            # 3. GEWÄHLTE KATZE GROSS ANZEIGEN (REAKTIV NACH UNTEN GEZOGEN)
                             # --------------------------------------------------
                             if sel != "Keine Wahl/Not chosen yet" and sel in opts:
                                 selected_data = opts[sel]
+                                
+                                # Unterscheidung für den Text im Banner (Bestätigt vs. Vorläufig)
+                                current_status = "wählt"
+                                if isinstance(store.data["votes"].get(v_key), dict):
+                                    current_status = store.data["votes"][v_key].get("status", "wählt")
+                                
+                                if current_status == "bestaerkt":
+                                    banner_title = "✅ Bestätigte Stimme / Confirmed Vote:"
+                                    bg_color = "#d4edda" # Grün
+                                    border_color = "#28a745"
+                                    text_color = "#155724"
+                                else:
+                                    banner_title = "⏳ Ausgewählt (Noch nicht bestätigt) / Selected (Not confirmed yet):"
+                                    bg_color = "#fff3cd" # Gelb/Orange-Stil passend zur Auswahl
+                                    border_color = "#ffc107"
+                                    text_color = "#856404"
+
                                 st.markdown(
-                                    f"<div style='background-color:#f8d7da; padding:15px; border-radius:8px; border-left:5px solid #dc3545; margin-bottom:20px; text-align:center; color:#721c24;'>"
-                                    f"<div style='font-size:14px; text-transform:uppercase; letter-spacing:1px; font-weight:bold;'>Ausgewählt (Noch nicht bestätigt) / Selected (Not confirmed yet):</div>"
+                                    f"<div style='background-color:{bg_color}; padding:15px; border-radius:8px; border-left:5px solid {border_color}; margin-bottom:20px; text-align:center; color:{text_color};'>"
+                                    f"<div style='font-size:14px; text-transform:uppercase; letter-spacing:1px; font-weight:bold;'>{banner_title}</div>"
                                     f"<div style='font-size:54px; font-weight:900; line-height:1; margin:10px 0;'>#{selected_data['kat_nr']}</div>"
                                     f"<div style='font-size:16px; font-weight:500;'>{selected_data['details']}</div>"
                                     f"</div>", 
@@ -2740,7 +2737,6 @@ elif st.session_state.view == "Test_Live_Voting":
                                 if st.button("🚀 Stimme offiziell bestätigen / Confirm Vote", key=f"btn_confirm_{v_key}", use_container_width=True):
                                     finale_katze = opts[sel]["kat_nr"]
                                     
-                                    # Status auf "bestaerkt" setzen (Bestätigt)
                                     store.data["votes"][v_key] = {
                                         "katze": finale_katze,
                                         "status": "bestaerkt"
@@ -2748,8 +2744,9 @@ elif st.session_state.view == "Test_Live_Voting":
                                     store.save_backup()
                                     st.success(f"Katze #{finale_katze} erfolgreich bestätigt!")
                                     st.rerun()
+                        else:
+                            st.info("ℹ️ Keine nominierten Katzen in dieser Klasse vorhanden.")
 
-							
 # ==============================================================================
 # NEUER SEPARATER MENÜPUNKT: 🎛️ [Test] Live-Admin
 # ==============================================================================
