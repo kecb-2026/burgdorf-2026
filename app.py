@@ -890,21 +890,8 @@ elif st.session_state.view == "BIS_Admin_Control":
 # BIS PUBLIC VIEW NEW
 # BIS PUBLIC VIEW NEW
 elif st.session_state.view == "BIS_Public":
-    is_overlay_active = hasattr(store, 'active_overlay') and store.active_overlay is not None
-    
-    if is_overlay_active:
-        # Wenn das Overlay läuft, setzen wir den Ticker auf 10 Tage (99999999 ms)
-        # Dadurch pfuscht er den time.sleep(1) Sekunden-Schritten niemals dazwischen!
-        refresh_interval = 99999999
-    else:
-        # Im Normalbetrieb aktualisiert sich die Tabelle alle 3 Sekunden
-        refresh_interval = 3000
-
-    # Der Ticker läuft immer, bremst sich aber selbst auf unendlich aus, wenn das Overlay da ist
-    st_autorefresh(interval=refresh_interval, key="bis_public_live_ticker")
-
-    # JETZT ERST FOLGT DIE NORMALE OVERLAY-ANZEIGE
-    if is_overlay_active:
+    if hasattr(store, 'active_overlay') and store.active_overlay is not None:
+        # 1. OVERLAY-MODUS: Schneller 1-Sekunden-Takt zum Runterzählen
         if time.time() - store.overlay_start_time < 20:
             st.markdown(render_overlay_html(store.active_overlay), unsafe_allow_html=True)
             time.sleep(1)
@@ -912,6 +899,11 @@ elif st.session_state.view == "BIS_Public":
         else: 
             store.active_overlay = None
             st.rerun()
+    else:
+        # 2. NORMAL-MODUS: Nur wenn KEIN Overlay aktiv ist, existiert das Refresh-Widget!
+        # Dadurch pfuscht es der Overlay-Schleife oben NIEMALS ins Handwerk.
+        st_autorefresh(interval=3000, key="bis_public_live_ticker")
+    # ==========================================================================
     def get_initials(name):
         parts = str(name).split()
         if len(parts) >= 2:
