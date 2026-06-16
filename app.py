@@ -2547,9 +2547,6 @@ elif st.session_state.view == "Admin_Panel":
 
 
 
-
-
-
 # ==============================================================================
 # NEUER MENÜPUNKT: TEST LIVE-VOTING (RICHTER)
 # ==============================================================================
@@ -2645,7 +2642,7 @@ elif st.session_state.view == "Test_Live_Voting":
                             v_key = f"v_{tag}_{active_cat}_{label}_{active_j}"
                             curr_raw = store.data["votes"].get(v_key, "Keine Wahl")
                             
-                            # DA WEICHE: Extrahiere die reine Kat-Nummer, egal ob Dict oder String geliefert wird
+                            # Extrahiere die reine Kat-Nummer, egal ob Dict oder String geliefert wird
                             if isinstance(curr_raw, dict):
                                 curr = curr_raw.get("katze", "Keine Wahl")
                             else:
@@ -2670,11 +2667,12 @@ elif st.session_state.view == "Test_Live_Voting":
                             # --------------------------------------------------
                             # 4. RADIO-BUTTON & SPEICHER-LOGIK
                             # --------------------------------------------------
-                            # Hilfsfunktion, die feuert, sobald eine Radiobox angeklickt wird (Draft an Admin senden)
+                            # Hilfsfunktion: Feuert live bei Klick und setzt den Status zurück!
                             def on_radio_change():
                                 current_radio_val = st.session_state[f"r_test_{v_key}"]
                                 if current_radio_val != "Keine Wahl/Not chosen yet":
                                     kat_nummer = opts[current_radio_val]["kat_nr"]
+                                    # Bei jeder Änderung überschreiben wir die Bestätigung und setzen zurück auf "wählt"
                                     store.data["votes"][v_key] = {
                                         "katze": kat_nummer,
                                         "status": "wählt"
@@ -2682,6 +2680,8 @@ elif st.session_state.view == "Test_Live_Voting":
                                 else:
                                     store.data["votes"][v_key] = "Keine Wahl/Not chosen yet"
                                 store.save_backup()
+                                # ÄNDERUNG: Sofortiger Rerun, damit Admin und Banner die Änderung live registrieren!
+                                st.rerun()
 
                             # Radio-Button steuert den Live-Zustand an
                             sel = st.radio(
@@ -2693,24 +2693,24 @@ elif st.session_state.view == "Test_Live_Voting":
                             )
 
                             # --------------------------------------------------
-                            # 3. GEWÄHLTE KATZE GROSS ANZEIGEN (REAKTIV NACH UNTEN GEZOGEN)
+                            # 3. GEWÄHLTE KATZE GROSS ANZEIGEN (REAKTIV)
                             # --------------------------------------------------
                             if sel != "Keine Wahl/Not chosen yet" and sel in opts:
                                 selected_data = opts[sel]
                                 
-                                # Unterscheidung für den Text im Banner (Bestätigt vs. Vorläufig)
+                                # Status ermitteln
                                 current_status = "wählt"
                                 if isinstance(store.data["votes"].get(v_key), dict):
                                     current_status = store.data["votes"][v_key].get("status", "wählt")
                                 
                                 if current_status == "bestaerkt":
-                                    banner_title = "✅ Bestätigte Stimme / Confirmed Vote:"
+                                    banner_title = "✅ BESTÄTIGTE STIMME / CONFIRMED VOTE:"
                                     bg_color = "#d4edda" # Grün
                                     border_color = "#28a745"
                                     text_color = "#155724"
                                 else:
-                                    banner_title = "⏳ Ausgewählt (Noch nicht bestätigt) / Selected (Not confirmed yet):"
-                                    bg_color = "#fff3cd" # Gelb/Orange-Stil passend zur Auswahl
+                                    banner_title = "⏳ AUSGEWÄHLT (NOCH NICHT BESTÄTIGT) / SELECTED (NOT CONFIRMED YET):"
+                                    bg_color = "#fff3cd" # Gelb/Orange
                                     border_color = "#ffc107"
                                     text_color = "#856404"
 
@@ -2733,7 +2733,7 @@ elif st.session_state.view == "Test_Live_Voting":
                             
                             # Bestätigungs-Button wird nur eingeblendet, wenn eine Katze gewählt ist
                             if sel != "Keine Wahl/Not chosen yet":
-                                st.write("") # Kleiner optischer Abstandhalter
+                                st.write("") 
                                 if st.button("🚀 Stimme offiziell bestätigen / Confirm Vote", key=f"btn_confirm_{v_key}", use_container_width=True):
                                     finale_katze = opts[sel]["kat_nr"]
                                     
