@@ -890,11 +890,29 @@ elif st.session_state.view == "BIS_Admin_Control":
 # BIS PUBLIC VIEW NEW
 # BIS PUBLIC VIEW NEW
 elif st.session_state.view == "BIS_Public":
+    # --------------------------------------------------------------------------
+    # NEU: DIE STRIKTE TRENNUNG ZWISCHEN OVERLAY-TAKTRATE UND NORMAL-TAKTRATE
+    # --------------------------------------------------------------------------
     if hasattr(store, 'active_overlay') and store.active_overlay:
+        # Wenn das Overlay läuft, zählen wir in einer schnellen 1-Sekunden-Schleife runter
         if time.time() - store.overlay_start_time < 20:
             st.markdown(render_overlay_html(store.active_overlay), unsafe_allow_html=True)
-            time.sleep(1); st.rerun() 
-        else: store.active_overlay = None; st.rerun()
+            time.sleep(1)
+            st.rerun() 
+        else: 
+            store.active_overlay = None
+            st.rerun()
+    else:
+        # NUR WENN KEIN OVERLAY AKTIV IST, läuft das normale, flüssige 3-Sekunden-Autorefresh!
+        # Kein time.sleep() mehr am Ende der Seite notwendig!
+        st_autorefresh(interval=3000, key="bis_refresh")
+    # --------------------------------------------------------------------------
+
+    def get_initials(name):
+        parts = str(name).split()
+        if len(parts) >= 2:
+            return (parts[0][0] + parts[-1][0]).upper()
+        return str(name)[:2].upper()
 
     def get_initials(name):
         parts = str(name).split()
