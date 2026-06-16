@@ -891,10 +891,6 @@ elif st.session_state.view == "BIS_Admin_Control":
 # BIS PUBLIC VIEW NEW
 
 elif st.session_state.view == "BIS_Public":
-    # --- JETZT FRISCH AUS DER DATENBANK SYNCHRONISIEREN ---
-    if hasattr(store, 'load_backup'):
-        store.load_backup()
-
     # --- SCHALTWEICHE 1: OVERLAY AKTIVIERUNG PRÜFEN ---
     is_overlay_active = hasattr(store, 'active_overlay') and store.active_overlay is not None
 
@@ -905,8 +901,6 @@ elif st.session_state.view == "BIS_Public":
             st.rerun() 
         else: 
             store.active_overlay = None
-            if hasattr(store, 'save_backup'):
-                store.save_backup()
             st.rerun()
 
     def get_initials(name):
