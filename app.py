@@ -891,7 +891,7 @@ elif st.session_state.view == "BIS_Admin_Control":
 # BIS PUBLIC VIEW NEW
 elif st.session_state.view == "BIS_Public":
     # ==========================================================================
-    # DEIN ORIGINAL-OVERLAY-TIMER (STRENG GETRENNT VOM REFRESH)
+    # DIE SÄUBERLICHE SCHALT-WEICHE: ENTWEDER OVERLAY ODER REFRESH
     # ==========================================================================
     if hasattr(store, 'active_overlay') and store.active_overlay:
         if time.time() - store.overlay_start_time < 20:
@@ -901,12 +901,12 @@ elif st.session_state.view == "BIS_Public":
         else: 
             store.active_overlay = None
             st.rerun()
-    
-    # NUR WENN KEIN OVERLAY LÄUFT, DARF STREAMLIT SICH ERST AKTUALISIEREN
-    # Wir benutzen hier ein sicheres, tages- und kategorieabhängiges Refresh, 
-    # das den Timer niemals stört!
-    st_autorefresh(interval=3000, key="bis_public_live_ticker")
+    else:
+        # NUR WENN KEIN OVERLAY LÄUFT, existiert dieses Widget überhaupt im Code!
+        # Jetzt kann es der Schleife oben NIEMALS mehr in die Parade fahren.
+        st_autorefresh(interval=3000, key="bis_public_live_ticker")
     # ==========================================================================
+
     def get_initials(name):
         parts = str(name).split()
         if len(parts) >= 2:
