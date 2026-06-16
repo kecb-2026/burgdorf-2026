@@ -2751,6 +2751,12 @@ elif st.session_state.view == "Test_Live_Voting":
 # NEUER SEPARATER MENÜPUNKT: 🎛️ [Test] Live-Admin
 # ==============================================================================
 elif st.session_state.view == "Test_Live_Admin":
+    # --- AUTOMATISCHER REFRESH FÜR ECHTEZEIT-ANZEIGE ---
+    # Aktualisiert das Admin-Panel alle 2000 Millisekunden (2 Sekunden) von selbst.
+    # Da wir nur das RAM abfragen, ist das extrem performant und flackerfrei!
+    st_autorefresh(interval=2000, key="live_admin_auto_refresh")
+
+	
     display_header_with_logo("👑 BIS Admin Control")
     df_full = load_labels()
     
