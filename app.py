@@ -2143,10 +2143,10 @@ elif st.session_state.view == "Nominated_Cats":
             else:
                 st.info("Keine Nominationen für Tag 2 (Spalte 'SELECTION 2') vorhanden.")
 
-                # --- REITER 3: DER NEUE DRUCK-BEREICH FÜR DAS REVOLUTIONÄRE RICHTER-PDF ---
+        # --- REITER 3: DER NEUE DRUCK-BEREICH FÜR DAS REVOLUTIONÄRE RICHTER-PDF ---
         with tab_pdf_druck:
             st.markdown("### 🖨️ Offizielle Richter-Nominationsliste (PDF)")
-            st.write("Wähle den Ausstellungstag und den Richter aus, um die Liste nach Vorgaben druckfertig aufzubereiten.")
+            st.write("Wähle den Ausstellungstag und den Richter aus, um das personalisierte Deckblatt mit der Gesamtliste aller Nominationen inklusive Nominierungs-Richter zu drucken.")
             
             selected_day_label = st.selectbox("📅 Ausstellungstag für PDF wählen:", ["Tag 1 (Samstag)", "Tag 2 (Sonntag)"], key="pdf_day_sel")
             day_num = 1 if "Tag 1" in selected_day_label else 2
@@ -2158,17 +2158,15 @@ elif st.session_state.view == "Nominated_Cats":
                 available_judges = sorted([r for r in df_full[judge_col].unique() if pd.notna(r) and str(r).strip() != "" and str(r).lower() != "nan" and str(r) != "-"])
                 
                 if available_judges:
-                    selected_judge = st.selectbox("👨‍⚖️ Richter für PDF wählen:", available_judges, key="pdf_judge_sel")
+                    selected_judge = st.selectbox("👨‍⚖️ Richter für PDF wählen (für Deckblatt & QR-Code):", available_judges, key="pdf_judge_sel")
                     st.write("")
                     
                     if st.button(f"🖨️ PDF für {selected_judge} ({tag_key}) generieren", use_container_width=True, key="btn_gen_pdf_nominated"):
-                        # Filtere genau die passenden Datensätze heraus
-                        df_nominated = df_full[
-                            (df_full[selection_col].astype(str).str.upper() == 'X') & 
-                            (df_full[judge_col] == selected_judge)
-                        ].copy()
                         
-                        # Sprechende Übersetzungen der Klassen exakt nach deinen Vorgaben (z.B. 4-8 Kitten Female)
+                        # Alle nominierten Katzen des Tages holen
+                        df_nominated = df_full[df_full[selection_col].astype(str).str.upper() == 'X'].copy()
+                        
+                        # Sprechende Übersetzungen der Klassen (z.B. 4-8 Kitten Female)
                         def get_pdf_show_class_label(row):
                             kl = str(row.get('KLASSE_INTERNAL', row.get('AUSSTELLUNGSKLASSE', ''))).replace('.0', '').strip()
                             geschlecht_raw = str(row.get('GESCHLECHT', '')).strip().lower()
@@ -2201,7 +2199,7 @@ elif st.session_state.view == "Nominated_Cats":
                                 fontSize=14, leading=18, textColor=colors.HexColor('#333333'), spaceBefore=12, spaceAfter=6, keepWithNext=True
                             )
                             
-                            # Kristallklare Farbtrennung: Header-Text WEISS, Daten-Text SCHWARZ
+                            # Farb-Styles
                             cell_header_text = ParagraphStyle('CellHeaderText', fontName='Helvetica-Bold', fontSize=10, leading=12, alignment=1, textColor=colors.white)
                             cell_text_bold = ParagraphStyle('CellTextBold', fontName='Helvetica-Bold', fontSize=10, leading=12, alignment=1, textColor=colors.black)
                             cell_text_normal = ParagraphStyle('CellTextNormal', fontName='Helvetica', fontSize=10, leading=13, alignment=0, textColor=colors.black)
@@ -2209,7 +2207,7 @@ elif st.session_state.view == "Nominated_Cats":
                             story = []
                             
                             # ======================================================
-                            # SEITE 1: COVERSHEET (TITEL & DAZUGEHÖRIGER QR-CODE)
+                            # SEITE 1: COVERSHEET
                             # ======================================================
                             story.append(Spacer(1, 40))
                             if os.path.exists(LOGO_URL):
@@ -2243,7 +2241,7 @@ elif st.session_state.view == "Nominated_Cats":
                             story.append(PageBreak())
                             
                             # ======================================================
-                            # SEITE 2+: KATALOGKARTEN NACH KATEGORIEN & UNTERKLASSEN
+                            # SEITE 2+: DIE GESAMTLISTE MIT "EMS/Group" HEADER
                             # ======================================================
                             categories = sorted(df_nominated['KATEGORIE'].unique(), key=lambda x: str(x))
                             
@@ -2268,20 +2266,22 @@ elif st.session_state.view == "Nominated_Cats":
                                         vorhandene_klassen.append(sk)
                                         
                                 for s_klasse in vorhandene_klassen:
-                                    df_class = df_cat[df_cat['PDF_SHOW_CLASS'] == s_klasse].sort_values('KATALOG-NR')
+                                    df_class = df_cat[df_cat['PDF_SHOW_CLASS'] == s_klasse].copy()
+                                    df_class['SORT_KEY'] = pd.to_numeric(df_class['KATALOG-NR'], errors='coerce')
+                                    df_class = df_class.sort_values('SORT_KEY')
                                     
                                     if not df_class.empty:
                                         story.append(Paragraph(s_klasse, class_header_style))
                                         
-                                        # Hier erzwingen wir die weißen Spaltentitel für den blauen Header
+                                        # NEUE SPALTENBEZEICHNUNG: "EMS/Group"
                                         table_data = [[
-                                            Paragraph("<b>Nummer</b>", cell_header_text), 
-                                            Paragraph("<b>Rasse, Farbe und Gruppe</b>", cell_header_text), 
-                                            Paragraph("<b>Geburtsdatum</b>", cell_header_text), 
-                                            Paragraph("<b>Geschlecht</b>", cell_header_text)
+                                            Paragraph("<b>Number</b>", cell_header_text), 
+                                            Paragraph("<b>EMS/Group</b>", cell_header_text), 
+                                            Paragraph("<b>Date of Birth</b>", cell_header_text), 
+                                            Paragraph("<b>Sex</b>", cell_header_text),
+                                            Paragraph("<b>Nominated by</b>", cell_header_text)
                                         ]]
                                         
-                                        # Alle Katzen der Klasse fließen untereinander sauber in die Zeilen ein (Schwarze Schrift)
                                         for _, row in df_class.iterrows():
                                             kat_nr = str(row.get('KAT_STR', row.get('KATALOG-NR', ''))).replace('.0', '')
                                             rasse_name = row.get('RASSE', '-')
@@ -2291,10 +2291,11 @@ elif st.session_state.view == "Nominated_Cats":
                                             farbgruppe = row[fg_cols[0]] if fg_cols else row.get('FARBGRUPPE', '')
                                             gruppe_clean = roman_to_numeric(farbgruppe) if 'roman_to_numeric' in globals() else farbgruppe
                                             
+                                            # Kompakte EMS Darstellung (z.B. NFO n 09 / Group 4)
                                             if gruppe_clean and str(gruppe_clean).strip() != "-":
-                                                details_text = f"<b>{rasse_name}</b><br/>Farbe: {farbcode} (Gruppe {gruppe_clean})"
+                                                details_text = f"<b>{rasse_name} {farbcode}</b><br/>Group {gruppe_clean}"
                                             else:
-                                                details_text = f"<b>{rasse_name}</b><br/>Farbe: {farbcode}"
+                                                details_text = f"<b>{rasse_name} {farbcode}</b>"
                                                 
                                             geb_cols = [c for c in row.index if "GEB" in str(c) or "GEBURT" in str(c)]
                                             geb_datum = row[geb_cols[0]] if geb_cols else row.get('GEB_DATUM', '-')
@@ -2306,22 +2307,28 @@ elif st.session_state.view == "Nominated_Cats":
                                             geschl_raw = str(row.get('GESCHLECHT', '-')).strip().upper()
                                             geschl_text = "MALE (1.0)" if geschl_raw in ['M', '1,0', 'MALE'] else "FEMALE (0.1)"
                                             
+                                            nominating_judge = row.get(judge_col, row.get(f'RICHTER {day_num}', '-'))
+                                            if pd.isna(nominating_judge) or str(nominating_judge).strip().lower() == "nan" or str(nominating_judge).strip() == "":
+                                                nominating_judge = "-"
+                                            
                                             table_data.append([
                                                 Paragraph(f"<font size='14'><b>{kat_nr}</b></font>", cell_text_bold),
                                                 Paragraph(details_text, cell_text_normal),
                                                 Paragraph(str(geb_datum), cell_text_bold),
-                                                Paragraph(geschl_text, cell_text_bold)
+                                                Paragraph(geschl_text, cell_text_bold),
+                                                Paragraph(str(nominating_judge), cell_text_bold)
                                             ])
                                             
-                                        cat_table = Table(table_data, colWidths=[65, 260, 95, 103])
+                                        # Breiten angepasst: Mehr Platz für "Nominated by", da "EMS/Group" kompakter ist
+                                        cat_table = Table(table_data, colWidths=[55, 175, 80, 88, 125])
                                         cat_table.setStyle(TableStyle([
-                                            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1a4a9e')), # Dunkelblauer Header
+                                            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1a4a9e')),
                                             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
                                             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
                                             ('TOPPADDING', (0, 0), (-1, -1), 6),
                                             ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
                                             ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#cccccc')),
-                                            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f9f9f9')]), # Helle Datenzeilen
+                                            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f9f9f9')]),
                                         ]))
                                         
                                         story.append(cat_table)
@@ -2339,7 +2346,7 @@ elif st.session_state.view == "Nominated_Cats":
                                 use_container_width=True
                             )
                         else:
-                            st.warning(f"Für den Richter '{selected_judge}' wurden an {selected_day_label} keine nominierten Katzen gefunden.")
+                            st.warning(f"Für {selected_day_label} wurden generell keine nominierten Katzen gefunden.")
                 else:
                     st.info("Es wurden am gewählten Tag keine gültigen Richternamen gefunden.")
             else:
