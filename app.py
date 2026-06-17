@@ -2217,9 +2217,11 @@ elif st.session_state.view == "Nominated_Cats":
                             story.append(Paragraph(f"Nominated Cats List<br/>Burgdorf Day {day_num} - {selected_judge}", title_style))
                             story.append(Spacer(1, 30))
                             
-                            base_url = "https://kecb-burgdorf2026.streamlit.app/"
-                            test_live_url = f"{base_url}?view=test-live-voting&auth=true&role=Richter&judge={selected_judge.replace(' ', '+')}&day={day_num}"
-                            
+                            # Reines Ersetzen der Leerzeichen durch ein + (Sonderzeichen bleiben wie sie sind)
+                            base_url = "https://kecb2026.streamlit.app/"
+                            judge_param = str(selected_judge).replace(' ', '+')
+                            test_live_url = f"{base_url}?view=test-live-voting&auth=true&role=Richter&judge={judge_param}&day={day_num}"
+
                             qr = qrcode.QRCode(version=1, box_size=10, border=4)
                             qr.add_data(test_live_url)
                             qr.make(fit=True)
