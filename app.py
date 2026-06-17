@@ -1925,7 +1925,9 @@ elif st.session_state.view == "QR_Codes_Gen":
         set_view("Home")
                 
                 
-# --- NEUER MENÜPUNKT: NOMINIERTE KATZEN (VOLLE FILTER- & SORTIERFUNKTION) ---
+# ==============================================================================
+# VIEW: NOMINATED CATS (DEIN KOMPLETTES ADMIN-KONTROLLZENTRUM + INTEGRIERTER PDF-DRUCK)
+# ==============================================================================
 elif st.session_state.view == "Nominated_Cats":
     display_header_with_logo("🏅 Nominierte Katzen (Admin-Zentrale)")
 
@@ -1991,10 +1993,10 @@ elif st.session_state.view == "Nominated_Cats":
                     "Tag": "Tag 2 (So)"
                 })
 
-        # Die beiden sauberen Tabs für die Anzeige
-        tab_t1, tab_t2 = st.tabs(["Tag 1 (Samstag)", "Tag 2 (Sonntag)"])
+        # Drei Reiter: Deine beiden Original-Tage + das neue Druckzentrum
+        tab_t1, tab_t2, tab_pdf_druck = st.tabs(["Tag 1 (Samstag)", "Tag 2 (Sonntag)", "🖨️ PDF Richter-Druckzentrum"])
 
-        # --- SEITE FÜR TAG 1 ---
+        # --- SEITE FÜR TAG 1 (DEIN ORIGINAL CODE) ---
         with tab_t1:
             if data_tag1:
                 df_nom_t1 = pd.DataFrame(data_tag1)
@@ -2050,7 +2052,6 @@ elif st.session_state.view == "Nominated_Cats":
                 sort_options = {"Katalog-Nr.": "Katalog-Nr.", "Rasse": "Rasse", "Kategorie": "Kategorie", "Klasse": "Klasse", "Geschlecht": "Geschlecht", "Richter": "Richter"}
                 w_sort_t1 = st.selectbox("Primär sortieren nach:", list(sort_options.keys()), key="s_t1")
 
-                # Filter auf DataFrame anwenden
                 if w_richter_t1 != "Alle Richter": df_nom_t1 = df_nom_t1[df_nom_t1['Richter'] == w_richter_t1]
                 if w_kat_t1 != "Alle Kategorien": df_nom_t1 = df_nom_t1[df_nom_t1['Kategorie'].astype(str) == w_kat_t1]
                 if w_sk_t1 != "Alle Show-Klassen": df_nom_t1 = df_nom_t1[df_nom_t1['Show-Klasse'].astype(str) == w_sk_t1]
@@ -2069,7 +2070,7 @@ elif st.session_state.view == "Nominated_Cats":
             else:
                 st.info("Keine Nominationen für Tag 1 (Spalte 'SELECTION 1') vorhanden.")
 
-        # --- SEITE FÜR TAG 2 ---
+        # --- SEITE FÜR TAG 2 (DEIN ORIGINAL CODE) ---
         with tab_t2:
             if data_tag2:
                 df_nom_t2 = pd.DataFrame(data_tag2)
@@ -2124,7 +2125,6 @@ elif st.session_state.view == "Nominated_Cats":
 
                 w_sort_t2 = st.selectbox("Primär sortieren nach:", list(sort_options.keys()), key="s_t2")
 
-                # Filter auf DataFrame anwenden
                 if w_richter_t2 != "Alle Richter": df_nom_t2 = df_nom_t2[df_nom_t2['Richter'] == w_richter_t2]
                 if w_kat_t2 != "Alle Kategorien": df_nom_t2 = df_nom_t2[df_nom_t2['Kategorie'].astype(str) == w_kat_t2]
                 if w_sk_t2 != "Alle Show-Klassen": df_nom_t2 = df_nom_t2[df_nom_t2['Show-Klasse'].astype(str) == w_sk_t2]
@@ -2142,7 +2142,210 @@ elif st.session_state.view == "Nominated_Cats":
                 st.download_button("📥 Liste Tag 2 als CSV herunterladen", data=csv_t2, file_name="nominated_sonntag.csv", mime="text/csv", key="dl_t2")
             else:
                 st.info("Keine Nominationen für Tag 2 (Spalte 'SELECTION 2') vorhanden.")
+
+        # --- REITER 3: DER NEUE DRUCK-BEREICH FÜR DAS REVOLUTIONÄRE RICHTER-PDF ---
+        with tab_pdf_druck:
+            st.markdown("### 🖨️ Offizielle Richter-Nominationsliste (PDF)")
+            st.write("Wähle den Ausstellungstag und den Richter aus, um die Liste nach Vorgaben druckfertig aufzubereiten.")
             
+            selected_day_label = st.selectbox("📅 Ausstellungstag für PDF wählen:", ["Tag 1 (Samstag)", "Tag 2 (Sonntag)"], key="pdf_day_sel")
+            day_num = 1 if "Tag 1" in selected_day_label else 2
+            tag_key = f"TAG {day_num}"
+            selection_col = f"SELECTION {day_num}"
+            judge_col = f"RICHTER TAG {day_num}"
+            
+            if selection_col in df_full.columns and judge_col in df_full.columns:
+                available_judges = sorted([r for r in df_full[judge_col].unique() if pd.notna(r) and str(r).strip() != "" and str(r).lower() != "nan" and str(r) != "-"])
+                
+                if available_judges:
+                    selected_judge = st.selectbox("👨‍⚖️ Richter für PDF wählen:", available_judges, key="pdf_judge_sel")
+                    st.write("")
+                    
+                    if st.button(f"🖨️ PDF für {selected_judge} ({tag_key}) generieren", use_container_width=True, key="btn_gen_pdf_nominated"):
+                        # Filtere genau die passenden Datensätze heraus
+                        df_nominated = df_full[
+                            (df_full[selection_col].astype(str).str.upper() == 'X') & 
+                            (df_full[judge_col] == selected_judge)
+                        ].copy()
+                        
+                        # Sprechende Übersetzungen der Klassen exakt nach deinen Vorgaben (z.B. 4-8 Kitten Female)
+                        def get_pdf_show_class_label(row):
+                            kl = str(row.get('KLASSE_INTERNAL', row.get('AUSSTELLUNGSKLASSE', ''))).replace('.0', '').strip()
+                            geschlecht_raw = str(row.get('GESCHLECHT', '')).strip().lower()
+                            geschlecht_str = "Male" if geschlecht_raw in ['m', '1,0', 'male'] else "Female"
+                            
+                            if kl in ['1','3','5','7','9']: return f"Adult {geschlecht_str}"
+                            if kl in ['2','4','6','8','10']: return f"Neuter {geschlecht_str}"
+                            if kl == '11': return f"Junior 8-12 {geschlecht_str}"
+                            if kl == '12': return f"Kitten 4-8 {geschlecht_str}"
+                            return f"Class {kl} {geschlecht_str}"
+
+                        if not df_nominated.empty:
+                            pdf_buffer = BytesIO()
+                            doc = SimpleDocTemplate(
+                                pdf_buffer, pagesize=A4,
+                                leftMargin=36, rightMargin=36, topMargin=36, bottomMargin=36
+                            )
+                            
+                            styles = getSampleStyleSheet()
+                            title_style = ParagraphStyle(
+                                'CoverTitle', parent=styles['Heading1'], fontName='Helvetica-Bold',
+                                fontSize=26, leading=32, alignment=1, textColor=colors.HexColor('#1a4a9e'), spaceAfter=30
+                            )
+                            cat_header_style = ParagraphStyle(
+                                'CategoryHeader', parent=styles['Heading2'], fontName='Helvetica-Bold',
+                                fontSize=22, leading=26, textColor=colors.HexColor('#1a4a9e'), spaceBefore=15, spaceAfter=15, keepWithNext=True
+                            )
+                            class_header_style = ParagraphStyle(
+                                'ClassHeader', parent=styles['Heading3'], fontName='Helvetica-Bold',
+                                fontSize=14, leading=18, textColor=colors.HexColor('#333333'), spaceBefore=12, spaceAfter=6, keepWithNext=True
+                            )
+                            cell_text_bold = ParagraphStyle('CellTextBold', fontName='Helvetica-Bold', fontSize=10, leading=12, alignment=1)
+                            cell_text_normal = ParagraphStyle('CellTextNormal', fontName='Helvetica', fontSize=10, leading=13, alignment=0)
+                            
+                            story = []
+                            
+                            # ======================================================
+                            # SEITE 1: COVERSHEET (TITEL & DAZUGEHÖRIGER QR-CODE)
+                            # ======================================================
+                            story.append(Spacer(1, 40))
+                            if os.path.exists(LOGO_URL):
+                                story.append(Image(LOGO_URL, width=120, height=120))
+                                story.append(Spacer(1, 20))
+                                
+                            story.append(Paragraph(f"Nominated Cats List<br/>Burgdorf Day {day_num} - {selected_judge}", title_style))
+                            story.append(Spacer(1, 30))
+                            
+                            # Live Link Generierung passend zur Test_Live_Voting Logik
+                            base_url = "https://kecb-burgdorf2026.streamlit.app/"
+                            test_live_url = f"{base_url}?view=test-live-voting&auth=true&role=Richter&judge={selected_judge.replace(' ', '+')}&day={day_num}"
+                            
+                            qr = qrcode.QRCode(version=1, box_size=10, border=4)
+                            qr.add_data(test_live_url)
+                            qr.make(fit=True)
+                            img_qr = qr.make_image(fill_color="black", back_color="white")
+                            
+                            qr_buffer = BytesIO()
+                            img_qr.save(qr_buffer, format="PNG")
+                            qr_buffer.seek(0)
+                            
+                            story.append(Image(qr_buffer, width=200, height=200))
+                            story.append(Spacer(1, 15))
+                            story.append(Paragraph(
+                                f"<font color='#1a4a9e'><b>SCAN FOR LIVE VOTING</b></font><br/>"
+                                f"<font size='8' color='#666666'>{test_live_url}</font>", 
+                                ParagraphStyle('QR_Sub', fontName='Helvetica', fontSize=10, alignment=1, leading=14)
+                            ))
+                            
+                            from reportlab.platypus import PageBreak
+                            story.append(PageBreak())
+                            
+                            # ======================================================
+                            # SEITE 2+: KATALOGKARTEN NACH KATEGORIEN & UNTERKLASSEN
+                            # ======================================================
+                            categories = sorted(df_nominated['KATEGORIE'].unique(), key=lambda x: str(x))
+                            
+                            for idx_cat, cat in enumerate(categories):
+                                if idx_cat > 0:
+                                    story.append(PageBreak()) # Pro Kategorie ein neues Blatt erzwingen
+                                    
+                                story.append(Paragraph(f"Category {cat}", cat_header_style))
+                                df_cat = df_nominated[df_nominated['KATEGORIE'] == cat].copy()
+                                df_cat['PDF_SHOW_CLASS'] = df_cat.apply(get_pdf_show_class_label, axis=1)
+                                
+                                # Strukturierte Klassensortierung
+                                klassen_reihenfolge = [
+                                    "Kitten 4-8 Male", "Kitten 4-8 Female", 
+                                    "Junior 8-12 Male", "Junior 8-12 Female", 
+                                    "Adult Male", "Adult Female",
+                                    "Neuter Male", "Neuter Female"
+                                ]
+                                vorhandene_klassen = [sk for sk in klassen_reihenfolge if sk in df_cat['PDF_SHOW_CLASS'].unique()]
+                                for sk in df_cat['PDF_SHOW_CLASS'].unique():
+                                    if sk not in vorhandene_klassen:
+                                        vorhandene_klassen.append(sk)
+                                        
+                                for s_klasse in vorhandene_klassen:
+                                    df_class = df_cat[df_cat['PDF_SHOW_CLASS'] == s_klasse].sort_values('KATALOG-NR')
+                                    
+                                    if not df_class.empty:
+                                        story.append(Paragraph(s_klasse, class_header_style))
+                                        
+                                        # Tabellenstruktur für die Karten
+                                        table_data = [[
+                                            Paragraph("<b>Nummer</b>", cell_text_bold), 
+                                            Paragraph("<b>Rasse, Farbe und Gruppe</b>", cell_text_bold), 
+                                            Paragraph("<b>Geburtsdatum</b>", cell_text_bold), 
+                                            Paragraph("<b>Geschlecht</b>", cell_text_bold)
+                                        ]]
+                                        
+                                        for _, row in df_class.iterrows():
+                                            kat_nr = str(row.get('KAT_STR', row.get('KATALOG-NR', ''))).replace('.0', '')
+                                            rasse_name = row.get('RASSE', '-')
+                                            farbcode = row.get('FARBE', '-')
+                                            
+                                            fg_cols = [c for c in row.index if "FARBGRUPPE" in str(c) or "FARB-GRUPPE" in str(c)]
+                                            farbgruppe = row[fg_cols[0]] if fg_cols else row.get('FARBGRUPPE', '')
+                                            gruppe_clean = roman_to_numeric(farbgruppe) if 'roman_to_numeric' in globals() else farbgruppe
+                                            
+                                            if gruppe_clean and str(gruppe_clean).strip() != "-":
+                                                details_text = f"<b>{rasse_name}</b><br/>Farbe: {farbcode} (Gruppe {gruppe_clean})"
+                                            else:
+                                                details_text = f"<b>{rasse_name}</b><br/>Farbe: {farbcode}"
+                                                
+                                            geb_cols = [c for c in row.index if "GEB" in str(c) or "GEBURT" in str(c)]
+                                            geb_datum = row[geb_cols[0]] if geb_cols else row.get('GEB_DATUM', '-')
+                                            if isinstance(geb_datum, pd.Timestamp):
+                                                geb_datum = geb_datum.strftime('%d.%m.%Y')
+                                            elif pd.isna(geb_datum) or str(geb_datum).strip().lower() == "nan":
+                                                geb_datum = "–"
+                                                
+                                            geschl_raw = str(row.get('GESCHLECHT', '-')).strip().upper()
+                                            geschl_text = "MALE (1.0)" if geschl_raw in ['M', '1,0', 'MALE'] else "FEMALE (0.1)"
+                                            
+                                            table_data.append([
+                                                Paragraph(f"<font size='14'><b>{kat_nr}</b></font>", cell_text_bold),
+                                                Paragraph(details_text, cell_text_normal),
+                                                Paragraph(str(geb_datum), cell_text_bold),
+                                                Paragraph(geschl_text, cell_text_bold)
+                                            ])
+                                            
+                                        cat_table = Table(table_data, colWidths=[65, 260, 95, 103])
+                                        cat_table.setStyle(TableStyle([
+                                            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1a4a9e')),
+                                            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                                            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                                            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                                            ('TOPPADDING', (0, 0), (-1, -1), 6),
+                                            ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+                                            ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#cccccc')),
+                                            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f9f9f9')]),
+                                        ]))
+                                        
+                                        for col_idx in range(4):
+                                            table_data[0][col_idx].style.textColor = colors.white
+                                            
+                                        story.append(cat_table)
+                                        story.append(Spacer(1, 10))
+                                        
+                            doc.build(story)
+                            pdf_buffer.seek(0)
+                            
+                            st.success(f"🎉 PDF-Kompilierung für Richter {selected_judge} erfolgreich abgeschlossen!")
+                            st.download_button(
+                                label=f"📥 PDF-Datei herunterladen und drucken",
+                                data=pdf_buffer,
+                                file_name=f"Nominated_Cats_Day{day_num}_{selected_judge.replace(' ', '_')}.pdf",
+                                mime="application/pdf",
+                                use_container_width=True
+                            )
+                        else:
+                            st.warning(f"Für den Richter '{selected_judge}' wurden an {selected_day_label} keine nominierten Katzen gefunden.")
+                else:
+                    st.info("Es wurden am gewählten Tag keine gültigen Richternamen gefunden.")
+            else:
+                st.error(f"Fehler: Spaltenstrukturen '{selection_col}' oder '{judge_col}' fehlen in der Datei.")
+                
     if st.button("⬅️ Zurück zum Hauptmenü", key="back_from_nom"):
         set_view("Home")
 
