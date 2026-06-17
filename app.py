@@ -2166,7 +2166,7 @@ elif st.session_state.view == "Nominated_Cats":
                         # Alle nominierten Katzen des Tages holen
                         df_nominated = df_full[df_full[selection_col].astype(str).str.upper() == 'X'].copy()
                         
-                        # Sprechende Übersetzungen der Klassen (z.B. 4-8 Kitten Female)
+                        # Sprechende Übersetzungen der Klassen (z.B. Kitten 4-8 Female)
                         def get_pdf_show_class_label(row):
                             kl = str(row.get('KLASSE_INTERNAL', row.get('AUSSTELLUNGSKLASSE', ''))).replace('.0', '').strip()
                             geschlecht_raw = str(row.get('GESCHLECHT', '')).strip().lower()
@@ -2241,7 +2241,7 @@ elif st.session_state.view == "Nominated_Cats":
                             story.append(PageBreak())
                             
                             # ======================================================
-                            # SEITE 2+: DIE GESAMTLISTE MIT "EMS/Group" HEADER
+                            # SEITE 2+: DIE GESAMTLISTE MIT NEUER SORTIERUNG
                             # ======================================================
                             categories = sorted(df_nominated['KATEGORIE'].unique(), key=lambda x: str(x))
                             
@@ -2253,18 +2253,21 @@ elif st.session_state.view == "Nominated_Cats":
                                 df_cat = df_nominated[df_nominated['KATEGORIE'] == cat].copy()
                                 df_cat['PDF_SHOW_CLASS'] = df_cat.apply(get_pdf_show_class_label, axis=1)
                                 
-                                # Strukturierte Klassensortierung
+                                # EXAKTE REIHNENFOLGE NACH DEINER VORGABE: (Zuerst Female vor Male!)
                                 klassen_reihenfolge = [
-                                    "Kitten 4-8 Male", "Kitten 4-8 Female", 
-                                    "Junior 8-12 Male", "Junior 8-12 Female", 
-                                    "Adult Male", "Adult Female",
-                                    "Neuter Male", "Neuter Female"
+                                    "Kitten 4-8 Female", "Kitten 4-8 Male", 
+                                    "Junior 8-12 Female", "Junior 8-12 Male", 
+                                    "Neuter Female", "Neuter Male", 
+                                    "Adult Female", "Adult Male"
                                 ]
+                                
+                                # Nur die Klassen herausfiltern, die auch tatsächlich Katzen enthalten
                                 vorhandene_klassen = [sk for sk in klassen_reihenfolge if sk in df_cat['PDF_SHOW_CLASS'].unique()]
                                 for sk in df_cat['PDF_SHOW_CLASS'].unique():
                                     if sk not in vorhandene_klassen:
                                         vorhandene_klassen.append(sk)
                                         
+                                # Durchlaufe die Klassen in der exakten Wunsch-Reihenfolge
                                 for s_klasse in vorhandene_klassen:
                                     df_class = df_cat[df_cat['PDF_SHOW_CLASS'] == s_klasse].copy()
                                     df_class['SORT_KEY'] = pd.to_numeric(df_class['KATALOG-NR'], errors='coerce')
@@ -2273,7 +2276,7 @@ elif st.session_state.view == "Nominated_Cats":
                                     if not df_class.empty:
                                         story.append(Paragraph(s_klasse, class_header_style))
                                         
-                                        # NEUE SPALTENBEZEICHNUNG: "EMS/Group"
+                                        # Tabellen-Header
                                         table_data = [[
                                             Paragraph("<b>Number</b>", cell_header_text), 
                                             Paragraph("<b>EMS/Group</b>", cell_header_text), 
@@ -2291,7 +2294,6 @@ elif st.session_state.view == "Nominated_Cats":
                                             farbgruppe = row[fg_cols[0]] if fg_cols else row.get('FARBGRUPPE', '')
                                             gruppe_clean = roman_to_numeric(farbgruppe) if 'roman_to_numeric' in globals() else farbgruppe
                                             
-                                            # Kompakte EMS Darstellung (z.B. NFO n 09 / Group 4)
                                             if gruppe_clean and str(gruppe_clean).strip() != "-":
                                                 details_text = f"<b>{rasse_name} {farbcode}</b><br/>Group {gruppe_clean}"
                                             else:
@@ -2319,7 +2321,6 @@ elif st.session_state.view == "Nominated_Cats":
                                                 Paragraph(str(nominating_judge), cell_text_bold)
                                             ])
                                             
-                                        # Breiten angepasst: Mehr Platz für "Nominated by", da "EMS/Group" kompakter ist
                                         cat_table = Table(table_data, colWidths=[55, 175, 80, 88, 125])
                                         cat_table.setStyle(TableStyle([
                                             ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1a4a9e')),
