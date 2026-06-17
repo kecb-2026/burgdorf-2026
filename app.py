@@ -2143,7 +2143,7 @@ elif st.session_state.view == "Nominated_Cats":
             else:
                 st.info("Keine Nominationen für Tag 2 (Spalte 'SELECTION 2') vorhanden.")
 
-        # --- REITER 3: DER NEUE DRUCK-BEREICH FÜR DAS REVOLUTIONÄRE RICHTER-PDF ---
+                # --- REITER 3: DER NEUE DRUCK-BEREICH FÜR DAS REVOLUTIONÄRE RICHTER-PDF ---
         with tab_pdf_druck:
             st.markdown("### 🖨️ Offizielle Richter-Nominationsliste (PDF)")
             st.write("Wähle den Ausstellungstag und den Richter aus, um die Liste nach Vorgaben druckfertig aufzubereiten.")
@@ -2200,8 +2200,11 @@ elif st.session_state.view == "Nominated_Cats":
                                 'ClassHeader', parent=styles['Heading3'], fontName='Helvetica-Bold',
                                 fontSize=14, leading=18, textColor=colors.HexColor('#333333'), spaceBefore=12, spaceAfter=6, keepWithNext=True
                             )
-                            cell_text_bold = ParagraphStyle('CellTextBold', fontName='Helvetica-Bold', fontSize=10, leading=12, alignment=1)
-                            cell_text_normal = ParagraphStyle('CellTextNormal', fontName='Helvetica', fontSize=10, leading=13, alignment=0)
+                            
+                            # Kristallklare Farbtrennung: Header-Text WEISS, Daten-Text SCHWARZ
+                            cell_header_text = ParagraphStyle('CellHeaderText', fontName='Helvetica-Bold', fontSize=10, leading=12, alignment=1, textColor=colors.white)
+                            cell_text_bold = ParagraphStyle('CellTextBold', fontName='Helvetica-Bold', fontSize=10, leading=12, alignment=1, textColor=colors.black)
+                            cell_text_normal = ParagraphStyle('CellTextNormal', fontName='Helvetica', fontSize=10, leading=13, alignment=0, textColor=colors.black)
                             
                             story = []
                             
@@ -2216,7 +2219,6 @@ elif st.session_state.view == "Nominated_Cats":
                             story.append(Paragraph(f"Nominated Cats List<br/>Burgdorf Day {day_num} - {selected_judge}", title_style))
                             story.append(Spacer(1, 30))
                             
-                            # Live Link Generierung passend zur Test_Live_Voting Logik
                             base_url = "https://kecb-burgdorf2026.streamlit.app/"
                             test_live_url = f"{base_url}?view=test-live-voting&auth=true&role=Richter&judge={selected_judge.replace(' ', '+')}&day={day_num}"
                             
@@ -2247,7 +2249,7 @@ elif st.session_state.view == "Nominated_Cats":
                             
                             for idx_cat, cat in enumerate(categories):
                                 if idx_cat > 0:
-                                    story.append(PageBreak()) # Pro Kategorie ein neues Blatt erzwingen
+                                    story.append(PageBreak())
                                     
                                 story.append(Paragraph(f"Category {cat}", cat_header_style))
                                 df_cat = df_nominated[df_nominated['KATEGORIE'] == cat].copy()
@@ -2271,14 +2273,15 @@ elif st.session_state.view == "Nominated_Cats":
                                     if not df_class.empty:
                                         story.append(Paragraph(s_klasse, class_header_style))
                                         
-                                        # Tabellenstruktur für die Karten
+                                        # Hier erzwingen wir die weißen Spaltentitel für den blauen Header
                                         table_data = [[
-                                            Paragraph("<b>Nummer</b>", cell_text_bold), 
-                                            Paragraph("<b>Rasse, Farbe und Gruppe</b>", cell_text_bold), 
-                                            Paragraph("<b>Geburtsdatum</b>", cell_text_bold), 
-                                            Paragraph("<b>Geschlecht</b>", cell_text_bold)
+                                            Paragraph("<b>Nummer</b>", cell_header_text), 
+                                            Paragraph("<b>Rasse, Farbe und Gruppe</b>", cell_header_text), 
+                                            Paragraph("<b>Geburtsdatum</b>", cell_header_text), 
+                                            Paragraph("<b>Geschlecht</b>", cell_header_text)
                                         ]]
                                         
+                                        # Alle Katzen der Klasse fließen untereinander sauber in die Zeilen ein (Schwarze Schrift)
                                         for _, row in df_class.iterrows():
                                             kat_nr = str(row.get('KAT_STR', row.get('KATALOG-NR', ''))).replace('.0', '')
                                             rasse_name = row.get('RASSE', '-')
@@ -2312,19 +2315,15 @@ elif st.session_state.view == "Nominated_Cats":
                                             
                                         cat_table = Table(table_data, colWidths=[65, 260, 95, 103])
                                         cat_table.setStyle(TableStyle([
-                                            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1a4a9e')),
-                                            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                                            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1a4a9e')), # Dunkelblauer Header
                                             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
                                             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
                                             ('TOPPADDING', (0, 0), (-1, -1), 6),
                                             ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
                                             ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#cccccc')),
-                                            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f9f9f9')]),
+                                            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f9f9f9')]), # Helle Datenzeilen
                                         ]))
                                         
-                                        for col_idx in range(4):
-                                            table_data[0][col_idx].style.textColor = colors.white
-                                            
                                         story.append(cat_table)
                                         story.append(Spacer(1, 10))
                                         
@@ -2345,7 +2344,7 @@ elif st.session_state.view == "Nominated_Cats":
                     st.info("Es wurden am gewählten Tag keine gültigen Richternamen gefunden.")
             else:
                 st.error(f"Fehler: Spaltenstrukturen '{selection_col}' oder '{judge_col}' fehlen in der Datei.")
-                
+
     if st.button("⬅️ Zurück zum Hauptmenü", key="back_from_nom"):
         set_view("Home")
 
