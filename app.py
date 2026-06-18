@@ -2999,12 +2999,12 @@ elif st.session_state.view == "Test_Live_Admin":
     df_full = load_labels()
 
 	# Debug-Check nach dem Laden
-store = GlobalStore()
-store.load_backup()
+    store = GlobalStore()
+    store.load_backup()
 
-st.sidebar.write("---")
-st.sidebar.write("DEBUG: Geladene Votes keys:")
-st.sidebar.write(list(store.data.get("votes", {}).keys()))
+    st.sidebar.write("---")
+    st.sidebar.write("DEBUG: Geladene Votes keys:")
+    st.sidebar.write(list(store.data.get("votes", {}).keys()))
 
 
     
