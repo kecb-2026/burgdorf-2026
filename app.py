@@ -423,10 +423,15 @@ class GlobalStore:
 	
     def save_backup(self):
         """Speichert in der Supabase-Tabelle."""
+        # Das MUSS aufblinken, sobald die App versucht zu speichern:
+        st.info("🔄 save_backup() wurde aufgerufen...") 
         try:
             self.client.table("app_data").upsert({"id": 1, "content": self.data}).execute()
-        except Exception:
-            pass
+            st.success("✅ Supabase hat den Befehl ohne Absturz angenommen!")
+        except Exception as e:
+            print(f"Supabase Fehler beim Speichern: {e}")
+            st.error(f"Datenbank-Fehler beim Speichern: {e}")
+
 
     def load_backup(self):
         """Lädt aus der Supabase-Tabelle."""
