@@ -451,7 +451,7 @@ class GlobalStore:
             self.data[key][field] = value
         self.save_backup()
 
-@st.cache_resource
+#@st.cache_resource
 def get_store():
     return GlobalStore()
 
