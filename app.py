@@ -420,7 +420,7 @@ class GlobalStore:
         self.overlay_start_time = 0
         self.load_backup()
 
-	def save_backup(self):
+    def save_backup(self):
         """Speichert in der Supabase-Tabelle und zeigt Fehler sofort an."""
         try:
             # Wir versuchen in 'app_data' zu schreiben. Falls die Tabelle anders heißt,
