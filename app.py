@@ -420,16 +420,13 @@ class GlobalStore:
         self.overlay_start_time = 0
         self.load_backup()
 
+	
     def save_backup(self):
         """Speichert in der Supabase-Tabelle."""
         try:
             self.client.table("app_data").upsert({"id": 1, "content": self.data}).execute()
-        except Exception as e:
-            # Zeigt den genauen Fehler im Terminal/Log an:
-            print(f"Supabase Fehler beim Speichern: {e}")
-            # Zeigt den Fehler gut sichtbar oben in der Streamlit-Oberfläche an:
-            st.error(f"Datenbank-Fehler beim Speichern: {e}")
-
+        except Exception:
+            pass
 
     def load_backup(self):
         """Lädt aus der Supabase-Tabelle."""
