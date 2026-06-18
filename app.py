@@ -420,18 +420,15 @@ class GlobalStore:
         self.overlay_start_time = 0
         self.load_backup()
 
-	
-    def save_backup(self):
-        """Speichert in der Supabase-Tabelle."""
-        # Das MUSS aufblinken, sobald die App versucht zu speichern:
-        st.info("🔄 save_backup() wurde aufgerufen...") 
+	def save_backup(self):
+        """Speichert in der Supabase-Tabelle und zeigt Fehler sofort an."""
         try:
+            # Wir versuchen in 'app_data' zu schreiben. Falls die Tabelle anders heißt,
+            # wird uns der except-Block jetzt sofort den echten Tabellennamen fordern!
             self.client.table("app_data").upsert({"id": 1, "content": self.data}).execute()
-            st.success("✅ Supabase hat den Befehl ohne Absturz angenommen!")
         except Exception as e:
-            print(f"Supabase Fehler beim Speichern: {e}")
-            st.error(f"Datenbank-Fehler beim Speichern: {e}")
-
+            # Zeigt den Fehler direkt oben rot in der App an, statt ihn zu verschweigen!
+            st.error(f"💥 Supabase-Verbindungsfehler: {str(e)}")
 
     def load_backup(self):
         """Lädt aus der Supabase-Tabelle."""
@@ -439,8 +436,10 @@ class GlobalStore:
             res = self.client.table("app_data").select("content").eq("id", 1).execute()
             if res.data:
                 self.data = res.data[0]["content"]
-        except Exception:
+        except Exception as e:
+            st.error(f"💥 Fehler beim Laden aus Supabase: {str(e)}")
             self.data = {"votes": {}}
+
 
     def set_data(self, key, field=None, value=None):
         if field is None:
