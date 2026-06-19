@@ -3004,7 +3004,6 @@ elif st.session_state.view == "Test_Live_Voting":
                                     st.rerun()
                         else:
                             st.info("ℹ️ Keine nominierten Katzen in dieser Klasse vorhanden.")
-
 # ==============================================================================
 # NEUER SEPARATER MENÜPUNKT: 🎛️ [Test] Live-Admin
 # ==============================================================================
@@ -3051,18 +3050,20 @@ elif st.session_state.view == "Test_Live_Admin":
                     key_winner_reveal = f"winner_reveal_{admin_tag}_{sel_cat}_{label}"
                     key_override = f"override_{admin_tag}_{sel_cat}_{label}"
                     
-                    # Interaktionen abfangen und geänderte Zustände direkt persistieren
+                    # Interaktionen abfangen und geänderte Zustände direkt persistieren + Sofort-Rerun für DB-Push
                     old_reveal = store.data.get(key_reveal, False)
                     new_reveal = st.checkbox("Nominationen anzeigen", value=old_reveal, key=f"cb1_{key_reveal}")
                     if new_reveal != old_reveal:
                         store.data[key_reveal] = new_reveal
                         store.save_backup()
+                        st.rerun() # Zwingt Streamlit zum sofortigen DB-Upload ohne Cache-Wartezeit
                     
                     old_winner_reveal = store.data.get(key_winner_reveal, False)
                     new_winner_reveal = st.checkbox("BIS Gewinner anzeigen", value=old_winner_reveal, key=f"cb2_{key_winner_reveal}")
                     if new_winner_reveal != old_winner_reveal:
                         store.data[key_winner_reveal] = new_winner_reveal
                         store.save_backup()
+                        st.rerun() # Zwingt Streamlit zum sofortigen DB-Upload ohne Cache-Wartezeit
                     
                     # --- ANFANG DER NEUEN ZUSÄTZLICHEN CHECKBOX ---
                     # HIER PRÜFEN WIR, OB DIESE KLASSE GERADE ALS AKTIVE TEST-RUNDE GESPEICHERT IST
@@ -3075,11 +3076,13 @@ elif st.session_state.view == "Test_Live_Admin":
                         store.data["test_live_label"] = label
                         store.data["test_live_tag"] = admin_tag
                         store.save_backup()
+                        st.rerun() # Zwingt Streamlit zum sofortigen DB-Upload ohne Cache-Wartezeit
                     elif not activate_voting and is_live_now:
                         store.data["test_live_cat"] = None
                         store.data["test_live_label"] = None
                         store.data["test_live_tag"] = None
                         store.save_backup()
+                        st.rerun() # Zwingt Streamlit zum sofortigen DB-Upload ohne Cache-Wartezeit
                     # --- ENDE DER NEUEN ZUSÄTZLICHEN CHECKBOX ---
                     
                     pool = df_full[(df_full['SELECTION'].astype(str).str.upper() == 'X') & (df_full['KATEGORIE'] == sel_cat) & (df_full['KLASSE_INTERNAL'].isin(klassen)) & (df_full['GESCHLECHT'].astype(str).str.upper() == geschl)]
@@ -3090,6 +3093,7 @@ elif st.session_state.view == "Test_Live_Admin":
                     if new_override != old_override:
                         store.data[key_override] = new_override
                         store.save_backup()
+                        st.rerun() # Zwingt Streamlit zum sofortigen DB-Upload ohne Cache-Wartezeit
                     
                     final_nr = None
                     if store.data[key_override] != "Automatisch (Stimmen)": 
@@ -3113,7 +3117,6 @@ elif st.session_state.view == "Test_Live_Admin":
                             store.overlay_start_time = time.time()
                             if "local_overlay_end" in st.session_state:
                                 st.session_state.local_overlay_end = 0
-                        # Overlay-Zustand ist ein In-Memory Attribut der App-Instanz, wird aber hier mit Erfolgsmeldung versehen
                         st.success(f"Overlay für #{final_nr} wurde gestartet!")
         
                 with c_votes:
