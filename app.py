@@ -2854,6 +2854,7 @@ elif st.session_state.view == "Test_Live_Voting":
             # ÄNDERUNG: SICHERSTELLEN, DASS DER VOTES-KEY IM SPEICHER EXISTIERT
             if "votes" not in store.data or not isinstance(store.data["votes"], dict): 
                 store.data["votes"] = {}
+                store.save_backup() # Änderung sofort in DB sichern
                 
             bis_defs = [
                 ("Adult Male", [1,3,5,7,9], "M"), ("Adult Female", [1,3,5,7,9], "W"), 
@@ -3050,9 +3051,18 @@ elif st.session_state.view == "Test_Live_Admin":
                     key_winner_reveal = f"winner_reveal_{admin_tag}_{sel_cat}_{label}"
                     key_override = f"override_{admin_tag}_{sel_cat}_{label}"
                     
-                    # Die Widget-Keys (key=...) erhalten ebenfalls das admin_tag, was Streamlit zum sauberen Reset zwingt
-                    store.data[key_reveal] = st.checkbox("Nominationen anzeigen", value=store.data.get(key_reveal, False), key=f"cb1_{key_reveal}")
-                    store.data[key_winner_reveal] = st.checkbox("BIS Gewinner anzeigen", value=store.data.get(key_winner_reveal, False), key=f"cb2_{key_winner_reveal}")
+                    # Interaktionen abfangen und geänderte Zustände direkt persistieren
+                    old_reveal = store.data.get(key_reveal, False)
+                    new_reveal = st.checkbox("Nominationen anzeigen", value=old_reveal, key=f"cb1_{key_reveal}")
+                    if new_reveal != old_reveal:
+                        store.data[key_reveal] = new_reveal
+                        store.save_backup()
+                    
+                    old_winner_reveal = store.data.get(key_winner_reveal, False)
+                    new_winner_reveal = st.checkbox("BIS Gewinner anzeigen", value=old_winner_reveal, key=f"cb2_{key_winner_reveal}")
+                    if new_winner_reveal != old_winner_reveal:
+                        store.data[key_winner_reveal] = new_winner_reveal
+                        store.save_backup()
                     
                     # --- ANFANG DER NEUEN ZUSÄTZLICHEN CHECKBOX ---
                     # HIER PRÜFEN WIR, OB DIESE KLASSE GERADE ALS AKTIVE TEST-RUNDE GESPEICHERT IST
@@ -3060,20 +3070,26 @@ elif st.session_state.view == "Test_Live_Admin":
                     
                     activate_voting = st.checkbox("🟢 Diese Klasse für Richter freischalten (Live-Voting)", value=is_live_now, key=f"live_vote_{admin_tag}_{sel_cat}_{label}")
                     
-                    if activate_voting:
+                    if activate_voting and not is_live_now:
                         store.data["test_live_cat"] = sel_cat
                         store.data["test_live_label"] = label
                         store.data["test_live_tag"] = admin_tag
-                    elif is_live_now and not activate_voting:
+                        store.save_backup()
+                    elif not activate_voting and is_live_now:
                         store.data["test_live_cat"] = None
                         store.data["test_live_label"] = None
                         store.data["test_live_tag"] = None
+                        store.save_backup()
                     # --- ENDE DER NEUEN ZUSÄTZLICHEN CHECKBOX ---
                     
                     pool = df_full[(df_full['SELECTION'].astype(str).str.upper() == 'X') & (df_full['KATEGORIE'] == sel_cat) & (df_full['KLASSE_INTERNAL'].isin(klassen)) & (df_full['GESCHLECHT'].astype(str).str.upper() == geschl)]
                     options = ["Automatisch (Stimmen)"] + sorted(pool['KAT_STR'].unique().tolist())
                     
-                    store.data[key_override] = st.selectbox(f"Gewinner festlegen:", options, index=options.index(store.data.get(key_override, "Automatisch (Stimmen)")) if store.data.get(key_override) in options else 0, key=f"sb_{key_override}")
+                    old_override = store.data.get(key_override, "Automatisch (Stimmen)")
+                    new_override = st.selectbox(f"Gewinner festlegen:", options, index=options.index(old_override) if old_override in options else 0, key=f"sb_{key_override}")
+                    if new_override != old_override:
+                        store.data[key_override] = new_override
+                        store.save_backup()
                     
                     final_nr = None
                     if store.data[key_override] != "Automatisch (Stimmen)": 
@@ -3097,6 +3113,7 @@ elif st.session_state.view == "Test_Live_Admin":
                             store.overlay_start_time = time.time()
                             if "local_overlay_end" in st.session_state:
                                 st.session_state.local_overlay_end = 0
+                        # Overlay-Zustand ist ein In-Memory Attribut der App-Instanz, wird aber hier mit Erfolgsmeldung versehen
                         st.success(f"Overlay für #{final_nr} wurde gestartet!")
         
                 with c_votes:
@@ -3113,9 +3130,6 @@ elif st.session_state.view == "Test_Live_Admin":
                                 if isinstance(v, dict):
                                     kat_nr = v.get("katze", "N/A")
                                     status = v.get("status", "wählt")
-                                else:
-                                    kat_nr = v
-                                    status = "bestaerkt" # Alte Einträge werten wir direkt als bestätigt
                                 
                                 # Status-Emoji bestimmen
                                 status_emoji = "✅ Bestätigt" if status == "bestaerkt" else "⏳ Wählt..."
@@ -3152,4 +3166,3 @@ elif st.session_state.view == "Test_Live_Admin":
                                 
     if st.button("⬅️ Zurück zum Hauptmenü", key="back_from_bisadmin"):
         set_view("Home")
-				
