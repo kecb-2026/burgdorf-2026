@@ -2939,7 +2939,7 @@ elif st.session_state.view == "Test_Live_Voting":
                                     store.data["votes"][v_key] = "Keine Wahl/Not chosen yet"
                                 store.save_backup()
                                 # ÄNDERUNG: Sofortiger Rerun, damit Admin und Banner die Änderung live registrieren!
-                                st.rerun()
+                                #st.rerun()
 
                             # Radio-Button steuert den Live-Zustand an
                             sel = st.radio(
