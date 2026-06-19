@@ -1244,23 +1244,19 @@ elif st.session_state.view == "Steward_Panel":
                 if isinstance(geb_datum, pd.Timestamp): geb_datum = geb_datum.strftime('%d.%m.%Y')
                 elif pd.isna(geb_datum) or str(geb_datum).strip().lower() == "nan": geb_datum = "N/A"
                 
-                # --- STRUKTUR INITIALISIEREN UND LOKALEN ZUSTAND HOLEN ---
-                cat_state = {
-                    "flags": {"Zum Richten": False, "Wird gerichtet": False, "BIV": False, "NOM": False, "Gerichtet": False},
-                    "timestamp": 0
-                }
+                # --- STRUKTUR FLACH INITIALISIEREN (PASSEND ZUR DATENBANK) ---
+                # Wir behalten bestehende Keys (wie deine "override_TAG..." etc.) bei und überschreiben nur die Flags
+                if k not in store.data or not isinstance(store.data[k], dict):
+                    store.data[k] = {}
                 
-                if k in store.data and isinstance(store.data[k], dict):
-                    old_state = store.data[k]
-                    if "flags" in old_state and isinstance(old_state["flags"], dict):
-                        for flag_name in cat_state["flags"].keys():
-                            cat_state["flags"][flag_name] = old_state["flags"].get(flag_name, False)
-                    if "timestamp" in old_state:
-                        cat_state["timestamp"] = old_state["timestamp"]
-                # -----------------------------------------------------------------
-                
-                flags = cat_state["flags"]
-                card_class = "steward-card-wrapper gerichtet" if flags.get("Gerichtet") else "steward-card-wrapper"
+                # Standardwerte sichern, falls sie gar nicht existieren
+                for flag_name in ["Zum Richten", "Wird gerichtet", "BIV", "NOM", "Gerichtet"]:
+                    if flag_name not in store.data[k]:
+                        store.data[k][flag_name] = False
+                if "timestamp" not in store.data[k]:
+                    store.data[k]["timestamp"] = 0.0
+
+                card_class = "steward-card-wrapper gerichtet" if store.data[k].get("Gerichtet") else "steward-card-wrapper"
                 
                 # START DES GRAUEN RECHTECKS
                 st.markdown(f"""
@@ -1281,82 +1277,72 @@ elif st.session_state.view == "Steward_Panel":
                 c1, c2, c3, c4, c5 = st.columns(5, vertical_alignment="center")
                 
                 # BUTTON 1: AUFRUFEN (Blau)
-                is_rich = flags.get("Zum Richten")
+                is_rich = store.data[k].get("Zum Richten")
                 with c1:
-                    if is_rich and not flags.get("Wird gerichtet"): st.markdown('<div class="st-blink-btn">', unsafe_allow_html=True)
-                    if st.button("⚠️ [ AKTIV ] AUFGERUFEN ⚠️" if (is_rich and not flags.get("Wird gerichtet")) else "AUFRUFEN", key=f"btn_rich_{k}"):
-                        cat_state["flags"]["Zum Richten"] = not is_rich
-                        if cat_state["flags"]["Zum Richten"]:
-                            cat_state["flags"]["Gerichtet"] = False
-                            cat_state["timestamp"] = time.time()
+                    if is_rich and not store.data[k].get("Wird gerichtet"): st.markdown('<div class="st-blink-btn">', unsafe_allow_html=True)
+                    if st.button("⚠️ [ AKTIV ] AUFGERUFEN ⚠️" if (is_rich and not store.data[k].get("Wird gerichtet")) else "AUFRUFEN", key=f"btn_rich_{k}"):
+                        store.data[k]["Zum Richten"] = not is_rich
+                        if store.data[k]["Zum Richten"]:
+                            store.data[k]["Gerichtet"] = False
+                            store.data[k]["timestamp"] = time.time()
                         else:
-                            cat_state["flags"]["Wird gerichtet"] = False
+                            store.data[k]["Wird gerichtet"] = False
                         
-                        # ÄNDERUNG: DIREKTE ZUWEISUNG UND VERWENDUNG DER GARANTIERT EXISTIERENDEN METHODE
-                        store.data[k] = cat_state
                         store.save_backup()
                         st.rerun()
-                    if is_rich and not flags.get("Wird gerichtet"): st.markdown('</div>', unsafe_allow_html=True)
+                    if is_rich and not store.data[k].get("Wird gerichtet"): st.markdown('</div>', unsafe_allow_html=True)
                 
                 # BUTTON 2: WIRD GERICHTET (Orange)
-                is_busy = flags.get("Wird gerichtet")
+                is_busy = store.data[k].get("Wird gerichtet")
                 with c2:
                     if is_busy: st.markdown('<div class="st-blink-btn">', unsafe_allow_html=True)
                     if st.button("⏳ TISCH / RICHTEN ⏳" if is_busy else "WIRD GERICHTET", key=f"btn_busy_{k}"):
-                        cat_state["flags"]["Wird gerichtet"] = not is_busy
-                        if cat_state["flags"]["Wird gerichtet"]:
-                            cat_state["flags"]["Zum Richten"] = True 
-                            cat_state["flags"]["Gerichtet"] = False
-                            cat_state["timestamp"] = time.time()
+                        store.data[k]["Wird gerichtet"] = not is_busy
+                        if store.data[k]["Wird gerichtet"]:
+                            store.data[k]["Zum Richten"] = True 
+                            store.data[k]["Gerichtet"] = False
+                            store.data[k]["timestamp"] = time.time()
                         
-                        # ÄNDERUNG: DIREKTE ZUWEISUNG UND VERWENDUNG DER GARANTIERT EXISTIERENDEN METHODE
-                        store.data[k] = cat_state
                         store.save_backup()
                         st.rerun()
                     if is_busy: st.markdown('</div>', unsafe_allow_html=True)
 
                 # BUTTON 3: BIV (Grün)
-                is_biv = flags.get("BIV")
+                is_biv = store.data[k].get("BIV")
                 with c3:
                     if is_biv: st.markdown('<div class="st-blink-btn">', unsafe_allow_html=True)
                     if st.button("⚠️ [ AKTIV ] BIV ⚠️" if is_biv else "BIV", key=f"btn_biv_{k}"):
-                        cat_state["flags"]["BIV"] = not is_biv
-                        cat_state["timestamp"] = time.time()
+                        store.data[k]["BIV"] = not is_biv
+                        store.data[k]["timestamp"] = time.time()
                         
-                        # ÄNDERUNG: DIREKTE ZUWEISUNG UND VERWENDUNG DER GARANTIERT EXISTIERENDEN METHODE
-                        store.data[k] = cat_state
                         store.save_backup()
                         st.rerun()
                     if is_biv: st.markdown('</div>', unsafe_allow_html=True)
                 
                 # BUTTON 4: NOMINIEREN (Gelb)
-                is_nom = flags.get("NOM")
+                is_nom = store.data[k].get("NOM")
                 with c4:
                     if is_nom: st.markdown('<div class="st-blink-btn">', unsafe_allow_html=True)
                     if st.button("⚠️ [ AKTIV ] NOM ⚠️" if is_nom else "NOM", key=f"btn_nom_{k}"):
-                        cat_state["flags"]["NOM"] = not is_nom
-                        if cat_state["flags"]["NOM"]:
-                            cat_state["timestamp"] = time.time()
+                        store.data[k]["NOM"] = not is_nom
+                        if store.data[k]["NOM"]:
+                            store.data[k]["timestamp"] = time.time()
                         
-                        # ÄNDERUNG: DIREKTE ZUWEISUNG UND VERWENDUNG DER GARANTIERT EXISTIERENDEN METHODE
-                        store.data[k] = cat_state
                         store.save_backup()
                         st.rerun()
                     if is_nom: st.markdown('</div>', unsafe_allow_html=True)
                 
                 # BUTTON 5: GERICHTET (Grau)
-                is_done = flags.get("Gerichtet")
+                is_done = store.data[k].get("Gerichtet")
                 with c5:
                     if st.button("[ ERLEDIGT ] GERICHTET" if is_done else "GERICHTET", key=f"btn_done_{k}"):
                         if not is_done:
-                            cat_state["flags"]["Zum Richten"] = False
-                            cat_state["flags"]["Wird gerichtet"] = False
-                            cat_state["flags"]["Gerichtet"] = True
+                            store.data[k]["Zum Richten"] = False
+                            store.data[k]["Wird gerichtet"] = False
+                            store.data[k]["Gerichtet"] = True
                         else:
-                            cat_state["flags"]["Gerichtet"] = False
+                            store.data[k]["Gerichtet"] = False
                         
-                        # ÄNDERUNG: DIREKTE ZUWEISUNG UND VERWENDUNG DER GARANTIERT EXISTIERENDEN METHODE
-                        store.data[k] = cat_state
                         store.save_backup()
                         st.rerun()
                                 
