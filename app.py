@@ -3081,28 +3081,24 @@ elif st.session_state.view == "Test_Live_Admin":
                         store.save_backup()
                     # --- ENDE DER NEUEN ZUSÄTZLICHEN CHECKBOX ---
 
-                    # RADIO BOX FÜR ABSTIMMUNGS-STATUS (OFFEN / BEENDET)
+                    # --- NEU: COMPAKTE CHECKBOX STATT RADIO BOX ---
+                    # KOMMENTAR: Wir erstellen den eindeutigen Schlüssel für den Speicher
                     key_voting_closed = f"voting_closed_{admin_tag}_{sel_cat}_{label}"
                     old_closed_status = store.data.get(key_voting_closed, False)
                     
-                    status_options = ["Offen / Open", "Beendet / Closed"]
-                    default_status_idx = 1 if old_closed_status else 0
-                    
-                    # KOMMENTAR: Diese Radio Box setzt den Zustand, der oben im Voting-Teil abgefragt wird.
-                    chosen_status = st.radio(
-                        "🔒 Abstimmungs-Status für Richter:",
-                        status_options,
-                        index=default_status_idx,
-                        key=f"rb_status_{admin_tag}_{sel_cat}_{label}",
-                        horizontal=True
+                    # KOMMENTAR: Die übersichtliche Checkbox zum Beenden der Abstimmung
+                    new_closed_status = st.checkbox(
+                        "🔒 Abstimmung beendet (Richter sperren) / Voting closed", 
+                        value=old_closed_status, 
+                        key=f"cb_closed_{admin_tag}_{sel_cat}_{label}"
                     )
                     
-                    new_closed_status = (chosen_status == "Beendet / Closed")
+                    # KOMMENTAR: Wenn der Haken geändert wird, sofort im RAM & Backup speichern
                     if new_closed_status != old_closed_status:
                         store.data[key_voting_closed] = new_closed_status
                         store.save_backup()
-	
-                    # ENDE OPEN CLOSED ---
+                    # --- ENDE NEU ---
+
 					
                     pool = df_full[(df_full['SELECTION'].astype(str).str.upper() == 'X') & (df_full['KATEGORIE'] == sel_cat) & (df_full['KLASSE_INTERNAL'].isin(klassen)) & (df_full['GESCHLECHT'].astype(str).str.upper() == geschl)]
                     options = ["Automatisch (Stimmen)"] + sorted(pool['KAT_STR'].unique().tolist())
