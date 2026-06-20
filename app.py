@@ -2838,6 +2838,17 @@ elif st.session_state.view == "Test_Live_Voting":
             f"</div>", 
             unsafe_allow_html=True
         )
+
+        # PRÜFEN OB DIE ABSTIMMUNG FÜR DIESE KLASSE BEENDET IST
+        # Hier nutzen wir einfach das bereits vorhandene 'tag' (z.B. "TAG 1")
+        key_voting_closed = f"voting_closed_{tag}_{active_cat}_{active_label}"
+        is_voting_closed = store.data.get(key_voting_closed, False)
+
+        if is_voting_closed:
+            st.error("🛑 **Abstimmung beendet!** / **Voting closed!**")
+            st.stop()
+
+
         
         # Richter-Identität ermitteln (entweder via URL oder Box)
         c1, _ = st.columns([2, 2])
