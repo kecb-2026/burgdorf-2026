@@ -3088,7 +3088,7 @@ elif st.session_state.view == "Test_Live_Admin":
                     
                     # KOMMENTAR: Die übersichtliche Checkbox zum Beenden der Abstimmung
                     new_closed_status = st.checkbox(
-                        "🔒 Abstimmung beendet (Richter sperren) / Voting closed", 
+                        "🛑⁠ Abstimmung beenden (Richter sperren) ", 
                         value=old_closed_status, 
                         key=f"cb_closed_{admin_tag}_{sel_cat}_{label}"
                     )
