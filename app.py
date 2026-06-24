@@ -26,9 +26,6 @@ from reportlab.lib import colors
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 
-    <style>
-    #root > div:nth-child(1) > div > div > div > div > section > div {padding-top: 0rem;}
-    </style>
 
 # --- 1. SETUP & STYLING ---
 st.set_page_config(layout="wide", page_title="KECB Burgdorf 2026", page_icon="🐾")
@@ -402,6 +399,7 @@ st.markdown("""
 </style>
 
 
+#root > div:nth-child(1) > div > div > div > div > section > div {padding-top: 0rem;}
 </style>
 
     """, unsafe_allow_html=True)
