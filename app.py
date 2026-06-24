@@ -396,10 +396,11 @@ st.markdown("""
     
     .tag-wirdgerichtet { background-color: #ff9800 !important; animation: blinker 1.5s infinite; color: white; }
 
+#root > div:nth-child(1) > div > div > div > div > section > div {padding-top: 0rem;}
 </style>
 
 
-#root > div:nth-child(1) > div > div > div > div > section > div {padding-top: 0rem;}
+
 </style>
 
     """, unsafe_allow_html=True)
