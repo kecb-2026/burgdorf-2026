@@ -3212,9 +3212,10 @@ elif st.session_state.view == "Test_Live_Admin":
 
 elif st.session_state.view == "Excel_Upload":
     # Einheitlicher Header-Stil deiner App
+    display_header_with_logo("⚙️ Excel-Upload")
     st.markdown('<div class="main-title">⚙️ Admin: Excel-Katalog austauschen</div>', unsafe_allow_html=True)
     
-    st.write("Hier kannst du die zentrale `2026.xlsx` Datei ersetzen. Die Datei wird direkt in dein GitHub-Repository hochgeladen.")
+    st.write("Hier kannst du die zentrale `2026.xlsx` Datei ersetzen. Die Datei wird direkt in das Repository hochgeladen.")
     st.info("💡 **Hinweis:** Die Spaltenstruktur muss exakt mit der ursprünglichen Datei übereinstimmen.")
     
     uploaded_file = st.file_uploader("Neue Excel-Datei auswählen:", type=["xlsx"], key="excel_uploader_file")
