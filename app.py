@@ -469,7 +469,7 @@ if "auth" in q_params and q_params["auth"] == "true":
         if v_param == "steward": st.session_state.view = "Steward_Panel"
         elif v_param == "richter": st.session_state.view = "Judge_Voting"
         elif v_param == "admin": st.session_state.view = "Home"
-	    elif v_param == "excel-upload": st.session_state.view = "Excel_Upload"
+        elif v_param == "excel-upload": st.session_state.view = "Excel_Upload"
         elif v_param == "bis-admin": st.session_state.view = "BIS_Admin_Control"
         elif v_param == "qr": st.session_state.view = "QR_Codes"
         elif v_param == "qr-gen": st.session_state.view = "QR_Codes_Gen"
