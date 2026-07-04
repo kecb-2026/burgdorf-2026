@@ -3198,49 +3198,59 @@ elif st.session_state.view == "Test_Live_Admin":
     if st.button("⬅️ Zurück zum Hauptmenü", key="back_from_bisadmin"):
         set_view("Home")
 
-vorhanden.")
+#vorhanden.")
 # ==============================================================================
 # NEUER SEPARATER MENÜPUNKT: 🎛️  Excel-Upload
 # ==============================================================================
 
-def render_excel_upload_page():
-    """Rendert eine eigenständige Seite für den Excel-Katalog-Upload."""
-    display_header_with_logo("🐾 KECB Burgdorf 2026 — Daten-Management")
+    # --- UPGRADED: ROBUSTE EXCEL-UPLOAD-FUNKTION ---
+    st.divider()
+    st.subheader("📊 Excel-Datenbasis austauschen")
+    st.info("Hinweis: Die neue Datei muss exakt dieselben Spaltenüberschriften besitzen wie die aktuelle Struktur.")
     
-    st.title("📁 Excel-Katalog aktualisieren")
-    st.write(
-        "Hier kannst du die zentrale `2026.xlsx` Datei ersetzen. "
-        "Nach dem Upload wird der System-Cache automatisch geleert, sodass alle Ansichten sofort aktuell sind."
+    uploaded_file = st.file_uploader(
+        "Neue Excel-Datei auswählen (.xlsx):", 
+        type=["xlsx"], 
+        key="admin_excel_uploader"
     )
     
-    st.info("⚠️ **Hinweis:** Bitte achte darauf, dass die Spaltenstruktur (Header) exakt mit der ursprünglichen Datei übereinstimmt.")
-    
-    # Upload-Widget
-    uploaded_file = st.file_uploader("Wähle die neue Excel-Datei aus:", type=["xlsx"])
-    
     if uploaded_file is not None:
-        try:
-            with st.spinner("Datei wird verarbeitet und gespeichert..."):
-                # Datei einlesen (Validierungstest)
-                import pandas as pd
-                df = pd.read_excel(uploaded_file, engine='openpyxl', header=0)
+        if st.button("💾 DATEI VALIDIEREN & ERSETZEN", key="btn_save_excel", type="primary"):
+            try:
+                # 1. Temporär einlesen, um die Struktur zu prüfen (Sicherheitscheck)
+                df_new = pd.read_excel(uploaded_file)
                 
-                # Datei permanent auf dem Server speichern
-                with open("2026.xlsx", "wb") as f:
-                    f.write(uploaded_file.getbuffer())
+                # Hol dir die Spalten der aktuellen Datei zum Vergleich
+                try:
+                    df_current = pd.read_excel("2026.xlsx")
+                    current_columns = list(df_current.columns)
+                    new_columns = list(df_new.columns)
                     
-                # Cache der Lade-Funktion leeren
-                load_labels.clear()
-                
-            st.success("✅ '2026.xlsx' erfolgreich überschrieben! Der Datencache wurde aktualisiert.")
-            
-            # Button zum Zurückkehren
-            if st.button("Zurück zur Startseite"):
-                st.session_state.view = "Home"
-                st.rerun()
-                
-        except Exception as e:
-            st.error(f"Fehler beim Verarbeiten der Excel-Datei: {e}")
+                    # Prüfen, ob Pflichtspalten übereinstimmen
+                    missing_cols = [col for col in current_columns if col not in new_columns]
+                except Exception:
+                    # Falls die alte Datei gar nicht existiert, überspringen wir den harten Spaltenabgleich
+                    missing_cols = []
+
+                if missing_cols:
+                    st.error(f"❌ **Validierungsfehler!** Der neuen Datei fehlen folgende Spalten der Originalstruktur: `{missing_cols}`. Upload abgebrochen.")
+                elif df_new.empty:
+                    st.error("❌ **Validierungsfehler!** Die hochgeladene Datei enthält keine Datenzeilen.")
+                else:
+                    # 2. Wenn alles passt, Datei final auf den Server schreiben
+                    with open("2026.xlsx", "wb") as f:
+                        f.write(uploaded_file.getbuffer())
+                    
+                    # 3. Cache komplett leeren, damit load_labels() sofort die neuen Daten zieht
+                    st.cache_data.clear()
+                    
+                    st.success(f"✅ **Erfolgreich!** `{df_new.shape[0]}` Zeilen und `{df_new.shape[1]}` Spalten wurden geladen. System-Cache ist aktualisiert.")
+                    time.sleep(2.0)
+                    st.rerun()
+                    
+            except Exception as e:
+                st.error(f"💥 Kritischer Fehler beim Verarbeiten der Datei: {e}")
+
             
     # Abbrechen-Button, falls man nur mal gucken wollte
     if st.button("Abbrechen"):
