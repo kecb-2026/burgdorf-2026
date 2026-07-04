@@ -3197,3 +3197,56 @@ elif st.session_state.view == "Test_Live_Admin":
                                 
     if st.button("⬅️ Zurück zum Hauptmenü", key="back_from_bisadmin"):
         set_view("Home")
+
+vorhanden.")
+# ==============================================================================
+# NEUER SEPARATER MENÜPUNKT: 🎛️  Excel-Upload
+# ==============================================================================
+
+def render_excel_upload_page():
+    """Rendert eine eigenständige Seite für den Excel-Katalog-Upload."""
+    display_header_with_logo("🐾 KECB Burgdorf 2026 — Daten-Management")
+    
+    st.title("📁 Excel-Katalog aktualisieren")
+    st.write(
+        "Hier kannst du die zentrale `2026.xlsx` Datei ersetzen. "
+        "Nach dem Upload wird der System-Cache automatisch geleert, sodass alle Ansichten sofort aktuell sind."
+    )
+    
+    st.info("⚠️ **Hinweis:** Bitte achte darauf, dass die Spaltenstruktur (Header) exakt mit der ursprünglichen Datei übereinstimmt.")
+    
+    # Upload-Widget
+    uploaded_file = st.file_uploader("Wähle die neue Excel-Datei aus:", type=["xlsx"])
+    
+    if uploaded_file is not None:
+        try:
+            with st.spinner("Datei wird verarbeitet und gespeichert..."):
+                # Datei einlesen (Validierungstest)
+                import pandas as pd
+                df = pd.read_excel(uploaded_file, engine='openpyxl', header=0)
+                
+                # Datei permanent auf dem Server speichern
+                with open("2026.xlsx", "wb") as f:
+                    f.write(uploaded_file.getbuffer())
+                    
+                # Cache der Lade-Funktion leeren
+                load_labels.clear()
+                
+            st.success("✅ '2026.xlsx' erfolgreich überschrieben! Der Datencache wurde aktualisiert.")
+            
+            # Button zum Zurückkehren
+            if st.button("Zurück zur Startseite"):
+                st.session_state.view = "Home"
+                st.rerun()
+                
+        except Exception as e:
+            st.error(f"Fehler beim Verarbeiten der Excel-Datei: {e}")
+            
+    # Abbrechen-Button, falls man nur mal gucken wollte
+    if st.button("Abbrechen"):
+        st.session_state.view = "Home"
+        st.rerun()
+
+
+
+		
