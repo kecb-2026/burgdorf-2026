@@ -3018,6 +3018,9 @@ elif st.session_state.view == "Test_Live_Voting":
                                     st.rerun()
                         else:
                             st.info("ℹ️ Keine nominierten Katzen in dieser Klasse vorhanden.")
+
+
+
 # ==============================================================================
 # NEUER SEPARATER MENÜPUNKT: 🎛️ [Test] Live-Admin
 # ==============================================================================
@@ -3198,7 +3201,7 @@ elif st.session_state.view == "Test_Live_Admin":
     if st.button("⬅️ Zurück zum Hauptmenü", key="back_from_bisadmin"):
         set_view("Home")
 
-#vorhanden.")
+
 # ==============================================================================
 # NEUER SEPARATER MENÜPUNKT: 🎛️  Excel-Upload
 # ==============================================================================
