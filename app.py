@@ -754,7 +754,7 @@ elif st.session_state.view == "Home":
             st.query_params.update({"view": "admin", "auth": "true", "role": "Admin"})
             set_view("Admin_Panel")
             st.rerun()
-		if st.button("⚙️ EXCEL-UPLOAD"):
+        if st.button("⚙️ EXCEL-UPLOAD"):
             st.query_params.update({"view": "admin", "auth": "true", "role": "Admin"})
             set_view("Excel_Upload")
             st.rerun()
