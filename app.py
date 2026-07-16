@@ -467,11 +467,11 @@ if "auth" in q_params and q_params["auth"] == "true":
     if "view" in q_params:
         v_param = q_params["view"].lower()
         if v_param == "steward": st.session_state.view = "Steward_Panel"
-        elif v_param == "richter": st.session_state.view = "Judge_Voting"
+       # elif v_param == "richter": st.session_state.view = "Judge_Voting"
         elif v_param == "admin": st.session_state.view = "Home"
         elif v_param == "excel-upload": st.session_state.view = "Excel_Upload"
-        elif v_param == "bis-admin": st.session_state.view = "BIS_Admin_Control"
-        elif v_param == "qr": st.session_state.view = "QR_Codes"
+       # elif v_param == "bis-admin": st.session_state.view = "BIS_Admin_Control"
+       # elif v_param == "qr": st.session_state.view = "QR_Codes"
         elif v_param == "qr-gen": st.session_state.view = "QR_Codes_Gen"
         elif v_param == "nominated": st.session_state.view = "Nominated_Cats"
 		
@@ -593,9 +593,11 @@ def set_view(name):
 # --- 5. NAVIGATION & ZUGRIFF ---
 access_map = {
     "Public": ["Dashboard", "BIS_Public", "Login"],
-    "Richter": ["Judge_Voting",  "Test_Live_Voting", "Dashboard", "BIS_Public"],
+    "Richter": ["Test_Live_Voting", "Dashboard", "BIS_Public"],
+	# "Richter": ["Judge_Voting",  "Test_Live_Voting", "Dashboard", "BIS_Public"],
     "Steward": ["Steward_Panel", "Dashboard", "BIS_Public"],
-    "Admin": ["Home", "Dashboard", "BIS_Public", "Judge_Voting", "Steward_Panel", "BIS_Admin_Control", "Test_Live_Admin", "Test_Live_Voting","QR_Codes", "QR_Codes_Gen", "Nominated_Cats", "Judge_List", "Nomination_Labels", "Admin_Panel", "Excel_Upload"]
+   # "Admin": ["Home", "Dashboard", "BIS_Public", "Judge_Voting", "Steward_Panel", "BIS_Admin_Control", "Test_Live_Admin", "Test_Live_Voting","QR_Codes", "QR_Codes_Gen", "Nominated_Cats", "Judge_List", "Nomination_Labels", "Admin_Panel", "Excel_Upload"]
+	"Admin": ["Home", "Dashboard", "BIS_Public", "Steward_Panel", "Test_Live_Admin", "Test_Live_Voting","QR_Codes_Gen", "Nominated_Cats", "Judge_List", "Nomination_Labels", "Admin_Panel", "Excel_Upload"]
 }
 
 st.markdown("""
