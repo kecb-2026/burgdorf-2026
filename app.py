@@ -130,7 +130,7 @@ st.markdown("""
     }
 
     /* --- GLOBALE BUTTONS (DASHBOARD) --- */
-    div.stButton > button, .stButton button {
+    div.stButton > button {
         width: 100% !important;
         height: 50px !important;
         border-radius: 12px !important;
@@ -140,8 +140,10 @@ st.markdown("""
         transition: all 0.2s ease;
         margin-bottom: 5px;
         border: 2px solid #1a4a9e !important;
+        background-color: #1a4a9e !important;
         color: white !important;
     }
+
 
     /* --- BUTTONS SPEZIFISCH IM STEWARD PANEL VERKLEINERN --- */
     div[data-testid="stHorizontalBlock"] div.stButton > button {
