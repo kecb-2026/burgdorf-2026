@@ -145,8 +145,9 @@ st.markdown("""
     }
 
 
+
     /* --- BUTTONS SPEZIFISCH IM STEWARD PANEL VERKLEINERN --- */
-    div[data-testid="stHorizontalBlock"] div.stButton > button {
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] div.stButton > button {
         height: 35px !important;
         min-height: 35px !important;
         min-width: 100px !important;
@@ -165,7 +166,7 @@ st.markdown("""
     /* Spalten-spezifische Button-Farben & einheitliche Größen für das Steward-Pult */
     
     /* SPALTE 1: AUFRUFEN -> BLAU */
-    div[data-testid="stHorizontalBlock"] > div:nth-child(1) button {
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(1) button {
         background-color: #007bff !important;
         border: none !important;
         color: white !important;
@@ -173,14 +174,14 @@ st.markdown("""
         height: 35px !important;
     }
     /* Wenn Aktiv: Blau pulsieren */
-    .st-blink-btn div[data-testid="stHorizontalBlock"] > div:nth-child(1) button,
-    div:nth-child(1) .st-blink-btn button {
+    .st-blink-btn .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(1) button,
+    .steward-card-wrapper div:nth-child(1) .st-blink-btn button {
         animation: pulseBlue 1.5s infinite ease-in-out !important;
         box-shadow: 0 0 12px rgba(0, 123, 255, 0.5) !important;
     }
     
     /* SPALTE 2: WIRD GERICHTET -> ORANGE */
-    div[data-testid="stHorizontalBlock"] > div:nth-child(2) button {
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(2) button {
         background-color: #ff9800 !important;
         border: none !important;
         color: white !important;
@@ -188,14 +189,14 @@ st.markdown("""
         height: 35px !important;
     }
     /* Wenn Aktiv: Orange pulsieren */
-    .st-blink-btn div[data-testid="stHorizontalBlock"] > div:nth-child(2) button,
-    div:nth-child(2) .st-blink-btn button {
+    .st-blink-btn .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(2) button,
+    .steward-card-wrapper div:nth-child(2) .st-blink-btn button {
         animation: pulseOrange 1.5s infinite ease-in-out !important;
         box-shadow: 0 0 12px rgba(255, 152, 0, 0.5) !important;
     }
     
     /* SPALTE 3: BIV -> GRÜN */
-    div[data-testid="stHorizontalBlock"] > div:nth-child(3) button {
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(3) button {
         background-color: #28a745 !important;
         border: none !important;
         color: white !important;
@@ -203,14 +204,14 @@ st.markdown("""
         height: 35px !important;
     }
     /* Wenn Aktiv: Grün pulsieren */
-    .st-blink-btn div[data-testid="stHorizontalBlock"] > div:nth-child(3) button,
-    div:nth-child(3) .st-blink-btn button {
+    .st-blink-btn .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(3) button,
+    .steward-card-wrapper div:nth-child(3) .st-blink-btn button {
         animation: pulseGreen 1.5s infinite ease-in-out !important;
         box-shadow: 0 0 12px rgba(40, 167, 69, 0.5) !important;
     }
     
     /* SPALTE 4: NOM -> GELB */
-    div[data-testid="stHorizontalBlock"] > div:nth-child(4) button {
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(4) button {
         background-color: #ffc107 !important;
         border: none !important;
         color: black !important;
@@ -218,14 +219,14 @@ st.markdown("""
         height: 35px !important;
     }
     /* Wenn Aktiv: Gelb pulsieren */
-    .st-blink-btn div[data-testid="stHorizontalBlock"] > div:nth-child(4) button,
-    div:nth-child(4) .st-blink-btn button {
+    .st-blink-btn .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(4) button,
+    .steward-card-wrapper div:nth-child(4) .st-blink-btn button {
         animation: pulseYellow 1.5s infinite ease-in-out !important;
         box-shadow: 0 0 12px rgba(255, 193, 7, 0.5) !important;
     }
     
     /* SPALTE 5: GERICHTET -> GRAU (Erledigt braucht kein Blinken) */
-    div[data-testid="stHorizontalBlock"] > div:nth-child(5) button {
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(5) button {
         background-color: #6c757d !important;
         border: none !important;
         color: white !important;
@@ -234,7 +235,7 @@ st.markdown("""
     }
 
     /* Erweiterte Hover Effekte für ein haptisches Feedback */
-    div[data-testid="stHorizontalBlock"] > div > button:hover {
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div > button:hover {
         transform: scale(1.02);           /* Button wird beim Drüberfahren minimal größer */
         cursor: pointer;                  /* Mauszeiger wird zur Hand */
         filter: brightness(110%);         /* Macht die Farbe einen Tick leuchtender statt nur dunkler */
@@ -242,19 +243,19 @@ st.markdown("""
     }
 
     /* Individuelle Anpassung, falls du bei den spezifischen Farben bleiben willst: */
-    div[data-testid="stHorizontalBlock"] > div:nth-child(1) button:hover { background-color: #0069d9 !important; }
-    div[data-testid="stHorizontalBlock"] > div:nth-child(2) button:hover { background-color: #e68a00 !important; }
-    div[data-testid="stHorizontalBlock"] > div:nth-child(3) button:hover { background-color: #218838 !important; }
-    div[data-testid="stHorizontalBlock"] > div:nth-child(4) button:hover { background-color: #e0a800 !important; }
-    div[data-testid="stHorizontalBlock"] > div:nth-child(5) button:hover { background-color: #5a6268 !important; }
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(1) button:hover { background-color: #0069d9 !important; }
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(2) button:hover { background-color: #e68a00 !important; }
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(3) button:hover { background-color: #218838 !important; }
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(4) button:hover { background-color: #e0a800 !important; }
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(5) button:hover { background-color: #5a6268 !important; }
 
 
     /* Hover Effekte (Ebenfalls flexibel für aktive Blink-Zustände) */
-    div[data-testid="stHorizontalBlock"] > div:nth-child(1) button:hover { background-color: #0069d9 !important; }
-    div[data-testid="stHorizontalBlock"] > div:nth-child(2) button:hover { background-color: #e68a00 !important; }
-    div[data-testid="stHorizontalBlock"] > div:nth-child(3) button:hover { background-color: #218838 !important; }
-    div[data-testid="stHorizontalBlock"] > div:nth-child(4) button:hover { background-color: #e0a800 !important; }
-    div[data-testid="stHorizontalBlock"] > div:nth-child(5) button:hover { background-color: #5a6268 !important; }
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(1) button:hover { background-color: #0069d9 !important; }
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(2) button:hover { background-color: #e68a00 !important; }
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(3) button:hover { background-color: #218838 !important; }
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(4) button:hover { background-color: #e0a800 !important; }
+    .steward-card-wrapper div[data-testid="stHorizontalBlock"] > div:nth-child(5) button:hover { background-color: #5a6268 !important; }
 
     /* Blinken für aktive Container-Wrapper im Python-Code */
     .button-class button, .st-blink-btn button, .blink-active button {
