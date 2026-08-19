@@ -1028,22 +1028,10 @@ elif st.session_state.view == "BIS_Public":
             cols[i+1].markdown(f"<div class='judge-header-box judge-{clean_id}'>{j}</div>", unsafe_allow_html=True)
         cols[-1].markdown("<div class='judge-header-box' style='background-color:#b21f2d;'>BIS</div>", unsafe_allow_html=True)
 
-        # --- KATZEN-ZEILEN ---
-        # Daten holen und zwingend in Text (String) umwandeln, um Typen-Konflikte (1 vs "1") zu vermeiden
-        active_live_label = str(store.data.get("test_live_label", ""))
-        active_live_cat = str(store.data.get("test_live_cat", ""))
-        active_live_tag = str(store.data.get("test_live_tag", ""))
-
+       # --- KATZEN-ZEILEN ---
         for label, klassen, geschl in bis_defs:
             r_cols = st.columns([0.8] + [1.2]*len(judges) + [0.8])
-            
-            # Robuste Text-Prüfung
-            is_active = (str(label) == active_live_label and str(sel_cat) == active_live_cat and str(tag) == active_live_tag)
-            
-            # Neues dezentes Grün-Grau für Hintergrund (#d1dad1) und Rahmen (#b3c2b3)
-            active_style = "background-color: #d1dad1 !important; border-color: #b3c2b3 !important;" if is_active else ""
-            
-            r_cols[0].markdown(f"<div class='class-label-box' style='{active_style}'>{label}</div>", unsafe_allow_html=True)
+            r_cols[0].markdown(f"<div class='class-label-box'>{label}</div>", unsafe_allow_html=True)
             
             show_noms = store.data.get(f"reveal_{tag}_{sel_cat}_{label}", False)
             winner_revealed = store.data.get(f"winner_reveal_{tag}_{sel_cat}_{label}", False)
@@ -1069,11 +1057,9 @@ elif st.session_state.view == "BIS_Public":
                                     circles = "".join([f"<div class='judge-circle' title='{v}'>{get_initials(v)}</div>" for v in voters])
                                     circles_html = f"<div class='judge-initials-container'>{circles}</div>"
 
-                            st.markdown(f"<div class='cat-card' style='{active_style}'><div class='cat-number'>{kat_nr}</div><div class='cat-details'>{get_full_label(m.iloc[0])}</div>{circles_html}</div>", unsafe_allow_html=True)
-                        else: 
-                            st.markdown(f"<div class='placeholder-box' style='{active_style}'>–</div>", unsafe_allow_html=True)
-                    else: 
-                        st.markdown(f"<div class='placeholder-box' style='{active_style}'>🔒</div>", unsafe_allow_html=True)
+                            st.markdown(f"<div class='cat-card'><div class='cat-number'>{kat_nr}</div><div class='cat-details'>{get_full_label(m.iloc[0])}</div>{circles_html}</div>", unsafe_allow_html=True)
+                        else: st.markdown("<div class='placeholder-box'>–</div>", unsafe_allow_html=True)
+                    else: st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
             
             with r_cols[-1]:
                 if winner_revealed:
@@ -1092,10 +1078,8 @@ elif st.session_state.view == "BIS_Public":
                         if vts: winner_nr = pd.Series(vts).value_counts().index[0]
                     if winner_nr and winner_nr != "Automatisch (Stimmen)":
                         m_w = df_full[df_full['KAT_STR'] == str(winner_nr)]
-                        if not m_w.empty: 
-                            st.markdown(f"<div class='cat-card winner-card'><div class='cat-number'>{winner_nr}</div><div class='cat-details'>{get_full_label(m_w.iloc[0])}</div></div>", unsafe_allow_html=True)
-                else: 
-                    st.markdown(f"<div class='placeholder-box' style='{active_style}'>🔒</div>", unsafe_allow_html=True)
+                        if not m_w.empty: st.markdown(f"<div class='cat-card winner-card'><div class='cat-number'>{winner_nr}</div><div class='cat-details'>{get_full_label(m_w.iloc[0])}</div></div>", unsafe_allow_html=True)
+                else: st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
 
     # --- SCHALTWEICHE 2: REFRESH NUR LADEN, WENN KEIN OVERLAY ZEIGT ---
     if not is_overlay_active:
