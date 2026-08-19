@@ -2715,7 +2715,7 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
                 
                 pdf_labels_t1 = generate_avery_labels(df_samstag_daten.copy())
                 st.download_button(
-                    label="📥 Avery Zweckform PDF generieren & herunterladen (Tag 1)",
+                    label="📥 Avery Zweckform (4782) PDF generieren & herunterladen (Tag 1)",
                     data=pdf_labels_t1,
                     file_name="KECB_Nomination_Labels_Sorted_Tag1.pdf",
                     mime="application/pdf",
@@ -2742,7 +2742,7 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
                 
                 pdf_labels_t2 = generate_avery_labels(df_sonntag_daten.copy())
                 st.download_button(
-                    label="📥 Avery Zweckform PDF generieren & herunterladen (Tag 2)",
+                    label="📥 Avery Zweckform (4782) PDF generieren & herunterladen (Tag 2)",
                     data=pdf_labels_t2,
                     file_name="KECB_Nomination_Labels_Sorted_Tag2.pdf",
                     mime="application/pdf",
