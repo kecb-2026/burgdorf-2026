@@ -1029,10 +1029,24 @@ elif st.session_state.view == "BIS_Public":
         cols[-1].markdown("<div class='judge-header-box' style='background-color:#b21f2d;'>BIS</div>", unsafe_allow_html=True)
 
         # --- KATZEN-ZEILEN ---
+        # for label, klassen, geschl in bis_defs:
+         #   r_cols = st.columns([0.8] + [1.2]*len(judges) + [0.8])
+          #  r_cols[0].markdown(f"<div class='class-label-box'>{label}</div>", unsafe_allow_html=True)
+
+		        # Aktive Klasse aus dem Speicher abrufen
+        active_live_label = store.data.get("test_live_label")
+
         for label, klassen, geschl in bis_defs:
             r_cols = st.columns([0.8] + [1.2]*len(judges) + [0.8])
-            r_cols[0].markdown(f"<div class='class-label-box'>{label}</div>", unsafe_allow_html=True)
             
+            # Prüfen, ob dies die aktive Klasse ist und das rötliche Grau setzen
+            is_active = (label == active_live_label)
+            active_style = "background-color: #d9d2d2; border-color: #b0a8a8;" if is_active else ""
+            
+            # Die class-label-box mit dem dynamischen Farb-Style rendern
+            r_cols[0].markdown(f"<div class='class-label-box' style='{active_style}'>{label}</div>", unsafe_allow_html=True)
+
+          ######  
             show_noms = store.data.get(f"reveal_{tag}_{sel_cat}_{label}", False)
             winner_revealed = store.data.get(f"winner_reveal_{tag}_{sel_cat}_{label}", False)
             
