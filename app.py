@@ -1028,25 +1028,11 @@ elif st.session_state.view == "BIS_Public":
             cols[i+1].markdown(f"<div class='judge-header-box judge-{clean_id}'>{j}</div>", unsafe_allow_html=True)
         cols[-1].markdown("<div class='judge-header-box' style='background-color:#b21f2d;'>BIS</div>", unsafe_allow_html=True)
 
-               # --- KATZEN-ZEILEN ---
-        # for label, klassen, geschl in bis_defs:
-         #   r_cols = st.columns([0.8] + [1.2]*len(judges) + [0.8])
-          #  r_cols[0].markdown(f"<div class='class-label-box'>{label}</div>", unsafe_allow_html=True)
-
-		        # Aktive Klasse aus dem Speicher abrufen
-        active_live_label = store.data.get("test_live_label")
-
+       # --- KATZEN-ZEILEN ---
         for label, klassen, geschl in bis_defs:
             r_cols = st.columns([0.8] + [1.2]*len(judges) + [0.8])
+            r_cols[0].markdown(f"<div class='class-label-box'>{label}</div>", unsafe_allow_html=True)
             
-            # Prüfen, ob dies die aktive Klasse ist und das rötliche Grau setzen
-            is_active = (label == active_live_label)
-            active_style = "background-color: #d9d2d2; border-color: #b0a8a8;" if is_active else ""
-            
-            # Die class-label-box mit dem dynamischen Farb-Style rendern
-            r_cols[0].markdown(f"<div class='class-label-box' style='{active_style}'>{label}</div>", unsafe_allow_html=True)
-
-          ######  
             show_noms = store.data.get(f"reveal_{tag}_{sel_cat}_{label}", False)
             winner_revealed = store.data.get(f"winner_reveal_{tag}_{sel_cat}_{label}", False)
             
@@ -1071,9 +1057,9 @@ elif st.session_state.view == "BIS_Public":
                                     circles = "".join([f"<div class='judge-circle' title='{v}'>{get_initials(v)}</div>" for v in voters])
                                     circles_html = f"<div class='judge-initials-container'>{circles}</div>"
 
-                           # st.markdown(f"<div class='cat-card'><div class='cat-number'>{kat_nr}</div><div class='cat-details'>{get_full_label(m.iloc[0])}</div>{circles_html}</div>", unsafe_allow_html=True)
-                      #  else: st.markdown("<div class='placeholder-box'>–</div>", unsafe_allow_html=True)
-                 #   else: st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
+                            st.markdown(f"<div class='cat-card'><div class='cat-number'>{kat_nr}</div><div class='cat-details'>{get_full_label(m.iloc[0])}</div>{circles_html}</div>", unsafe_allow_html=True)
+                        else: st.markdown("<div class='placeholder-box'>–</div>", unsafe_allow_html=True)
+                    else: st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
             
             with r_cols[-1]:
                 if winner_revealed:
@@ -1095,7 +1081,6 @@ elif st.session_state.view == "BIS_Public":
                         if not m_w.empty: st.markdown(f"<div class='cat-card winner-card'><div class='cat-number'>{winner_nr}</div><div class='cat-details'>{get_full_label(m_w.iloc[0])}</div></div>", unsafe_allow_html=True)
                 else: st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
 
-	
     # --- SCHALTWEICHE 2: REFRESH NUR LADEN, WENN KEIN OVERLAY ZEIGT ---
     if not is_overlay_active:
         st_autorefresh(interval=3000, key="bis_refresh")
