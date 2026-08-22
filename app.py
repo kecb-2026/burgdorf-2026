@@ -1268,9 +1268,11 @@ elif st.session_state.view == "Steward_Panel":
                 if pd.isna(farbgruppe) or str(farbgruppe).strip().lower() == "nan": farbgruppe = "N/A"
                 
                 geschlecht = row.get('GESCHLECHT', 'N/A')
+                
                 kastriert_val = str(row.get('Kastriert', '')).strip().upper()
-                if kastriert_val and kastriert_val != 'NAN':
+                if kastriert_val == 'X':
                     geschlecht = f"{geschlecht} (Kastriert)"
+
 				
                 geb_cols = [c for c in row.index if "GEB" in c or "GEBURT" in c]
                 geb_datum = row[geb_cols[0]] if geb_cols else row.get('GEB_DATUM', 'N/A')
