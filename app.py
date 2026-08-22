@@ -1259,7 +1259,7 @@ elif st.session_state.view == "Steward_Panel":
                 try:
                     klasse_int = int(str(klasse).replace('.0', ''))
                     klasse_anzeige = FIFe_KLASSEN_NAMEN.get(klasse_int, str(klasse))
-				except (ValueError, TypeError):
+                except (ValueError, TypeError):
                     klasse_anzeige = str(klasse)
 
 
