@@ -3130,9 +3130,8 @@ elif st.session_state.view == "Test_Live_Admin":
                         store.save_backup()
 
                     final_nr = None
-                    if store.data[key_override] != "Automatisch (Stimmen)": 
-				    
-                        final_nr = store.data[key_override]
+                    if store.data.get(key_override, "Automatisch (Stimmen)") != "Automatisch (Stimmen)": 
+                        final_nr = store.data.get(key_override, "Automatisch (Stimmen)")
                     elif "votes" in store.data:
                         # Für die automatische Ermittlung des Gewinners zählen NUR "bestaerkt" (bestätigte) Stimmen!
                         vts = []
@@ -3144,7 +3143,7 @@ elif st.session_state.view == "Test_Live_Admin":
                                     vts.append(v)
                         if vts: 
                             final_nr = pd.Series(vts).value_counts().index[0]
-                            
+
                     if final_nr and st.button(f"🏆 OVERLAY ZEIGEN (#{final_nr})", key=f"btn_ov_{admin_tag}_{sel_cat}_{label}"):
                         w_match = df_full[df_full['KAT_STR'] == str(final_nr)]
                         if not w_match.empty:
