@@ -3130,7 +3130,8 @@ elif st.session_state.view == "Test_Live_Admin":
                         store.save_backup()
 
                     final_nr = None
-                    if store.data[key_override] != "Automatisch (Stimmen)": 
+                  #  if store.data[key_override] != "Automatisch (Stimmen)": 
+				    .get(key_override, "Automatisch (Stimmen)")
                         final_nr = store.data[key_override]
                     elif "votes" in store.data:
                         # Für die automatische Ermittlung des Gewinners zählen NUR "bestaerkt" (bestätigte) Stimmen!
