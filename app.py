@@ -1139,7 +1139,7 @@ elif st.session_state.view == "Dashboard":
                                     })
                     
                     #judge_entries.sort(key=lambda x: x["data"].get("timestamp", 0))
-					judge_entries.sort(key=lambda x: (not x["data"].get("flags", {}).get("Wird gerichtet", False), x["data"].get("timestamp", 0)))
+                    judge_entries.sort(key=lambda x: (not x["data"].get("flags", {}).get("Wird gerichtet", False), x["data"].get("timestamp", 0)))
 
                     
                     for entry in judge_entries:
