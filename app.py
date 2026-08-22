@@ -1272,7 +1272,7 @@ elif st.session_state.view == "Steward_Panel":
                 #if kastriert_val == 'X':
                     #geschlecht = f"{geschlecht} (Kastriert)"
 
-				geschlecht = row.get('GESCHLECHT', 'N/A')
+                geschlecht = row.get('GESCHLECHT', 'N/A')
                 kastriert_val = str(row.get('Kastriert', '')).strip()
                 if kastriert_val != '':
                     geschlecht = f"{geschlecht} (Kastriert)"
