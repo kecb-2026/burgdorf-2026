@@ -2831,7 +2831,7 @@ elif st.session_state.view == "Test_Live_Voting":
         # 1. LIVE-WERTE AUS DEM TEST-ADMIN AUSLESEN
         active_cat = store.data.get("test_live_cat")
         active_label = store.data.get("test_live_label")
-		active_tag = store.data.get("test_live_tag")
+        active_tag = store.data.get("test_live_tag")
         
         # 2. DER PRÜFMECHANISMUS: RUNDEN-WECHSEL IM HINTERGRUND ERKENNEN
         current_round_identifier = f"{active_tag}_{active_cat}_{active_label}"
