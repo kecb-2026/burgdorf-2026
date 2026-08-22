@@ -583,6 +583,21 @@ def set_view(name):
     st.session_state.view = name
     st.rerun()
 
+FIFe_KLASSEN_NAMEN = {
+    1: "1 - PH",
+    2: "2 - PH",
+    3: "3 - CACS",
+    4: "4 - CAPS",
+    5: "5 - CAGCIB",
+    6: "6 - CAGCIP",
+    7: "7 - CACIB",
+    8: "8 - CACIP",
+    9: "9 - CAC",
+    10: "10 - CAP",
+    11: "11 - CACJ",
+    12: "12 - CACC"
+}
+
 
 # --- 5. NAVIGATION & ZUGRIFF ---
 access_map = {
