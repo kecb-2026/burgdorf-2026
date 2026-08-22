@@ -1256,6 +1256,11 @@ elif st.session_state.view == "Steward_Panel":
                 
                 # Spalten flexibel auslesen
                 klasse = row.get('KLASSE_INTERNAL', row.get('AUSSTELLUNGSKLASSE', row.get('KLASSE', 'N/A')))
+				try:
+                    klasse_anzeige = FIFe_KLASSEN_NAMEN.get(int(str(klasse).replace('.0', '')), str(klasse))
+                except:
+                    klasse_anzeige = str(klasse)
+
                 fg_cols = [c for c in row.index if "FARBGRUPPE" in c or "FARB-GRUPPE" in c]
                 farbgruppe = row[fg_cols[0]] if fg_cols else row.get('FARBGRUPPE', 'N/A')
                 if pd.isna(farbgruppe) or str(farbgruppe).strip().lower() == "nan": farbgruppe = "N/A"
@@ -1296,7 +1301,7 @@ elif st.session_state.view == "Steward_Panel":
                         <span class="card-meta-main">{get_full_label(row)}</span>
                     </div>
                     <div class="grid-container">
-                        <span class="card-meta-sub"><span class="meta-label">Klasse:</span> {klasse}</span>
+                        <span class="card-meta-sub"><span class="meta-label">Klasse:</span> {klasse_anzeige}</span>
                         <span class="card-meta-sub"><span class="meta-label">Farbgruppe:</span> {farbgruppe}</span>
                         <span class="card-meta-sub"><span class="meta-label">Geschlecht:</span> {geschlecht}</span>
                         <span class="card-meta-sub"><span class="meta-label">Geboren:</span> {geb_datum}</span>
