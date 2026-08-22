@@ -1273,9 +1273,11 @@ elif st.session_state.view == "Steward_Panel":
                     #geschlecht = f"{geschlecht} (Kastriert)"
 
                 geschlecht = row.get('GESCHLECHT', 'N/A')
-                kastriert_val = str(row.get('Kastriert', '')).strip()
-                if kastriert_val != '':
-                    geschlecht = f"{geschlecht} (Kastriert)"
+				if "x" in str(row.get('Kastriert', '')).lower():
+	                geschlecht = f"{geschlecht} (Kastriert)"
+                #kastriert_val = str(row.get('Kastriert', '')).strip()
+                #if kastriert_val != '':
+                    #geschlecht = f"{geschlecht} (Kastriert)"
 
 				
                 geb_cols = [c for c in row.index if "GEB" in c or "GEBURT" in c]
