@@ -2814,6 +2814,7 @@ elif st.session_state.view == "Admin_Panel":
 # NEUER MENÜPUNKT: TEST LIVE-VOTING (RICHTER)
 # ==============================================================================
 elif st.session_state.view == "Test_Live_Voting":
+    st_autorefresh(interval=4000, key="test_live_voting_refresh")
     display_header_with_logo("🗳️  Judge Live Voting")
    
     df_full = load_labels()
@@ -2830,7 +2831,19 @@ elif st.session_state.view == "Test_Live_Voting":
         # 1. LIVE-WERTE AUS DEM TEST-ADMIN AUSLESEN
         active_cat = store.data.get("test_live_cat")
         active_label = store.data.get("test_live_label")
+		active_tag = store.data.get("test_live_tag")
         
+        # 2. DER PRÜFMECHANISMUS: RUNDEN-WECHSEL IM HINTERGRUND ERKENNEN
+        current_round_identifier = f"{active_tag}_{active_cat}_{active_label}"
+        if "last_seen_round" not in st.session_state:
+            st.session_state.last_seen_round = current_round_identifier
+            
+        # Wenn der Admin im Hintergrund eine andere Runde freigibt, wird automatisch aktualisiert
+        if st.session_state.last_seen_round != current_round_identifier:
+            st.session_state.last_seen_round = current_round_identifier
+            st.rerun()
+
+
         # 2. WENN NOCH KEIN HÄKCHEN IM TEST-ADMIN GESETZT WURDE -> WARTE-BILDSCHIRM
         if not active_cat or not active_label:
             st.info("⏳ **Bitte warten...** Die Ausstellungsleitung hat für den Test aktuell noch keine Abstimmungsrunde freigeschaltet. Please wait, the Admin will release the voting shortly.")
