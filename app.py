@@ -3252,32 +3252,50 @@ elif st.session_state.view == "Test_Live_Admin":
 
 
 
-                    # --- RESET-BUTTON JETZT RECHTS UNTEN UNTER DEN RICHTERSTIMMEN ---
-                    st.markdown("---")
-                    confirm_key = f"confirm_reset_{admin_tag}_{sel_cat}_{label}"
-                    
-                    if not st.session_state.get(confirm_key, False):
-                        if st.button("🔄 Stimmen zurücksetzen", key=f"btn_init_reset_{admin_tag}_{sel_cat}_{label}"):
-                            st.session_state[confirm_key] = True
-                            st.rerun()
-                    else:
-                        st.warning("⚠️ Wirklich löschen?")
-                        col_yes, col_no = st.columns(2)
-                        with col_yes:
-                            if st.button("Ja", key=f"btn_confirm_yes_{admin_tag}_{sel_cat}_{label}", type="primary"):
-                                if "votes" in store.data:
-                                    keys_to_delete = [k for k in store.data["votes"].keys() if k.startswith(v_prefix)]
-                                    for k in keys_to_delete:
-                                        del store.data["votes"][k]
-                                    store.save_backup()
-                                st.session_state[confirm_key] = False
-                                st.success("Zurückgesetzt!")
+                    # --- RESET-BUTTON ERSCHEINT NUR, WENN TATSÄCHLICH STIMMEN VORHANDEN SIND ---
+                    if has_votes:
+                        st.markdown("---")
+                        
+                        # Neutrales Styling für den Button (weiß / dezent)
+                        st.markdown("""
+                            <style>
+                            div.stButton > button[kind="secondary"] {
+                                background-color: white !important;
+                                color: #31333F !important;
+                                border: 1px solid #cccccc !important;
+                            }
+                            div.stButton > button[kind="secondary"]:hover {
+                                background-color: #f0f2f6 !important;
+                                color: #31333F !important;
+                                border: 1px solid #b5b5b5 !important;
+                            }
+                            </style>
+                        """, unsafe_allow_html=True)
+
+                        confirm_key = f"confirm_reset_{admin_tag}_{sel_cat}_{label}"
+                        
+                        if not st.session_state.get(confirm_key, False):
+                            if st.button("🔄 Stimmen zurücksetzen", key=f"btn_init_reset_{admin_tag}_{sel_cat}_{label}"):
+                                st.session_state[confirm_key] = True
                                 st.rerun()
-                        with col_no:
-                            if st.button("Nein", key=f"btn_confirm_no_{admin_tag}_{sel_cat}_{label}"):
-                                st.session_state[confirm_key] = False
-                                st.rerun()
-                    # -------------------------------------------------------------
+                        else:
+                            st.warning("⚠️ Wirklich löschen?")
+                            col_yes, col_no = st.columns(2)
+                            with col_yes:
+                                if st.button("Ja", key=f"btn_confirm_yes_{admin_tag}_{sel_cat}_{label}", type="primary"):
+                                    if "votes" in store.data:
+                                        keys_to_delete = [k for k in store.data["votes"].keys() if k.startswith(v_prefix)]
+                                        for k in keys_to_delete:
+                                            del store.data["votes"][k]
+                                        store.save_backup()
+                                    st.session_state[confirm_key] = False
+                                    st.success("Zurückgesetzt!")
+                                    st.rerun()
+                            with col_no:
+                                if st.button("Nein", key=f"btn_confirm_no_{admin_tag}_{sel_cat}_{label}"):
+                                    st.session_state[confirm_key] = False
+                                    st.rerun()
+                    # ------------------------------------------------------------------------
                                 
     if st.button("⬅️ Zurück zum Hauptmenü", key="back_from_bisadmin"):
         set_view("Home")
