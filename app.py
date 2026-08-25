@@ -3149,40 +3149,6 @@ elif st.session_state.view == "Test_Live_Admin":
                         store.save_backup()
                     # --- ENDE DER NEUEN ZUSÄTZLICHEN CHECKBOX ---
 
-				    # =========================================================================
-                    # HIER JETZT DEN NEUEN SICHEREN RESET-BUTTON EINSETZEN:
-                    # =========================================================================
-                    st.markdown("---")
-                    
-                    confirm_key = f"confirm_reset_{admin_tag}_{sel_cat}_{label}"
-                    
-                    if not st.session_state.get(confirm_key, False):
-                        if st.button("🗑️ Alle Richterstimmen zurücksetzen", key=f"btn_init_reset_{admin_tag}_{sel_cat}_{label}", use_container_width=True):
-                            st.session_state[confirm_key] = True
-                            st.rerun()
-                    else:
-                        st.warning("⚠️ Möchten Sie diese Stimmen wirklich unwiderruflich löschen?")
-                        col_yes, col_no = st.columns(2)
-                        
-                        with col_yes:
-                            if st.button("Ja, löschen", key=f"btn_confirm_yes_{admin_tag}_{sel_cat}_{label}", type="primary", use_container_width=True):
-                                if "votes" in store.data:
-                                    keys_to_delete = [k for k in store.data["votes"].keys() if k.startswith(v_prefix)]
-                                    for k in keys_to_delete:
-                                        del store.data["votes"][k]
-                                    store.save_backup()
-                                st.session_state[confirm_key] = False
-                                st.success("✅ Stimmen wurden zurückgesetzt!")
-                                st.rerun()
-                                
-                        with col_no:
-                            if st.button("Abbrechen", key=f"btn_confirm_no_{admin_tag}_{sel_cat}_{label}", use_container_width=True):
-                                st.session_state[confirm_key] = False
-                                st.rerun()
-                                
-                    st.markdown("---")
-                    # =========================================================================
-
 
                     # --- NEU: COMPAKTE CHECKBOX STATT RADIO BOX ---
                     # KOMMENTAR: Wir erstellen den eindeutigen Schlüssel für den Speicher
@@ -3283,6 +3249,35 @@ elif st.session_state.view == "Test_Live_Admin":
                                     st.write(f"Katze #{nr}: **{count} Stimme(n)**")
                             else:
                                 st.info("Es wurden noch keine Stimmen final bestätigt.")
+
+
+
+                    # --- RESET-BUTTON JETZT RECHTS UNTEN UNTER DEN RICHTERSTIMMEN ---
+                    st.markdown("---")
+                    confirm_key = f"confirm_reset_{admin_tag}_{sel_cat}_{label}"
+                    
+                    if not st.session_state.get(confirm_key, False):
+                        if st.button("🔄 Stimmen zurücksetzen", key=f"btn_init_reset_{admin_tag}_{sel_cat}_{label}"):
+                            st.session_state[confirm_key] = True
+                            st.rerun()
+                    else:
+                        st.warning("⚠️ Wirklich löschen?")
+                        col_yes, col_no = st.columns(2)
+                        with col_yes:
+                            if st.button("Ja", key=f"btn_confirm_yes_{admin_tag}_{sel_cat}_{label}", type="primary"):
+                                if "votes" in store.data:
+                                    keys_to_delete = [k for k in store.data["votes"].keys() if k.startswith(v_prefix)]
+                                    for k in keys_to_delete:
+                                        del store.data["votes"][k]
+                                    store.save_backup()
+                                st.session_state[confirm_key] = False
+                                st.success("Zurückgesetzt!")
+                                st.rerun()
+                        with col_no:
+                            if st.button("Nein", key=f"btn_confirm_no_{admin_tag}_{sel_cat}_{label}"):
+                                st.session_state[confirm_key] = False
+                                st.rerun()
+                    # -------------------------------------------------------------
                                 
     if st.button("⬅️ Zurück zum Hauptmenü", key="back_from_bisadmin"):
         set_view("Home")
