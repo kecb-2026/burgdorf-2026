@@ -1270,6 +1270,14 @@ elif st.session_state.view == "Steward_Panel":
                 
 
                 geschlecht = row.get('GESCHLECHT', 'N/A')
+				#geschlecht = row.get('GESCHLECHT', 'N/A')
+
+                # --- NEU: Prüfen, ob die Katze kastriert ist ---
+                kastriert_wert = str(row.get('KASTRIERT', '')).strip()
+                # Wenn in der Spalte ein Wert steht (z.B. ein 'X' oder 'Ja'), bauen wir den Vermerk zusammen
+                is_kastriert = kastriert_wert != '' and kastriert_wert != '-' and kastriert_wert.lower() != 'nan'
+                geschlecht_anzeige = f"{geschlecht}, kastriert" if is_kastriert else geschlecht
+
                 
 
 				
@@ -1310,7 +1318,7 @@ elif st.session_state.view == "Steward_Panel":
                     <div class="grid-container">
                         <span class="card-meta-sub"><span class="meta-label">Klasse:</span> {klasse_anzeige}</span>
                         <span class="card-meta-sub"><span class="meta-label">Farbgruppe:</span> {farbgruppe}</span>
-                        <span class="card-meta-sub"><span class="meta-label">Geschlecht:</span> {geschlecht}</span>
+                        <span class="card-meta-sub"><span class="meta-label">Geschlecht:</span> {geschlecht_anzeige}</span>
                         <span class="card-meta-sub"><span class="meta-label">Geboren:</span> {geb_datum}</span>
                     </div>
                     <div style="border-top: 1px solid #e2e2e2; padding-top: 10px; margin-top: 12px; margin-bottom: 8px;"></div>
