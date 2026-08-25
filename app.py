@@ -1276,7 +1276,7 @@ elif st.session_state.view == "Steward_Panel":
                 kastriert_wert = str(row.get('KASTRIERT', '')).strip()
                 # Wenn in der Spalte ein Wert steht (z.B. ein 'X' oder 'Ja'), bauen wir den Vermerk zusammen
                 is_kastriert = kastriert_wert != '' and kastriert_wert != '-' and kastriert_wert.lower() != 'nan'
-                geschlecht_anzeige = f"{geschlecht}, kastriert" if is_kastriert else geschlecht
+                geschlecht_anzeige = f"{geschlecht} (kastriert)" if is_kastriert else geschlecht
 
                 
 
