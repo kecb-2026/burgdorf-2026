@@ -3204,6 +3204,8 @@ elif st.session_state.view == "Test_Live_Admin":
         
                 with c_votes:
                     st.markdown("**Stimmen-Details**")
+
+					has_votes = False
                     if "votes" in store.data:
                         rows = []
                         confirmed_votes_for_summary = []
