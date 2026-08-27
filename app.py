@@ -35,6 +35,21 @@ LOGO_URL = "logo_kecb.png"
 
 st.markdown("""
     <style>
+
+	    /* Erzwingt weißes Design für den spezifischen Reset-Button anhand seines Schlüssels */
+    div.stButton > button[key*="btn_init_reset"],
+    div.stButton > button[data-baseweb="button"]:has(p:contains("Stimmen zurücksetzen")) {
+        background-color: #ffffff !important;
+        color: #31333F !important;
+        border: 1px solid #cccccc !important;
+    }
+    div.stButton > button[key*="btn_init_reset"]:hover,
+    div.stButton > button[data-baseweb="button"]:has(p:contains("Stimmen zurücksetzen")):hover {
+        background-color: #f0f2f6 !important;
+        color: #000000 !important;
+        border: 1px solid #999999 !important;
+    }
+
 	
     @keyframes blinker { 50% { opacity: 0.1; } }
     @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
