@@ -36,15 +36,13 @@ LOGO_URL = "logo_kecb.png"
 st.markdown("""
     <style>
 
-	    /* Erzwingt weißes Design für den spezifischen Reset-Button anhand seines Schlüssels */
-    div.stButton > button[key*="btn_init_reset"],
-    div.stButton > button[data-baseweb="button"]:has(p:contains("Stimmen zurücksetzen")) {
+    /* Zielt auf alle sekundären Buttons in der Admin-Steuerung ab */
+    div.stButton > button[kind="secondary"] {
         background-color: #ffffff !important;
         color: #31333F !important;
         border: 1px solid #cccccc !important;
     }
-    div.stButton > button[key*="btn_init_reset"]:hover,
-    div.stButton > button[data-baseweb="button"]:has(p:contains("Stimmen zurücksetzen")):hover {
+    div.stButton > button[kind="secondary"]:hover {
         background-color: #f0f2f6 !important;
         color: #000000 !important;
         border: 1px solid #999999 !important;
