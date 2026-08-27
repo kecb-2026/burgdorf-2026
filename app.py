@@ -47,6 +47,17 @@ st.markdown("""
         color: #000000 !important;
         border: 1px solid #999999 !important;
     }
+    /* Erzwingt weißes Design für Buttons mit dem Text "Stimmen zurücksetzen" */
+    button:has(p:contains("Stimmen zurücksetzen")) {
+        background-color: #ffffff !important;
+        color: #31333F !important;
+        border: 1px solid #cccccc !important;
+    }
+    button:has(p:contains("Stimmen zurücksetzen")):hover {
+        background-color: #f0f2f6 !important;
+        color: #000000 !important;
+        border: 1px solid #999999 !important;
+    }
 
 	
     @keyframes blinker { 50% { opacity: 0.1; } }
