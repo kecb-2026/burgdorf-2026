@@ -3275,7 +3275,7 @@ elif st.session_state.view == "Test_Live_Admin":
                     confirm_key = f"confirm_reset_{admin_tag}_{sel_cat}_{label}"
                     
                     if not st.session_state.get(confirm_key, False):
-                        if st.button("🔄 Stimmen zurücksetzen", key=f"btn_init_reset_{admin_tag}_{sel_cat}_{label}"):
+                        if st.button("🔄 Stimmen zurücksetzen", key=f"btn_init_reset_{admin_tag}_{sel_cat}_{label}",type="secondary"):
                             st.session_state[confirm_key] = True
                             st.rerun()
                     else:
