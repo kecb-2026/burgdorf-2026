@@ -608,7 +608,7 @@ access_map = {
 	# "Richter": ["Judge_Voting",  "Test_Live_Voting", "Dashboard", "BIS_Public"],
     "Steward": ["Steward_Panel", "Dashboard", "BIS_Public"],
    # "Admin": ["Home", "Dashboard", "BIS_Public", "Judge_Voting", "Steward_Panel", "BIS_Admin_Control", "Test_Live_Admin", "Test_Live_Voting","QR_Codes", "QR_Codes_Gen", "Nominated_Cats", "Judge_List", "Nomination_Labels", "Admin_Panel", "Excel_Upload"]
-	"Admin": ["Home", "Dashboard", "BIS_Public", "Steward_Panel", "Test_Live_Admin", "Test_Live_Voting","QR_Codes_Gen", "Nominated_Cats", "Judge_List", "Nomination_Labels", "Admin_Panel", "Excel_Upload"]
+	"Admin": ["Home", "Dashboard", "BIS_Public", "Steward_Panel", "Test_Live_Admin", "Test_Live_Voting","QR_Codes_Gen", "Nominated_Cats", "Judge_List", "Nomination_Labels", "Admin_Panel", "Excel_Upload", "Excel_Edit"]
 }
 
 st.markdown("""
@@ -772,6 +772,11 @@ elif st.session_state.view == "Home":
             st.query_params.update({"view": "excel-upload", "auth": "true", "role": "Admin"})
             set_view("Excel_Upload")
             st.rerun()
+        if st.button("📝 EXCEL LIVE-EDITOR"):
+            st.query_params.update({"view": "excel-edit", "auth": "true", "role": "Admin"})
+            set_view("Excel_Edit")
+            st.rerun()
+
             # NEU: Der Button für die QR-Zentrale direkt im Admin-Menü
         if st.button("📱 QR-CODE ZENTRALE"):
             st.query_params.update({"view": "qr", "auth": "true", "role": "Admin"})
