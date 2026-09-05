@@ -3408,13 +3408,11 @@ elif st.session_state.view == "Excel_Upload":
 # ==============================================================================
 elif st.session_state.view == "Excel_Edit":
     display_header_with_logo("📝 Live Excel-Editor")
-    st.write("Bearbeite die Katalogdaten direkt hier in der Tabelle. Nach dem Speichern wird die `2026.xlsx` auf GitHub aktualisiert.")
+    st.write("Bearbeite die Katalogdaten direkt hier in der Tabelle. Drücke nach Änderungen **Enter** und klicke anschließend auf Speichern.")
     
     df_loaded = load_labels()
     
     if df_loaded is not None:
-        # 1. EXAKTE ORIGINAL-SPALTENREIHENFOLGE DER EXCEL-DATEI DEFINIEREN
-        # (Alle App-Zusatzspalten wie KLASSE_INTERNAL, KAT_STR und SELECTION werden ignoriert)
         EXACT_ORIGINAL_COLS = [
             'SELECTION 1', 'SELECTION 2', 'KATALOG-NR', 'CHIP-NUMMER', 'STAMMBUCH-NUMMER',
             'NAME', 'GEBURTSDATUM', 'GESCHLECHT', 'KATEGORIE', 'RASSE', 'FARBE',
@@ -3423,11 +3421,10 @@ elif st.session_state.view == "Excel_Edit":
             'BESITZER PLZ', 'BESITZER ORT', 'RICHTER TAG 1', 'RICHTER TAG 2'
         ]
 
-        # 2. Nur existierende Originalspalten in genau dieser Reihenfolge auswählen
         valid_cols = [col for col in EXACT_ORIGINAL_COLS if col in df_loaded.columns]
         df_current = df_loaded[valid_cols].copy()
 
-        # 3. Filter für Übersicht im Editor
+        # 1. Filter für Übersicht im Editor
         st.markdown("### 🔍 Daten filtern (optional)")
         c1, c2 = st.columns(2)
         with c1:
@@ -3442,9 +3439,9 @@ elif st.session_state.view == "Excel_Edit":
         if richter_filter != "Alle":
             df_to_edit = df_to_edit[df_to_edit['RICHTER TAG 1'].astype(str) == richter_filter]
 
-        st.info("💡 **Hinweis:** Du kannst Zellen direkt anklicken, Texte ändern oder Zeilen bearbeiten.")
+        st.info("💡 **Wichtig:** Nach dem Ändern/Löschen einer Zelle bitte **Enter** drücken, um die Eingabe zu bestätigen.")
 
-        # 4. Tabelleneditor mit fester Spaltenreihenfolge
+        # 2. Tabelleneditor
         edited_df_subset = st.data_editor(
             df_to_edit,
             use_container_width=True,
@@ -3455,12 +3452,12 @@ elif st.session_state.view == "Excel_Edit":
 
         st.divider()
 
-        # 5. Speichern-Schaltfläche
+        # 3. Speichern-Schaltfläche
         col_save, col_cancel = st.columns(2)
         
         with col_save:
             if st.button("💾 ÄNDERUNGEN IN EXCEL SPEICHERN", key="btn_save_live_excel", type="primary", use_container_width=True):
-                with st.spinner("Aktualisiere Gesamtdaten und übertrage zu GitHub..."):
+                with st.spinner("Überstrage geänderte Katalogdaten zu GitHub..."):
                     try:
                         import io
                         import base64
@@ -3468,18 +3465,26 @@ elif st.session_state.view == "Excel_Edit":
 
                         df_full_updated = df_current.copy()
                         
-                        # Änderungen über KATALOG-NR zurückschreiben
+                        # Spalte KATALOG-NR als eindeutigen Schlüssel nutzen
                         if 'KATALOG-NR' in df_full_updated.columns and 'KATALOG-NR' in edited_df_subset.columns:
+                            # Saubere Konvertierung der Schlüssel-Spalte
+                            df_full_updated['KATALOG-NR'] = df_full_updated['KATALOG-NR'].astype(str).str.replace('.0', '', regex=False).str.strip()
+                            edited_df_subset_copy = edited_df_subset.copy()
+                            edited_df_subset_copy['KATALOG-NR'] = edited_df_subset_copy['KATALOG-NR'].astype(str).str.replace('.0', '', regex=False).str.strip()
+
                             df_full_updated.set_index('KATALOG-NR', inplace=True)
-                            edited_indexed = edited_df_subset.set_index('KATALOG-NR')
+                            edited_indexed = edited_df_subset_copy.set_index('KATALOG-NR')
+                            
+                            # Aktualisiere die veränderten Zeilen
                             df_full_updated.update(edited_indexed)
                             df_full_updated.reset_index(inplace=True)
                         else:
                             df_full_updated = edited_df_subset
 
-                        # In exakter Reihenfolge exportieren
-                        df_export = df_full_updated[valid_cols]
+                        # Saubere Formatierung: Leere Werte oder 'None' zu '-'
+                        df_export = df_full_updated[valid_cols].fillna('-')
 
+                        # In Excel-Bytes konvertieren
                         output_buffer = io.BytesIO()
                         with pd.ExcelWriter(output_buffer, engine='openpyxl') as writer:
                             df_export.to_excel(writer, index=False, sheet_name='Sheet1')
@@ -3510,16 +3515,20 @@ elif st.session_state.view == "Excel_Edit":
                         response = requests.put(url, json=payload, headers=headers)
 
                         if response.status_code in [200, 201]:
-                            st.success("✅ **Erfolgreich gespeichert!** Die Excel-Datei auf GitHub wurde aktualisiert.")
-                            load_labels.clear()
+                            # AGGRESSIVES LEEREN DES CACHES (Verhindert Geisterdaten!)
+                            st.cache_data.clear()
+                            if hasattr(load_labels, 'clear'):
+                                load_labels.clear()
+                            
+                            st.success("✅ **Erfolgreich gespeichert!** Die Excel-Datei wurde auf GitHub aktualisiert und der App-Cache geleert.")
                             import time
-                            time.sleep(1.5)
+                            time.sleep(2)
                             st.rerun()
                         else:
-                            st.error(f"GitHub API Fehler ({response.status_code}): {response.text}")
+                            st.error(f"❌ GitHub API Fehler ({response.status_code}): {response.text}")
 
                     except Exception as e:
-                        st.error(f"Fehler beim Speichern der Änderungen: {e}")
+                        st.error(f"❌ Fehler beim Speichern: {e}")
 
         with col_cancel:
             if st.button("🚫 Abbrechen", key="btn_cancel_excel_edit", use_container_width=True):
@@ -3529,4 +3538,3 @@ elif st.session_state.view == "Excel_Edit":
     st.divider()
     if st.button("⬅️ Zurück zum Hauptmenü", key="back_from_excel_edit", use_container_width=True):
         set_view("Home")
-
