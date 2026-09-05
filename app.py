@@ -3411,9 +3411,14 @@ elif st.session_state.view == "Excel_Edit":
     display_header_with_logo("📝 Live Excel-Editor")
     st.write("Bearbeite die Katalogdaten direkt hier in der Tabelle. Nach dem Speichern wird die `2026.xlsx` auf GitHub aktualisiert.")
     
-    df_current = load_labels()
+    df_loaded = load_labels()
     
-    if df_current is not None:
+    if df_loaded is not None:
+        # Künstlich erzeugte App-Spalten für die Anzeige im Editor ausblenden
+        generated_cols = ['KLASSE_INTERNAL', 'KAT_STR', 'SELECTION']
+        original_cols = [c for c in df_loaded.columns if c not in generated_cols]
+        df_current = df_loaded[original_cols].copy()
+
         # 1. Filter für bessere Übersicht im Editor
         st.markdown("### 🔍 Daten filtern (optional)")
         c1, c2 = st.columns(2)
@@ -3423,7 +3428,7 @@ elif st.session_state.view == "Excel_Edit":
             r_opt = ["Alle"] + sorted([str(r) for r in df_current['RICHTER TAG 1'].unique() if str(r) not in ["-", "nan"]])
             richter_filter = st.selectbox("Nach Richter (Tag 1) filtern:", r_opt)
 
-        # Gefilterte Ansicht oder komplette Tabelle
+        # Gefilterte Ansicht
         df_to_edit = df_current.copy()
         if kat_filter != "Alle":
             df_to_edit = df_to_edit[df_to_edit['KATEGORIE'].astype(str) == kat_filter]
@@ -3432,12 +3437,12 @@ elif st.session_state.view == "Excel_Edit":
 
         st.info("💡 **Hinweis:** Du kannst Zellen direkt anklicken, Texte ändern oder Zeilen bearbeiten.")
 
-        # 2. Interaktiver Tabelleneditor von Streamlit
+        # 2. Interaktiver Tabelleneditor (zeigt nur Original-Spalten)
         edited_df_subset = st.data_editor(
             df_to_edit,
             use_container_width=True,
             hide_index=True,
-            num_rows="fixed", # Zeilenanzahl fest, verhindert versehentliches Löschen von Katzen
+            num_rows="fixed",
             key="excel_data_editor"
         )
 
@@ -3454,9 +3459,9 @@ elif st.session_state.view == "Excel_Edit":
                         import base64
                         import requests
 
-                        # Änderungen aus dem Editor in den Gesamtdatenbestand zurückschreiben (über Katalog-Nr als Index)
                         df_full_updated = df_current.copy()
                         
+                        # Änderungen über KATALOG-NR zurückschreiben
                         if 'KATALOG-NR' in df_full_updated.columns and 'KATALOG-NR' in edited_df_subset.columns:
                             df_full_updated.set_index('KATALOG-NR', inplace=True)
                             edited_indexed = edited_df_subset.set_index('KATALOG-NR')
@@ -3465,13 +3470,13 @@ elif st.session_state.view == "Excel_Edit":
                         else:
                             df_full_updated = edited_df_subset
 
-                        # In Excel-Bytes im Arbeitsspeicher umwandeln
+                        # In Excel-Bytes umwandeln
                         output_buffer = io.BytesIO()
                         with pd.ExcelWriter(output_buffer, engine='openpyxl') as writer:
                             df_full_updated.to_excel(writer, index=False, sheet_name='Sheet1')
                         file_bytes = output_buffer.getvalue()
 
-                        # GitHub API Upload (Gleicher Mechanismus wie in Deinem Excel_Upload Modul)
+                        # GitHub API Upload
                         token = st.secrets["GITHUB_TOKEN"]
                         repo = st.secrets["GITHUB_REPO"]
                         filename = "2026.xlsx"
@@ -3480,7 +3485,6 @@ elif st.session_state.view == "Excel_Edit":
                         url = f"https://api.github.com/repos/{repo}/contents/{filename}"
                         headers = {"Authorization": f"token {token}"}
 
-                        # SHA-Hash der bisherigen Datei abfragen
                         res = requests.get(url, headers=headers)
                         sha = res.json().get("sha") if res.status_code == 200 else None
 
@@ -3498,7 +3502,7 @@ elif st.session_state.view == "Excel_Edit":
 
                         if response.status_code in [200, 201]:
                             st.success("✅ **Erfolgreich gespeichert!** Die Excel-Datei auf GitHub wurde aktualisiert.")
-                            load_labels.clear() # Streamlit-Cache sofort leeren
+                            load_labels.clear()
                             import time
                             time.sleep(1.5)
                             st.rerun()
@@ -3517,4 +3521,3 @@ elif st.session_state.view == "Excel_Edit":
     if st.button("⬅️ Zurück zum Hauptmenü", key="back_from_excel_edit", use_container_width=True):
         set_view("Home")
 
-		
