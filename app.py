@@ -3403,7 +3403,6 @@ elif st.session_state.view == "Excel_Upload":
         st.session_state.view = "Home"
         st.rerun()
 
-
 # ==============================================================================
 # NEUER MENÜPUNKT: 📝 Excel Direct Editor
 # ==============================================================================
@@ -3414,21 +3413,21 @@ elif st.session_state.view == "Excel_Edit":
     df_loaded = load_labels()
     
     if df_loaded is not None:
-        try:
-            # 1. Liest NUR die Spaltenköpfe aus der originalen Excel-Datei für die exakte Reihenfolge
-            raw_excel_head = pd.read_excel("2026.xlsx", nrows=0)
-            exact_original_order = [str(c).strip().upper() for c in raw_excel_head.columns]
-            
-            # 2. Filtere und sortiere die Spalten exakt wie in der Excel-Datei
-            existing_cols = [c for c in exact_original_order if c in df_loaded.columns]
-            df_current = df_loaded[existing_cols].copy()
-        except Exception:
-            # Fallback, falls Datei lokal nicht auffindbar ist
-            generated_cols = ['KLASSE_INTERNAL', 'KAT_STR', 'SELECTION']
-            original_cols = [c for c in df_loaded.columns if c not in generated_cols]
-            df_current = df_loaded[original_cols].copy()
+        # 1. EXAKTE ORIGINAL-SPALTENREIHENFOLGE DER EXCEL-DATEI DEFINIEREN
+        # (Alle App-Zusatzspalten wie KLASSE_INTERNAL, KAT_STR und SELECTION werden ignoriert)
+        EXACT_ORIGINAL_COLS = [
+            'SELECTION 1', 'SELECTION 2', 'KATALOG-NR', 'CHIP-NUMMER', 'STAMMBUCH-NUMMER',
+            'NAME', 'GEBURTSDATUM', 'GESCHLECHT', 'KATEGORIE', 'RASSE', 'FARBE',
+            'FARBGRUPPE', 'KASTRIERT', 'AUSSTELLUNGSKLASSE', 'TAG 1', 'TAG 2',
+            'BESITZER NACHNAME', 'BESITZER VORNAME', 'BESITZER ADRESSE 1', 'BESITZER LAND',
+            'BESITZER PLZ', 'BESITZER ORT', 'RICHTER TAG 1', 'RICHTER TAG 2'
+        ]
 
-        # 1. Filter für bessere Übersicht im Editor
+        # 2. Nur existierende Originalspalten in genau dieser Reihenfolge auswählen
+        valid_cols = [col for col in EXACT_ORIGINAL_COLS if col in df_loaded.columns]
+        df_current = df_loaded[valid_cols].copy()
+
+        # 3. Filter für Übersicht im Editor
         st.markdown("### 🔍 Daten filtern (optional)")
         c1, c2 = st.columns(2)
         with c1:
@@ -3437,7 +3436,6 @@ elif st.session_state.view == "Excel_Edit":
             r_opt = ["Alle"] + sorted([str(r) for r in df_current['RICHTER TAG 1'].unique() if str(r) not in ["-", "nan"]])
             richter_filter = st.selectbox("Nach Richter (Tag 1) filtern:", r_opt)
 
-        # Gefilterte Ansicht
         df_to_edit = df_current.copy()
         if kat_filter != "Alle":
             df_to_edit = df_to_edit[df_to_edit['KATEGORIE'].astype(str) == kat_filter]
@@ -3446,7 +3444,7 @@ elif st.session_state.view == "Excel_Edit":
 
         st.info("💡 **Hinweis:** Du kannst Zellen direkt anklicken, Texte ändern oder Zeilen bearbeiten.")
 
-        # 2. Interaktiver Tabelleneditor (exakte Original-Reihenfolge)
+        # 4. Tabelleneditor mit fester Spaltenreihenfolge
         edited_df_subset = st.data_editor(
             df_to_edit,
             use_container_width=True,
@@ -3455,10 +3453,9 @@ elif st.session_state.view == "Excel_Edit":
             key="excel_data_editor"
         )
 
-
         st.divider()
 
-        # 3. Speichern-Schaltfläche
+        # 5. Speichern-Schaltfläche
         col_save, col_cancel = st.columns(2)
         
         with col_save:
@@ -3480,10 +3477,12 @@ elif st.session_state.view == "Excel_Edit":
                         else:
                             df_full_updated = edited_df_subset
 
-                        # In Excel-Bytes umwandeln
+                        # In exakter Reihenfolge exportieren
+                        df_export = df_full_updated[valid_cols]
+
                         output_buffer = io.BytesIO()
                         with pd.ExcelWriter(output_buffer, engine='openpyxl') as writer:
-                            df_full_updated.to_excel(writer, index=False, sheet_name='Sheet1')
+                            df_export.to_excel(writer, index=False, sheet_name='Sheet1')
                         file_bytes = output_buffer.getvalue()
 
                         # GitHub API Upload
