@@ -3414,10 +3414,19 @@ elif st.session_state.view == "Excel_Edit":
     df_loaded = load_labels()
     
     if df_loaded is not None:
-        # Künstlich erzeugte App-Spalten für die Anzeige im Editor ausblenden
-        generated_cols = ['KLASSE_INTERNAL', 'KAT_STR', 'SELECTION']
-        original_cols = [c for c in df_loaded.columns if c not in generated_cols]
-        df_current = df_loaded[original_cols].copy()
+        try:
+            # 1. Liest NUR die Spaltenköpfe aus der originalen Excel-Datei für die exakte Reihenfolge
+            raw_excel_head = pd.read_excel("2026.xlsx", nrows=0)
+            exact_original_order = [str(c).strip().upper() for c in raw_excel_head.columns]
+            
+            # 2. Filtere und sortiere die Spalten exakt wie in der Excel-Datei
+            existing_cols = [c for c in exact_original_order if c in df_loaded.columns]
+            df_current = df_loaded[existing_cols].copy()
+        except Exception:
+            # Fallback, falls Datei lokal nicht auffindbar ist
+            generated_cols = ['KLASSE_INTERNAL', 'KAT_STR', 'SELECTION']
+            original_cols = [c for c in df_loaded.columns if c not in generated_cols]
+            df_current = df_loaded[original_cols].copy()
 
         # 1. Filter für bessere Übersicht im Editor
         st.markdown("### 🔍 Daten filtern (optional)")
@@ -3437,7 +3446,7 @@ elif st.session_state.view == "Excel_Edit":
 
         st.info("💡 **Hinweis:** Du kannst Zellen direkt anklicken, Texte ändern oder Zeilen bearbeiten.")
 
-        # 2. Interaktiver Tabelleneditor (zeigt nur Original-Spalten)
+        # 2. Interaktiver Tabelleneditor (exakte Original-Reihenfolge)
         edited_df_subset = st.data_editor(
             df_to_edit,
             use_container_width=True,
@@ -3445,6 +3454,7 @@ elif st.session_state.view == "Excel_Edit":
             num_rows="fixed",
             key="excel_data_editor"
         )
+
 
         st.divider()
 
