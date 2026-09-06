@@ -606,7 +606,7 @@ FIFe_KLASSEN_NAMEN = {
 # --- 5. NAVIGATION & ZUGRIFF ---
 access_map = {
     "Public": ["Dashboard", "BIS_Public", "Login"],
-    "Richter": ["Test_Live_Voting", "Dashboard", "BIS_Public"],
+    "Richter": ["Live_Voting", "Dashboard", "BIS_Public"],
 	# "Richter": ["Judge_Voting",  "Test_Live_Voting", "Dashboard", "BIS_Public"],
     "Steward": ["Steward_Panel", "Dashboard", "BIS_Public"],
    # "Admin": ["Home", "Dashboard", "BIS_Public", "Judge_Voting", "Steward_Panel", "BIS_Admin_Control", "Test_Live_Admin", "Test_Live_Voting","QR_Codes", "QR_Codes_Gen", "Nominated_Cats", "Judge_List", "Nomination_Labels", "Admin_Panel", "Excel_Upload"]
@@ -750,7 +750,7 @@ elif st.session_state.view == "Home":
 			        # --- NEU: BUTTON FÜR DAS RICHTER-TEST-VOTING ---
         if st.button("🧪 LIVE-VOTING (RICHTER)"):
             st.query_params.update({"view": "test-live-voting", "auth": "true", "role": "Admin"})
-            set_view("Test_Live_Voting")
+            set_view("Live_Voting")
             st.rerun()
     with col2:
         if st.button("📝 STEWARD-PULT"):
@@ -764,7 +764,7 @@ elif st.session_state.view == "Home":
 		 # --- NEU: BUTTON FÜR DEN LIVE-ADMIN-TEST ---
         if st.button("🎛️ LIVE-ADMIN CONTROL"):
             st.query_params.update({"view": "test-live-admin", "auth": "true", "role": "Admin"})
-            set_view("Test_Live_Admin")
+            set_view("Live_Admin")
             st.rerun()
         if st.button("⚙️ ADMIN-KONSOLE (RESET)"):
             st.query_params.update({"view": "admin", "auth": "true", "role": "Admin"})
