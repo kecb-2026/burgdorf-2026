@@ -935,7 +935,7 @@ elif st.session_state.view == "BIS_Admin_Control":
 elif st.session_state.view == "BIS_Public":
     # --- SCHALTWEICHE 1: OVERLAY AKTIVIERUNG PRÜFEN ---
    # is_overlay_active = hasattr(store, 'active_overlay') and store.active_overlay is not None
-
+    is_overlay_active = hasattr(store, 'active_overlay') and store.active_overlay is not None
     if is_overlay_active:
         # Prüfen, ob die 20 Sekunden abgelaufen sind
         if time.time() - store.overlay_start_time >= 20:
