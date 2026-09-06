@@ -933,15 +933,17 @@ elif st.session_state.view == "BIS_Admin_Control":
 # BIS PUBLIC VIEW NEW
 
 elif st.session_state.view == "BIS_Public":
-    # --- FLACKERFREIES OVERLAY (20 SEKUNDEN TIMEOUT) ---
-    if hasattr(store, 'active_overlay') and store.active_overlay is not None:
-        # Prüfen, ob die 20 Sekunden abgelaufen sind
-        if time.time() - store.overlay_start_time >= 20:
-            store.active_overlay = None
-            st.rerun() # Nur EINMAL neu laden, wenn die Zeit abgelaufen ist!
-        else:
-            # Overlay rendern, ohne die Seite künstlich zu pausieren
+    # --- SCHALTWEICHE 1: OVERLAY AKTIVIERUNG PRÜFEN ---
+    is_overlay_active = hasattr(store, 'active_overlay') and store.active_overlay is not None
+
+    if is_overlay_active:
+        if time.time() - store.overlay_start_time < 20:
             st.markdown(render_overlay_html(store.active_overlay), unsafe_allow_html=True)
+            time.sleep(1)
+            st.rerun() 
+        else: 
+            store.active_overlay = None
+            st.rerun()
 
     def get_initials(name):
         parts = str(name).split()
