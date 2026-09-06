@@ -891,7 +891,7 @@ elif st.session_state.view == "BIS_Admin_Control":
                     store.data[key_reveal] = st.checkbox("Nominationen anzeigen", value=store.data.get(key_reveal, False), key=f"cb1_{key_reveal}")
                     store.data[key_winner_reveal] = st.checkbox("BIS Gewinner anzeigen", value=store.data.get(key_winner_reveal, False), key=f"cb2_{key_winner_reveal}")
                     
-                    pool = df_full[(df_full['SELECTION'].astype(str).str.upper() == 'X') & (df_full['KATEGORIE'] == sel_cat) & (df_full['KLASSE_INTERNAL'].isin(klassen)) & (df_full['GESCHLECHT'].astype(str).str.upper() == geschl)]
+                    pool = df_full[(df_full['SELECTION'].astype(str).str.strip().str.upper() == 'X') & (df_full['KATEGORIE'] == sel_cat) & (df_full['KLASSE_INTERNAL'].isin(klassen)) & (df_full['GESCHLECHT'].astype(str).str.upper() == geschl)]
                     options = ["Automatisch (Stimmen)"] + sorted(pool['KAT_STR'].unique().tolist())
                     
                     store.data[key_override] = st.selectbox(f"Gewinner festlegen:", options, index=options.index(store.data.get(key_override, "Automatisch (Stimmen)")) if store.data.get(key_override) in options else 0, key=f"sb_{key_override}")
@@ -1008,11 +1008,11 @@ elif st.session_state.view == "BIS_Public":
         ]
         
         r_col = f"RICHTER {tag}"
-        judges = sorted([r for r in df_full[df_full[tag].astype(str).str.upper() == 'X'][r_col].unique() if str(r) != "nan"])
+        judges = sorted([r for r in df_full[df_full[tag].astype(str).str.strip().str.upper() == 'X'][r_col].unique() if str(r) != "nan"])
 
         # --- PRÜFEN, OB ES IN DIESER KATEGORIE ÜBERHAUPT NOMINIERTE KATZEN GIBT ---
         cats_in_this_cat = df_full[
-            (df_full['SELECTION'].astype(str).str.upper() == 'X') & 
+            (df_full['SELECTION'].astype(str).str.strip().str.upper() == 'X') & 
             (df_full['KATEGORIE'] == sel_cat)
         ]
 
@@ -1469,7 +1469,7 @@ elif st.session_state.view == "Judge_Voting":
             bis_defs = [("Adult Male", [1,3,5,7,9], "M"), ("Adult Female", [1,3,5,7,9], "W"), ("Neuter Male", [2,4,6,8,10], "M"), ("Neuter Female", [2,4,6,8,10], "W"), ("Junior 8-12 Male", [11], "M"), ("Junior 8-12 Female", [11], "W"), ("Kitten 4-8 Male", [12], "M"), ("Kitten 4-8 Female", [12], "W")]
             for label, klassen, geschl in bis_defs:
                 with st.expander(f"Wahl für/Choice for {label}"):
-                    pool = df_full[(df_full['SELECTION'].astype(str).str.upper() == 'X') & (df_full['KATEGORIE'] == active_cat) & (df_full['KLASSE_INTERNAL'].isin(klassen)) & (df_full['GESCHLECHT'].astype(str).str.upper() == geschl)]
+                    pool = df_full[(df_full['SELECTION'].astype(str).str.strip().str.upper() == 'X') & (df_full['KATEGORIE'] == active_cat) & (df_full['KLASSE_INTERNAL'].isin(klassen)) & (df_full['GESCHLECHT'].astype(str).str.upper() == geschl)]
                     if not pool.empty:
                         opts = {f"#{r['KAT_STR']} - {get_full_label(r)}": r['KAT_STR'] for _, r in pool.iterrows()}
                         # TAG wird hier in den Schlüssel eingebaut, damit Tag 1 und Tag 2 getrennt gespeichert und resettet werden
@@ -2955,7 +2955,7 @@ elif st.session_state.view == "Live_Voting":
                 # DIE MAGISCHE WEICHE: NUR WENN ES DIE VOM TEST-ADMIN FREIGEGEBENE KLASSE IST!
                 if label == active_label:
                     with st.expander(f"Wahl für/Choice for {label}", expanded=True):
-                        pool = df_full[(df_full['SELECTION'].astype(str).str.upper() == 'X') & (df_full['KATEGORIE'] == active_cat) & (df_full['KLASSE_INTERNAL'].isin(klassen)) & (df_full['GESCHLECHT'].astype(str).str.upper() == geschl)]
+                        pool = df_full[(df_full['SELECTION'].astype(str).str.strip().str.upper() == 'X') & (df_full['KATEGORIE'] == active_cat) & (df_full['KLASSE_INTERNAL'].isin(klassen)) & (df_full['GESCHLECHT'].astype(str).str.upper() == geschl)]
                         
                         if not pool.empty:
                             # --------------------------------------------------
@@ -3494,6 +3494,13 @@ elif st.session_state.view == "Excel_Edit":
                             df_full_updated.reset_index(inplace=True)
                         else:
                             df_full_updated = edited_df_subset
+							
+						# -------------------------------------------------------------
+                        # 🎯 GENAU HIER HIN (vor dem Bereitstellen für den Export):
+                        for sel_c in ['SELECTION 1', 'SELECTION 2']:
+                            if sel_c in df_full_updated.columns:
+                                df_full_updated[sel_c] = df_full_updated[sel_c].astype(str).str.strip().str.upper()
+                        # -------------------------------------------------------------
 
                         # Saubere Formatierung: Leere Werte oder 'None' zu '-'
                         df_export = df_full_updated[valid_cols].fillna('-')
