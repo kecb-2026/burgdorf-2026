@@ -474,8 +474,8 @@ if "auth" in q_params and q_params["auth"] == "true":
         elif v_param == "nominated": st.session_state.view = "Nominated_Cats"
 		
         # --- NEU: URL-PARAMETER FÜR DIE BEIDEN TEST-SEITEN ---
-        elif v_param == "test-live-admin": st.session_state.view = "Live_Admin"
-        elif v_param == "test-live-voting": st.session_state.view = "Live_Voting"
+        elif v_param == "live-admin": st.session_state.view = "Live_Admin"
+        elif v_param == "live-voting": st.session_state.view = "Live_Voting"
 
 
 
@@ -749,7 +749,7 @@ elif st.session_state.view == "Home":
             #st.rerun()
 			        # --- NEU: BUTTON FÜR DAS RICHTER-TEST-VOTING ---
         if st.button("🧪 LIVE-VOTING (RICHTER)"):
-            st.query_params.update({"view": "test-live-voting", "auth": "true", "role": "Admin"})
+            st.query_params.update({"view": "live-voting", "auth": "true", "role": "Admin"})
             set_view("Live_Voting")
             st.rerun()
     with col2:
@@ -763,7 +763,7 @@ elif st.session_state.view == "Home":
            # st.rerun()
 		 # --- NEU: BUTTON FÜR DEN LIVE-ADMIN-TEST ---
         if st.button("🎛️ LIVE-ADMIN CONTROL"):
-            st.query_params.update({"view": "test-live-admin", "auth": "true", "role": "Admin"})
+            st.query_params.update({"view": "live-admin", "auth": "true", "role": "Admin"})
             set_view("Live_Admin")
             st.rerun()
         if st.button("⚙️ ADMIN-KONSOLE (RESET)"):
