@@ -2003,7 +2003,7 @@ elif st.session_state.view == "Nominated_Cats":
                 geb_datum = geb_datum.strftime('%d.%m.%Y')
 
             # Echte Trennung nach SELECTION 1
-            if str(row.get('SELECTION 1', '')).upper() == 'X':
+            if str(row.get('SELECTION 1', '')).strip().upper() == 'X':
                 richter_t1 = row.get('RICHTER TAG 1', row.get('RICHTER 1', ''))
                 data_tag1.append({
                     "Katalog-Nr.": kat_nr,
@@ -2020,7 +2020,7 @@ elif st.session_state.view == "Nominated_Cats":
                 })
                 
             # Echte Trennung nach SELECTION 2
-            if str(row.get('SELECTION 2', '')).upper() == 'X':
+            if str(row.get('SELECTION 2', '')).strip.().upper() == 'X':
                 richter_t2 = row.get('RICHTER TAG 2', row.get('RICHTER 2', ''))
                 data_tag2.append({
                     "Katalog-Nr.": kat_nr,
