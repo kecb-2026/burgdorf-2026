@@ -474,8 +474,8 @@ if "auth" in q_params and q_params["auth"] == "true":
         elif v_param == "nominated": st.session_state.view = "Nominated_Cats"
 		
         # --- NEU: URL-PARAMETER FÜR DIE BEIDEN TEST-SEITEN ---
-        elif v_param == "test-live-admin": st.session_state.view = "Test_Live_Admin"
-        elif v_param == "test-live-voting": st.session_state.view = "Test_Live_Voting"
+        elif v_param == "test-live-admin": st.session_state.view = "Live_Admin"
+        elif v_param == "test-live-voting": st.session_state.view = "Live_Voting"
 
 
 
@@ -610,7 +610,7 @@ access_map = {
 	# "Richter": ["Judge_Voting",  "Test_Live_Voting", "Dashboard", "BIS_Public"],
     "Steward": ["Steward_Panel", "Dashboard", "BIS_Public"],
    # "Admin": ["Home", "Dashboard", "BIS_Public", "Judge_Voting", "Steward_Panel", "BIS_Admin_Control", "Test_Live_Admin", "Test_Live_Voting","QR_Codes", "QR_Codes_Gen", "Nominated_Cats", "Judge_List", "Nomination_Labels", "Admin_Panel", "Excel_Upload"]
-	"Admin": ["Home", "Dashboard", "BIS_Public", "Steward_Panel", "Test_Live_Admin", "Test_Live_Voting","QR_Codes_Gen", "Nominated_Cats", "Judge_List", "Nomination_Labels", "Admin_Panel", "Excel_Upload", "Excel_Edit"]
+	"Admin": ["Home", "Dashboard", "BIS_Public", "Steward_Panel", "Live_Admin", "Live_Voting","QR_Codes_Gen", "Nominated_Cats", "Judge_List", "Nomination_Labels", "Admin_Panel", "Excel_Upload", "Excel_Edit"]
 }
 
 st.markdown("""
