@@ -2857,7 +2857,7 @@ elif st.session_state.view == "Admin_Panel":
 # ==============================================================================
 # NEUER MENÜPUNKT: TEST LIVE-VOTING (RICHTER)
 # ==============================================================================
-elif st.session_state.view == "Test_Live_Voting":
+elif st.session_state.view == "Live_Voting":
     st_autorefresh(interval=4000, key="test_live_voting_refresh")
     display_header_with_logo("🗳️  Judge Live Voting")
    
@@ -3084,7 +3084,7 @@ elif st.session_state.view == "Test_Live_Voting":
 # ==============================================================================
 # NEUER SEPARATER MENÜPUNKT: 🎛️ [Test] Live-Admin
 # ==============================================================================
-elif st.session_state.view == "Test_Live_Admin":
+elif st.session_state.view == "Live_Admin":
     # --- AUTOMATISCHER REFRESH FÜR ECHTEZEIT-ANZEIGE ---
     # Aktualisiert das Admin-Panel alle 2000 Millisekunden (2 Sekunden) von selbst.
     # Da wir nur das RAM abfragen, ist das extrem performant und flackerfrei!
