@@ -562,13 +562,29 @@ def load_labels():
         # --- NEU: ABSOLUT RISIKO-FREIE WEICHE FÜR TAG 1 & TAG 2 ---
         # Wir prüfen, welcher Tag im globalen Sidebar-Radio-Button gewählt ist
         # Falls der Selector auf "Tag 2" steht, nehmen wir SELECTION 2, sonst SELECTION 1
+        #day_selector = st.session_state.get("judge_day_selector", "Tag 1")
+        
+       # if "2" in str(day_selector):
+        #    df['SELECTION'] = df['SELECTION 2'] if 'SELECTION 2' in df.columns else df.get('SELECTION', '-')
+        #else:
+        #    df['SELECTION'] = df['SELECTION 1'] if 'SELECTION 1' in df.columns else df.get('SELECTION', '-')
+        # -----------------------------------------------------------
+# --- NEU: FEHLERTOLERANTE WEICHE FÜR TAG 1 & TAG 2 ---
         day_selector = st.session_state.get("judge_day_selector", "Tag 1")
         
         if "2" in str(day_selector):
-            df['SELECTION'] = df['SELECTION 2'] if 'SELECTION 2' in df.columns else df.get('SELECTION', '-')
+            if 'SELECTION 2' in df.columns:
+                df['SELECTION'] = df['SELECTION 2'].astype(str).str.strip().str.upper()
+            else:
+                df['SELECTION'] = df.get('SELECTION', '-').astype(str).str.strip().str.upper()
         else:
-            df['SELECTION'] = df['SELECTION 1'] if 'SELECTION 1' in df.columns else df.get('SELECTION', '-')
+            if 'SELECTION 1' in df.columns:
+                df['SELECTION'] = df['SELECTION 1'].astype(str).str.strip().str.upper()
+            else:
+                df['SELECTION'] = df.get('SELECTION', '-').astype(str).str.strip().str.upper()
         # -----------------------------------------------------------
+
+
 		
         return df
     except:
