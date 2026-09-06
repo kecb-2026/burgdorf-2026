@@ -2580,14 +2580,14 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
         sort_spalten.append('_sort_nr_helper')
 
         if 'SELECTION 1' in df_full.columns:
-            df_samstag_daten = df_full[df_full['SELECTION 1'].astype(str).str.upper() == 'X'].sort_values(by=sort_spalten).copy()
+            df_samstag_daten = df_full[df_full['SELECTION 1'].astype(str).str.strip().str.upper() == 'X'].sort_values(by=sort_spalten).copy()
         elif 'SELECTION' in df_full.columns:
-            df_samstag_daten = df_full[df_full['SELECTION'].astype(str).str.upper() == 'X'].sort_values(by=sort_spalten).copy()
+            df_samstag_daten = df_full[df_full['SELECTION'].astype(str).str.strip().str.upper() == 'X'].sort_values(by=sort_spalten).copy()
         else:
             df_samstag_daten = pd.DataFrame(columns=df_full.columns)
             
         if 'SELECTION 2' in df_full.columns:
-            df_sonntag_daten = df_full[df_full['SELECTION 2'].astype(str).str.upper() == 'X'].sort_values(by=sort_spalten).copy()
+            df_sonntag_daten = df_full[df_full['SELECTION 2'].astype(str).str.strip().str.upper() == 'X'].sort_values(by=sort_spalten).copy()
         else:
             df_sonntag_daten = pd.DataFrame(columns=df_full.columns)
 
