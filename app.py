@@ -1058,13 +1058,30 @@ elif st.session_state.view == "BIS_Public":
 
 	    # --- HIER DIE FARBE DER GEWINNER-KARTE ANPASSEN ---
         style_rules += """
+        /* Gewinner unter den Richtern: ROT/ROSA.
+           Die BIS-Karte ganz rechts bleibt GOLD. */
+        .public-winner-card {
+            background-color: #ffcccc !important;
+            border: 3px solid #e53935 !important;
+            color: #b21f2d !important;
+        }
+        .public-winner-card .cat-number {
+            color: #b21f2d !important;
+            font-weight: 900 !important;
+        }
+        .public-winner-card .cat-details {
+            color: #b21f2d !important;
+            font-weight: bold !important;
+        }
+
+        /* BIS-Karte rechts bleibt GOLD */
         .winner-card {
-            background-color: #ffd700 !important;  /* Hintergrundfarbe (z.B. Gold) */
-            border: 2px solid #d4af37 !important;  /* Rahmenfarbe */
-            color: #000000 !important;             /* Textfarbe für Details */
+            background-color: #ffd700 !important;
+            border: 2px solid #d4af37 !important;
+            color: #000000 !important;
         }
         .winner-card .cat-number {
-            color: #000000 !important;             /* Textfarbe für die Startnummer */
+            color: #000000 !important;
             font-weight: bold !important;
         }
         """
@@ -1087,6 +1104,28 @@ elif st.session_state.view == "BIS_Public":
             
             show_noms = store.data.get(f"reveal_{tag}_{sel_cat}_{label}", False)
             winner_revealed = store.data.get(f"winner_reveal_{tag}_{sel_cat}_{label}", False)
+
+            # Best-Public-Gewinner ermitteln, damit die gleiche Katze
+            # unter dem jeweiligen Richter rot/rosa markiert werden kann.
+            public_winner_nr = store.data.get(
+                f"override_{tag}_{sel_cat}_{label}",
+                "Automatisch (Stimmen)"
+            )
+
+            if public_winner_nr == "Automatisch (Stimmen)" and "votes" in store.data:
+                vts = []
+                prefix = f"v_{tag}_{sel_cat}_{label}_"
+                for k, v in store.data["votes"].items():
+                    if k.startswith(prefix) and v != "Keine Wahl" and v != "Keine Wahl/Not chosen yet":
+                        if isinstance(v, dict):
+                            if v.get("status") == "bestaerkt":
+                                vts.append(v.get("katze"))
+                        else:
+                            vts.append(v)
+
+                if vts:
+                    public_winner_nr = pd.Series(vts).value_counts().index[0]
+
             
             for i, j in enumerate(judges):
                 with r_cols[i+1]:
@@ -1109,7 +1148,19 @@ elif st.session_state.view == "BIS_Public":
                                     circles = "".join([f"<div class='judge-circle' title='{v}'>{get_initials(v)}</div>" for v in voters])
                                     circles_html = f"<div class='judge-initials-container'>{circles}</div>"
 
-                            st.markdown(f"<div class='cat-card'><div class='cat-number'>{kat_nr}</div><div class='cat-details'>{get_full_label(m.iloc[0])}</div>{circles_html}</div>", unsafe_allow_html=True)
+                            # Nur die Gewinnerkatze unter den Richtern rot/rosa markieren.
+                            # Die BIS-Karte in der rechten Spalte wird NICHT verändert.
+                            winner_class = ""
+                            if winner_revealed and str(kat_nr) == str(public_winner_nr):
+                                winner_class = " public-winner-card"
+
+                            st.markdown(
+                                f"<div class='cat-card{winner_class}'>"
+                                f"<div class='cat-number'>{kat_nr}</div>"
+                                f"<div class='cat-details'>{get_full_label(m.iloc[0])}</div>"
+                                f"{circles_html}</div>",
+                                unsafe_allow_html=True
+                            )
                         else: st.markdown("<div class='placeholder-box'>–</div>", unsafe_allow_html=True)
                     else: st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
             
@@ -1136,8 +1187,6 @@ elif st.session_state.view == "BIS_Public":
     # --- SCHALTWEICHE 2: REFRESH NUR LADEN, WENN KEIN OVERLAY ZEIGT ---
     #if not is_overlay_active:
         st_autorefresh(interval=3000, key="bis_refresh")
-
-
 # LIVE DASHBOARD
 elif st.session_state.view == "Dashboard":
     display_header_with_logo("📢 Live-Aufruf & Status")
