@@ -1808,7 +1808,7 @@ elif st.session_state.view == "QR_Codes_Gen":
                 all_qr_items.append((f"Steward fuer: {judge}", stew_url, "2. Steward-Links fuer TAG 1 (Samstag)"))
                 
                 # Richter Direkt Tag 1
-                j_url = f"{base_url}?view=test-live-voting&auth=true&role=Richter&judge={judge.replace(' ', '+')}&day=1"
+                j_url = f"{base_url}?view=live-voting&auth=true&role=Richter&judge={judge.replace(' ', '+')}&day=1"
                 all_qr_items.append((f"Richter: {judge} (Tag 1)", j_url, "3. Richter-Direkt-Links fuer TAG 1 (Samstag)"))
                 
         # --- Daten sammeln: Tag 2 ---
@@ -1820,7 +1820,7 @@ elif st.session_state.view == "QR_Codes_Gen":
                 all_qr_items.append((f"Steward fuer: {judge}", stew_url, "4. Steward-Links fuer TAG 2 (Sonntag)"))
                 
                 # Richter Direkt Tag 2
-                j_url = f"{base_url}?view=test-live-voting&auth=true&role=Richter&judge={judge.replace(' ', '+')}&day=2"
+                j_url = f"{base_url}?view=live-voting&auth=true&role=Richter&judge={judge.replace(' ', '+')}&day=2"
                 all_qr_items.append((f"Richter: {judge} (Tag 2)", j_url, "5. Richter-Direkt-Links fuer TAG 2 (Sonntag)"))
         
         # --- Grid im PDF generieren ---
@@ -1960,7 +1960,7 @@ elif st.session_state.view == "QR_Codes_Gen":
                     for idx, judge in enumerate(judges_t1):
                         with j_cols[idx % 3]:
                             st.success(f"Richter: {judge}")
-                            j_url = f"{base_url}?view=test-live-voting&auth=true&role=Richter&judge={judge.replace(' ', '+')}&day=1"
+                            j_url = f"{base_url}?view=live-voting&auth=true&role=Richter&judge={judge.replace(' ', '+')}&day=1"
                             st.image(generate_qr_image(j_url), width=200)
                             st.write("---")
                 else:
@@ -1979,7 +1979,7 @@ elif st.session_state.view == "QR_Codes_Gen":
                     for idx, judge in enumerate(judges_t2):
                         with j_cols[idx % 3]:
                             st.success(f"Richter: {judge}")
-                            j_url = f"{base_url}?view=test-live-voting&auth=true&role=Richter&judge={judge.replace(' ', '+')}&day=2"
+                            j_url = f"{base_url}?view=live-voting&auth=true&role=Richter&judge={judge.replace(' ', '+')}&day=2"
                             st.image(generate_qr_image(j_url), width=200)
                             st.write("---")
                 else:
