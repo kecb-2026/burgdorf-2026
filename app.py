@@ -542,12 +542,10 @@ def render_overlay_html(row):
     """
 
 def roman_to_numeric(text):
-    roman_map = {'IX': '9', 'VIII': '8', 'VII': '7', 'VI': '6', 'IV': '4', 'V': '5', 'III': '3', 'II': '2', 'I': '1'}
-    if pd.isna(text) or text == "": return ""
-    res = str(text).upper()
-    for rom, num in roman_map.items():
-        res = re.sub(rf'\b{rom}\b', num, res)
-    return res
+    if pd.isna(text) or text == "": 
+        return ""
+    return str(text)
+
 
 @st.cache_data(ttl=600)
 def load_labels():
