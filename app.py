@@ -2725,9 +2725,11 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
                         badge_label = row['_badge_label']
                         badge_bg = color_map.get(row['_badge_key'], colors.HexColor("#99cc00"))
                         
-                        rasse = str(row.get('RASSE', ''))
-                        farbe = str(row.get('FARBE', ''))
-                        ems_code = f"{rasse} {farbe}".strip()
+                        #rasse = str(row.get('RASSE', ''))
+                        #farbe = str(row.get('FARBE', ''))
+                        #ems_code = f"{rasse} {farbe}".strip()
+						ems_code = get_full_label(row)
+
                         
                         geb_cols = [col for col in row.index if "GEB" in col or "GEBURT" in col]
                         geb_datum = row[geb_cols[0]] if geb_cols else row.get('GEB_DATUM', '-')
