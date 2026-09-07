@@ -1058,30 +1058,13 @@ elif st.session_state.view == "BIS_Public":
 
 	    # --- HIER DIE FARBE DER GEWINNER-KARTE ANPASSEN ---
         style_rules += """
-        /* Gewinner unter den Richtern: ROT/ROSA.
-           Die BIS-Karte ganz rechts bleibt GOLD. */
-        .public-winner-card {
-            background-color: #ffcccc !important;
-            border: 3px solid #e53935 !important;
-            color: #b21f2d !important;
-        }
-        .public-winner-card .cat-number {
-            color: #b21f2d !important;
-            font-weight: 900 !important;
-        }
-        .public-winner-card .cat-details {
-            color: #b21f2d !important;
-            font-weight: bold !important;
-        }
-
-        /* BIS-Karte rechts bleibt GOLD */
         .winner-card {
-            background-color: #ffd700 !important;
-            border: 2px solid #d4af37 !important;
-            color: #000000 !important;
+            background-color: #ffd700 !important;  /* Hintergrundfarbe (z.B. Gold) */
+            border: 2px solid #d4af37 !important;  /* Rahmenfarbe */
+            color: #000000 !important;             /* Textfarbe für Details */
         }
         .winner-card .cat-number {
-            color: #000000 !important;
+            color: #000000 !important;             /* Textfarbe für die Startnummer */
             font-weight: bold !important;
         }
         """
@@ -1104,28 +1087,6 @@ elif st.session_state.view == "BIS_Public":
             
             show_noms = store.data.get(f"reveal_{tag}_{sel_cat}_{label}", False)
             winner_revealed = store.data.get(f"winner_reveal_{tag}_{sel_cat}_{label}", False)
-
-            # Best-Public-Gewinner ermitteln, damit die gleiche Katze
-            # unter dem jeweiligen Richter rot/rosa markiert werden kann.
-            public_winner_nr = store.data.get(
-                f"override_{tag}_{sel_cat}_{label}",
-                "Automatisch (Stimmen)"
-            )
-
-            if public_winner_nr == "Automatisch (Stimmen)" and "votes" in store.data:
-                vts = []
-                prefix = f"v_{tag}_{sel_cat}_{label}_"
-                for k, v in store.data["votes"].items():
-                    if k.startswith(prefix) and v != "Keine Wahl" and v != "Keine Wahl/Not chosen yet":
-                        if isinstance(v, dict):
-                            if v.get("status") == "bestaerkt":
-                                vts.append(v.get("katze"))
-                        else:
-                            vts.append(v)
-
-                if vts:
-                    public_winner_nr = pd.Series(vts).value_counts().index[0]
-
             
             for i, j in enumerate(judges):
                 with r_cols[i+1]:
@@ -1148,19 +1109,7 @@ elif st.session_state.view == "BIS_Public":
                                     circles = "".join([f"<div class='judge-circle' title='{v}'>{get_initials(v)}</div>" for v in voters])
                                     circles_html = f"<div class='judge-initials-container'>{circles}</div>"
 
-                            # Nur die Gewinnerkatze unter den Richtern rot/rosa markieren.
-                            # Die BIS-Karte in der rechten Spalte wird NICHT verändert.
-                            winner_class = ""
-                            if winner_revealed and str(kat_nr) == str(public_winner_nr):
-                                winner_class = " public-winner-card"
-
-                            st.markdown(
-                                f"<div class='cat-card{winner_class}'>"
-                                f"<div class='cat-number'>{kat_nr}</div>"
-                                f"<div class='cat-details'>{get_full_label(m.iloc[0])}</div>"
-                                f"{circles_html}</div>",
-                                unsafe_allow_html=True
-                            )
+                            st.markdown(f"<div class='cat-card'><div class='cat-number'>{kat_nr}</div><div class='cat-details'>{get_full_label(m.iloc[0])}</div>{circles_html}</div>", unsafe_allow_html=True)
                         else: st.markdown("<div class='placeholder-box'>–</div>", unsafe_allow_html=True)
                     else: st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
             
@@ -1187,92 +1136,7 @@ elif st.session_state.view == "BIS_Public":
     # --- SCHALTWEICHE 2: REFRESH NUR LADEN, WENN KEIN OVERLAY ZEIGT ---
     #if not is_overlay_active:
         st_autorefresh(interval=3000, key="bis_refresh")
-# LIVE DASHBOARD
-elif st.session_state.view == "Dashboard":
-    display_header_with_logo("📢 Live-Aufruf & Status")
-    
-    # Holt sich den vom Admin festgesetzten Tag (völlig immun gegen das st_autorefresh)
-    admin_day = st.session_state.get("admin_selected_day", "Tag 1")
-    tag = "TAG 2" if "2" in str(admin_day) else "TAG 1"
-    
-    # Passive Info-Anzeige in der Seitenleiste
-    st.sidebar.info(f"📅 Aktiver Ausstellungstag: {tag}")
-    
-    df_full = load_labels()
-    if df_full is not None:
-        r_col = f"RICHTER {tag}"
-        
-        # Filtert das Excel NUR auf Zeilen, die am aktuellen Tag ein 'X' haben
-        df_tag = df_full[df_full[tag].astype(str).str.upper() == 'X'].copy()
-        
-        judges = sorted([r for r in df_tag[r_col].unique() if str(r) != "nan"])
-        if judges:
-            cols = st.columns(len(judges))
-            for i, j in enumerate(judges):
-                with cols[i]:
-                    st.markdown(f"<div class='judge-header-box'>{j}</div>", unsafe_allow_html=True)
-                    
-                    judge_entries = []
-                    for k, v in store.data.items():
-                        if "|" in k and k.split("|")[1] == j:
-                            kat_nr = k.split("|")[0]
-                            
-                            # PRÜFUNG: Existiert die Katze am aktuellen Tag bei diesem Richter?
-                            m = df_tag[(df_tag['KAT_STR'] == kat_nr) & (df_tag[r_col] == j)]
-                            
-                            if not m.empty:  # Nur verarbeiten, wenn sie zum aktuellen Tag gehört!
-                                flags = v.get("flags", {}) if isinstance(v, dict) else {}
-                                beim_richten = flags.get("Zum Richten", False) and not flags.get("Gerichtet", False)
-                                
-                                # --- NEU: HOLE DEN STATUS OB DIE KATZE GERADE AUF DEM TISCH IST ---
-                                wird_gerichtet = flags.get("Wird gerichtet", False) and not flags.get("Gerichtet", False)
-                                # -----------------------------------------------------------------
-                                
-                                nominiert = flags.get("NOM", False)
-                                biv = flags.get("BIV", False)
-                                
-                                # --- ÄNDERUNG: ERWEITERT UM "WIRD_GERICHTET", DAMIT DIE KARTE GEZEIGT WIRD ---
-                                if beim_richten or wird_gerichtet or nominiert or biv:
-                                    judge_entries.append({
-                                        "key": k, 
-                                        "data": v if isinstance(v, dict) else {"flags": {}},
-                                        "row_data": m.iloc[0]  # Daten merken fürs spätere Anzeigen
-                                    })
-                    
-                    #judge_entries.sort(key=lambda x: x["data"].get("timestamp", 0))
-                    judge_entries.sort(key=lambda x: (not x["data"].get("flags", {}).get("Wird gerichtet", False), x["data"].get("timestamp", 0)))
 
-                    
-                    for entry in judge_entries:
-                        kat_nr = entry["key"].split("|")[0]
-                        flags = entry["data"].get("flags", {})
-                        m_row = entry["row_data"]
-                        
-                        # --- NEU: DESIGN-WEICHE FÜR DAS ORANGE BLINKEN AUF DEM DASHBOARD ---
-                        rendered_tags = []
-                        for t, val in flags.items():
-                            if val and t != "Gerichtet":
-                                # LOGIK: FALLS "WIRD GERICHTET" AKTIV IST, BLENDEN WIR DAS BLAUE "ZUM RICHTEN" AUS
-                                if t == "Zum Richten" and flags.get("Wird gerichtet"):
-                                    continue
-                                
-                                # ENTFERNT LEERZEICHEN FÜR DEN CSS-KLASSENNAMEN (AUS "Wird gerichtet" WIRD "wirdgerichtet")
-                                class_suffix = t.lower().replace(" ", "")
-                                rendered_tags.append(f"<span class='tag tag-{class_suffix}'>{t}</span>")
-                        
-                        tags_html = "".join(rendered_tags)
-                        # --------------------------------------------------------------------
-                        
-                        if tags_html: 
-                            st.markdown(f"""
-                                <div class='cat-card'>
-                                    <div class='cat-number'>{kat_nr}</div>
-                                    <div class='cat-details'>{get_full_label(m_row)}</div>
-                                    <div class='tag-container'>{tags_html}</div>
-                                </div>
-                            """, unsafe_allow_html=True)
-                            
-    st_autorefresh(interval=10000, key="dash_refresh")
 
 
 
