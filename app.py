@@ -2978,6 +2978,9 @@ elif st.session_state.view == "Live_Voting":
                             # 1. DETAIL-ERMITTLUNG (SCHLEIFE FÜR DATUM & GESCHLECHT)
                             # --------------------------------------------------
                             opts = {}
+                            # Den passenden Richter-Spaltennamen für den aktuellen Tag ermitteln (z.B. "RICHTER TAG 1")
+                            r_col_name = f"RICHTER {tag}"
+                            
                             for _, r in pool.iterrows():
                                 # Geburtsdatum-Spalte flexibel ermitteln
                                 geb_cols = [c for c in r.index if "GEB" in str(c) or "GEBURT" in str(c)]
@@ -2992,14 +2995,20 @@ elif st.session_state.view == "Live_Voting":
                                 geschlecht_val = r.get('GESCHLECHT', 'N/A')
                                 rasse_gruppe = get_full_label(r)
                                 
-                                # Label für den Radio-Button zusammenbauen
-                                full_option_text = f"#{r['KAT_STR']} - {rasse_gruppe} [{geschlecht_val}, *{geb_datum}]"
+                                # --- NEU: RICHTERNAMEN AUSLESEN ---
+                                nom_richter = r.get(r_col_name, '-')
+                                if pd.isna(nom_richter) or str(nom_richter).strip().lower() == "nan" or str(nom_richter).strip() == "":
+                                    nom_richter = "-"
                                 
-                                # Strukturiert speichern für die spätere Anzeige in der Box
+                                # Label für den Radio-Button mit "Nominated by" erweitern
+                                full_option_text = f"#{r['KAT_STR']} - {rasse_gruppe} [{geschlecht_val}, *{geb_datum}] (Nominated by {nom_richter})"
+                                
+                                # Strukturiert speichern für die spätere Anzeige in der Box (inklusive Richter für das große Banner)
                                 opts[full_option_text] = {
                                     "kat_nr": r['KAT_STR'],
-                                    "details": f"{rasse_gruppe} [{geschlecht_val}, *{geb_datum}]"
+                                    "details": f"{rasse_gruppe} [{geschlecht_val}, *{geb_datum}] — <i>Nominated by {nom_richter}</i>"
                                 }
+
                             
                             v_key = f"v_{tag}_{active_cat}_{label}_{active_j}"
                             curr_raw = store.data["votes"].get(v_key, "Keine Wahl")
