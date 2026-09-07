@@ -2933,13 +2933,56 @@ elif st.session_state.view == "Live_Voting":
         )
 
         # PRÜFEN OB DIE ABSTIMMUNG FÜR DIESE KLASSE BEENDET IST
-        # Hier nutzen wir einfach das bereits vorhandene 'tag' (z.B. "TAG 1")
         key_voting_closed = f"voting_closed_{tag}_{active_cat}_{active_label}"
         is_voting_closed = store.data.get(key_voting_closed, False)
 
         if is_voting_closed:
             st.error("🛑 **Abstimmung beendet!** / **Voting closed!**")
             st.stop()
+
+        # --- NEU: PRÜFEN OB DER BIS-GEWINNER VOM ADMIN AUFGEDECKT WURDE ---
+        key_winner_reveal = f"winner_reveal_{tag}_{active_cat}_{active_label}"
+        is_winner_revealed = store.data.get(key_winner_reveal, False)
+
+        if is_winner_revealed:
+            # Ermitteln, welcher Gewinner feststeht (entweder manueller Override oder die stimmenstärkste Katze)
+            key_override = f"override_{tag}_{active_cat}_{active_label}"
+            winning_nr = store.data.get(key_override, "Automatisch (Stimmen)")
+            
+            v_prefix = f"v_{tag}_{active_cat}_{active_label}_"
+            if winning_nr == "Automatisch (Stimmen)" and "votes" in store.data:
+                vts = []
+                for k, v in store.data["votes"].items():
+                    if k.startswith(v_prefix) and v != "Keine Wahl" and v != "Keine Wahl/Not chosen yet":
+                        if isinstance(v, dict) and v.get("status") == "bestaerkt":
+                            vts.append(v.get("katze"))
+                        elif isinstance(v, str):
+                            vts.append(v)
+                if vts:
+                    winning_nr = pd.Series(vts).value_counts().index[0]
+            
+            # Gewinner-Details aus der Excel-Tabelle auslesen
+            winner_details_text = ""
+            winner_owner_text = ""
+            if winning_nr and winning_nr != "Automatisch (Stimmen)":
+                w_match = df_full[df_full['KAT_STR'] == str(winning_nr)]
+                if not w_match.empty:
+                    w_row = w_match.iloc[0]
+                    winner_details_text = get_full_label(w_row)
+                    winner_owner_text = f"{w_row.get('BESITZER VORNAME', '')} {w_row.get('BESITZER NACHNAME', '')}"
+            
+            # Schicke Goldene Gewinner-Ansicht für die Richter
+            st.markdown(
+                f"<div style='background-color:#fff3cd; padding:30px; border-radius:15px; border:4px solid #d4af37; text-align:center; margin-top:20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);'>"
+                f"<div style='font-size:16px; font-weight:bold; color:#856404; text-transform:uppercase; letter-spacing:2px;'>🏆 Best in Show Winner 🏆</div>"
+                f"<div style='font-size:65px; font-weight:900; color:#b21f2d; margin:10px 0;'>#{winning_nr}</div>"
+                f"<div style='font-size:22px; font-weight:bold; color:#333; margin-bottom:5px;'>{winner_details_text}</div>"
+                f"<div style='font-size:18px; font-style:italic; color:#555;'>{winner_owner_text}</div>"
+                f"</div>",
+                unsafe_allow_html=True
+            )
+            st.stop() # Hält den restlichen Stimmzettel für den Richter an, da das Ergebnis da ist
+
 
 
         
