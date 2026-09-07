@@ -587,12 +587,19 @@ def load_labels():
         return None
 
 def get_full_label(row):
-    r = row.get('RASSE_KURZ', row.get('RASSE', ''))
+    r = str(row.get('RASSE_KURZ', row.get('RASSE', ''))).strip()
     fg_col = [c for c in row.index if "FARBGRUPPE" in c or "FARB-GRUPPE" in c]
     fg_val = row[fg_col[0]] if fg_col else row.get('FARBGRUPPE', '')
     g = roman_to_numeric(fg_val)
-    e = row.get('FARBE', '')
-    return f"{r} {g} ({e})".strip() if g else f"{r} ({e})".strip()
+    e = str(row.get('FARBE', '')).strip()
+    
+    g_str = str(g).strip() if g is not None else ""
+    
+    if g_str and g_str != "-" and g_str.lower() != "nan":
+        return f"{r} {g_str}, {e}".strip()
+    else:
+        return f"{r} {e}".strip()
+
 
 def set_view(name):
     store.active_overlay = None   
