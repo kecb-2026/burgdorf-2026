@@ -3157,12 +3157,6 @@ elif st.session_state.view == "Live_Admin":
                         store.data[key_reveal] = new_reveal
                         store.save_backup()
                     
-                    old_winner_reveal = store.data.get(key_winner_reveal, False)
-                    new_winner_reveal = st.checkbox("BIS Gewinner anzeigen", value=old_winner_reveal, key=f"cb2_{key_winner_reveal}")
-                    if new_winner_reveal != old_winner_reveal:
-                        store.data[key_winner_reveal] = new_winner_reveal
-                        store.save_backup()
-                    
                     # --- ANFANG DER NEUEN ZUSÄTZLICHEN CHECKBOX ---
                     # HIER PRÜFEN WIR, OB DIESE KLASSE GERADE ALS AKTIVE TEST-RUNDE GESPEICHERT IST
                     is_live_now = (store.data.get("test_live_cat") == sel_cat) and (store.data.get("test_live_label") == label) and (store.data.get("test_live_tag") == admin_tag)
@@ -3200,6 +3194,12 @@ elif st.session_state.view == "Live_Admin":
                         store.save_backup()
                     # --- ENDE NEU ---
 
+                    # --- BIS GEWINNER ANZEIGEN (Ganz ans Ende verschoben) ---
+                    old_winner_reveal = store.data.get(key_winner_reveal, False)
+                    new_winner_reveal = st.checkbox("BIS Gewinner anzeigen", value=old_winner_reveal, key=f"cb2_{key_winner_reveal}")
+                    if new_winner_reveal != old_winner_reveal:
+                        store.data[key_winner_reveal] = new_winner_reveal
+                        store.save_backup()
 					
                     pool = df_full[(df_full['SELECTION'].astype(str).str.upper() == 'X') & (df_full['KATEGORIE'] == sel_cat) & (df_full['KLASSE_INTERNAL'].isin(klassen)) & (df_full['GESCHLECHT'].astype(str).str.upper() == geschl)]
                     options = ["Automatisch (Stimmen)"] + sorted(pool['KAT_STR'].unique().tolist())
@@ -3339,7 +3339,6 @@ elif st.session_state.view == "Live_Admin":
                                 
     if st.button("⬅️ Zurück zum Hauptmenü", key="back_from_bisadmin"):
         set_view("Home")
-
 
 # ==============================================================================
 # NEUER SEPARATER MENÜPUNKT: 🎛️  Excel-Upload
