@@ -2728,7 +2728,7 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
                         #rasse = str(row.get('RASSE', ''))
                         #farbe = str(row.get('FARBE', ''))
                         #ems_code = f"{rasse} {farbe}".strip()
-                         ems_code = get_full_label(row)
+                        ems_code = get_full_label(row)
 
                         
                         geb_cols = [col for col in row.index if "GEB" in col or "GEBURT" in col]
