@@ -2938,7 +2938,7 @@ elif st.session_state.view == "Live_Voting":
 
         if is_voting_closed:
             st.error("🛑 **Abstimmung beendet!** / **Voting closed!**")
-            st.stop()
+            #st.stop()
 
         # --- NEU: PRÜFEN OB DER BIS-GEWINNER VOM ADMIN AUFGEDECKT WURDE ---
         key_winner_reveal = f"winner_reveal_{tag}_{active_cat}_{active_label}"
