@@ -885,7 +885,7 @@ elif st.session_state.view == "BIS_Admin_Control":
                     key_winner_reveal = f"winner_reveal_{admin_tag}_{sel_cat}_{label}"
                     key_override = f"override_{admin_tag}_{sel_cat}_{label}"
                     
-                    # Die Widget-Keys (key=...) erhalten ebenfalls das admin_tag, was Streamlit zum sauberen Reset zwingt
+                    # Die Widget-Keys (key=...) erhalten ebenfalls das admin_tag, was Streamlit zum sauberen Reset zwing
                     store.data[key_reveal] = st.checkbox("Nominationen anzeigen", value=store.data.get(key_reveal, False), key=f"cb1_{key_reveal}")
                     store.data[key_winner_reveal] = st.checkbox("BIS Gewinner anzeigen", value=store.data.get(key_winner_reveal, False), key=f"cb2_{key_winner_reveal}")
                     
@@ -2728,7 +2728,7 @@ elif st.session_state.view in ["Nomination_Labels", "Nomination Labels"]:
                         #rasse = str(row.get('RASSE', ''))
                         #farbe = str(row.get('FARBE', ''))
                         #ems_code = f"{rasse} {farbe}".strip()
-						ems_code = get_full_label(row)
+                         ems_code = get_full_label(row)
 
                         
                         geb_cols = [col for col in row.index if "GEB" in col or "GEBURT" in col]
