@@ -3279,7 +3279,14 @@ elif st.session_state.view == "Live_Admin":
                             if confirmed_votes_for_summary:
                                 summary = pd.Series(confirmed_votes_for_summary).value_counts()
                                 for nr, count in summary.items(): 
-                                    st.write(f"Katze #{nr}: **{count} Stimme(n)**")
+                                    # Name der Katze aus der geladenen Excel-Tabelle auslesen
+                                    cat_name = "Unbekannt"
+                                    match = df_full[df_full['KAT_STR'] == str(nr)]
+                                    if not match.empty:
+                                        cat_name = str(match.iloc[0].get('NAME', 'Unbekannt'))
+                                        
+                                    st.write(f"Katze #{nr} ({cat_name}): **{count} Stimme(n)**")
+
                             else:
                                 st.info("Es wurden noch keine Stimmen final bestätigt.")
 
