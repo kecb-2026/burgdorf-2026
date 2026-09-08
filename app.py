@@ -1156,10 +1156,12 @@ elif st.session_state.view == "BIS_Public":
                             # ------------------------------------------------------------------
 
 	
-                            st.markdown(f"<div class='cat-card'><div class='cat-number'>{kat_nr}</div><div class='cat-details'>{get_full_label(m.iloc[0])}</div>{circles_html}</div>", unsafe_allow_html=True)
+            # --- ÄNDERUNG: card_css_class DIREKT IM HTML-DRAFT VERWENDEN ---
+                            st.markdown(f"<div class='{card_css_class}'><div class='cat-number'>{kat_nr}</div><div class='cat-details'>{get_full_label(m.iloc[0])}</div>{circles_html}</div>", unsafe_allow_html=True)
                         else: st.markdown("<div class='placeholder-box'>–</div>", unsafe_allow_html=True)
                     else: st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
-            
+
+			
             with r_cols[-1]:
                 if winner_revealed:
                     prefix = f"v_{tag}_{sel_cat}_{label}_"
