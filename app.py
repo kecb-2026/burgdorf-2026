@@ -1038,7 +1038,7 @@ elif st.session_state.view == "BIS_Public":
         style_rules += """
         div.winner-card {
             background-color: #ffcccc !important;  
-            border: 4px solid #ff4d4d !important;  
+            border: 2px solid #ff4d4d !important;  
             color: #b21f2d !important;             
         }
         div.winner-card div.cat-number {
