@@ -948,6 +948,9 @@ elif st.session_state.view == "BIS_Public":
         else:
             # Overlay-HTML rendern (ohne blockierendes st.rerun im Sekundentakt)
             st.markdown(render_overlay_html(store.active_overlay), unsafe_allow_html=True)
+
+			# Sanfter Ticker im Sekundentakt NUR für das Overlay (ohne time.sleep & ohne Flackern)
+            st_autorefresh(interval=1000, key="overlay_ticker")
             
             # Verhindert, dass der Rest der Seite unter dem Overlay gerendert wird!
             st.stop()
