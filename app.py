@@ -327,7 +327,7 @@ st.markdown("""
 
     /* Titel Anpassungen Overlay */
     .ov-header {
-        font-size: 24px !important; font-weight: 500; color: #333;
+        font-size: 32px !important; font-weight: 600; color: #333;
         text-transform: uppercase;
         border-bottom: 2px solid #ccc; width: 80%;
         padding-bottom: 15px; margin-bottom: 30px;
