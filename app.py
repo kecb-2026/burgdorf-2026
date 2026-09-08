@@ -939,25 +939,19 @@ elif st.session_state.view == "BIS_Admin_Control":
 
 elif st.session_state.view == "BIS_Public":
     # --- SCHALTWEICHE 1: OVERLAY AKTIVIERUNG PRÜFEN ---
-   # is_overlay_active = hasattr(store, 'active_overlay') and store.active_overlay is not None
     is_overlay_active = hasattr(store, 'active_overlay') and store.active_overlay is not None
     if is_overlay_active:
         # Prüfen, ob die 20 Sekunden abgelaufen sind
         if time.time() - store.overlay_start_time >= 20:
             store.active_overlay = None
-            st.rerun()  # Einmal neu laden, wenn die Zeit abgelaufen ist
+            st.rerun()  
         else:
-            # Overlay-HTML rendern
+            # Overlay-HTML rendern (ohne blockierendes st.rerun im Sekundentakt)
             st.markdown(render_overlay_html(store.active_overlay), unsafe_allow_html=True)
             
-            # 🔴 KRITISCH GEGEN FLACKERN:
-            # Pausieren & neu laden für den Timer
-            time.sleep(1)
-            st.rerun()
-            
-            # 🔴 KRITISCH GEGEN FLACKERN:
             # Verhindert, dass der Rest der Seite unter dem Overlay gerendert wird!
             st.stop()
+
 
     def get_initials(name):
         parts = str(name).split()
@@ -1149,8 +1143,8 @@ elif st.session_state.view == "BIS_Public":
                         if not m_w.empty: st.markdown(f"<div class='cat-card winner-card'><div class='cat-number'>{winner_nr}</div><div class='cat-details'>{get_full_label(m_w.iloc[0])}</div></div>", unsafe_allow_html=True)
                 else: st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
 
-    # --- SCHALTWEICHE 2: REFRESH NUR LADEN, WENN KEIN OVERLAY ZEIGT ---
-    #if not is_overlay_active:
+    # --- SCHALTWEICHE 2: REFRESH NUR LADEN, WENN KEIN OVERLAY AKTIV ---
+    if not is_overlay_active:
         st_autorefresh(interval=3000, key="bis_refresh")
 
 
