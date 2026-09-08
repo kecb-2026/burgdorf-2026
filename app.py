@@ -1064,7 +1064,7 @@ elif st.session_state.view == "BIS_Public":
         div[data-testid="column"]:not(:last-child):not(:first-child) div.winner-card,
         div[data-testid="column"]:first-child:not(:last-child) div.winner-card {
             background-color: #ffcccc !important;  
-            border: 2px solid #ff4d4d !important;  
+            border: 4px solid #ff4d4d !important;  
             color: #b21f2d !important;             
         }
         div[data-testid="column"]:not(:last-child) div.winner-card div.cat-number {
