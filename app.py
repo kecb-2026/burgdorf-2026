@@ -941,19 +941,24 @@ elif st.session_state.view == "BIS_Public":
     # --- SCHALTWEICHE 1: OVERLAY AKTIVIERUNG PRÜFEN ---
     is_overlay_active = hasattr(store, 'active_overlay') and store.active_overlay is not None
     if is_overlay_active:
+        elapsed = time.time() - store.overlay_start_time
+        remaining = 20 - elapsed
+        
         # Prüfen, ob die 20 Sekunden abgelaufen sind
-        if time.time() - store.overlay_start_time >= 20:
+        if remaining <= 0:
             store.active_overlay = None
             st.rerun()  
         else:
-            # Overlay-HTML rendern (ohne blockierendes st.rerun im Sekundentakt)
+            # Overlay-HTML rendern (bleibt jetzt komplett stabil ohne Sekundentakt-Flackern)
             st.markdown(render_overlay_html(store.active_overlay), unsafe_allow_html=True)
-
-			# Sanfter Ticker im Sekundentakt NUR für das Overlay (ohne time.sleep & ohne Flackern)
-            st_autorefresh(interval=1000, key="overlay_ticker")
+            
+            # Löst exakt nach der verbleibenden Restzeit (in Millisekunden) genau einmal aus
+            remaining_ms = int(remaining * 1000)
+            st_autorefresh(interval=max(500, remaining_ms), key="overlay_exact_timer")
             
             # Verhindert, dass der Rest der Seite unter dem Overlay gerendert wird!
             st.stop()
+
 
 
     def get_initials(name):
