@@ -1056,10 +1056,11 @@ elif st.session_state.view == "BIS_Public":
                 for j in abgestimmte:
                     style_rules += f".judge-{str(j).replace(' ', '_')} {{ background-color: #28a745 !important; }}"
 
-       # --- HIER DIE FARBE DER GEWINNER-KARTE ANPASSEN ---
+         # --- HIER DIE FARBE DER GEWINNER-KARTE ANPASSEN ---
         style_rules += """
-        /* Exakte Rot-Färbung für Gewinnerkarten in den regulären Richter-Spalten */
-        div[data-testid="column"]:not(:last-child) div.winner-card {
+        /* 1. Reguläre Richter-Spalten (alle Spalten außer der letzten): Hellrot */
+        div[data-testid="column"]:not(:last-child):not(:first-child) div.winner-card,
+        div[data-testid="column"]:first-child:not(:last-child) div.winner-card {
             background-color: #ffcccc !important;  
             border: 2px solid #ff4d4d !important;  
             color: #b21f2d !important;             
@@ -1072,7 +1073,7 @@ elif st.session_state.view == "BIS_Public":
             color: #333333 !important;
         }
         
-        /* Rechte BIS-Spalte: Bleibt unverändert (Gold/Gelb) */
+        /* 2. Ausschließlich die rechte BIS-Spalte (letzte Spalte): Bleibt strikt Gelb/Gold */
         div[data-testid="column"]:last-child div.winner-card {
             background-color: #ffd700 !important;  
             border: 2px solid #d4af37 !important;  
@@ -1083,7 +1084,7 @@ elif st.session_state.view == "BIS_Public":
             font-weight: bold !important;
         }
         """
-        
+
         # Da style_rules jetzt niemals leer ist, rendern wir das Stylesheet direkt
         st.markdown(f"<style>{style_rules}</style>", unsafe_allow_html=True)
 
