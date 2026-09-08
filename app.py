@@ -1105,6 +1105,28 @@ elif st.session_state.view == "BIS_Public":
             
             show_noms = store.data.get(f"reveal_{tag}_{sel_cat}_{label}", False)
             winner_revealed = store.data.get(f"winner_reveal_{tag}_{sel_cat}_{label}", False)
+
+			# --- NEU: GEWINNER-KATZANNUMMER VORAB ERMITTELN ---
+            # Wir ermitteln die Nummer der Gewinnerkatze vor der Richter-Schleife,
+            # damit wir vergleichen können, ob eine Richtkarte die Gewinnerkatze enthält.
+            row_winner_nr = None
+            if winner_revealed:
+                prefix = f"v_{tag}_{sel_cat}_{label}_"
+                row_winner_nr = store.data.get(f"override_{tag}_{sel_cat}_{label}", "Automatisch (Stimmen)")
+                if row_winner_nr == "Automatisch (Stimmen)" and "votes" in store.data:
+                    vts = []
+                    for k, v in store.data["votes"].items():
+                        if k.startswith(prefix) and v != "Keine Wahl" and v != "Keine Wahl/Not chosen yet":
+                            if isinstance(v, dict):
+                                if v.get("status") == "bestaerkt":
+                                    vts.append(v.get("katze"))
+                            else:
+                                vts.append(v)
+                    if vts:
+                        row_winner_nr = str(pd.Series(vts).value_counts().index[0])
+                else:
+                    row_winner_nr = str(row_winner_nr)
+            # --------------------------------------------------
             
             for i, j in enumerate(judges):
                 with r_cols[i+1]:
@@ -1127,6 +1149,13 @@ elif st.session_state.view == "BIS_Public":
                                     circles = "".join([f"<div class='judge-circle' title='{v}'>{get_initials(v)}</div>" for v in voters])
                                     circles_html = f"<div class='judge-initials-container'>{circles}</div>"
 
+# --- NEU: DYNAMISCHE KLASSEN-ZUWEISUNG FÜR HELLROTE GEWINNERKARTE ---
+                            # Wenn die Gewinner-Katze feststeht und die Katalog-Nr. mit dieser Karte übereinstimmt,
+                            # bekommt die Karte die Klasse 'winner-card' (hellrot), ansonsten bleibt sie 'cat-card'.
+                            card_css_class = "cat-card winner-card" if (winner_revealed and row_winner_nr and kat_nr == row_winner_nr) else "cat-card"
+                            # ------------------------------------------------------------------
+
+	
                             st.markdown(f"<div class='cat-card'><div class='cat-number'>{kat_nr}</div><div class='cat-details'>{get_full_label(m.iloc[0])}</div>{circles_html}</div>", unsafe_allow_html=True)
                         else: st.markdown("<div class='placeholder-box'>–</div>", unsafe_allow_html=True)
                     else: st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
