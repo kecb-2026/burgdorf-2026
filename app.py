@@ -1058,16 +1058,29 @@ elif st.session_state.view == "BIS_Public":
 
 	    # --- HIER DIE FARBE DER GEWINNER-KARTE ANPASSEN ---
         style_rules += """
-        .winner-card {
-            background-color: #ffd700 !important;  /* Hintergrundfarbe (z.B. Gold) */
-            border: 2px solid #d4af37 !important;  /* Rahmenfarbe */
-            color: #000000 !important;             /* Textfarbe für Details */
+        /* Normale Richter-Spalten: Gewinnerkarte hellrot */
+        div[data-testid="column"]:not(:last-child) .winner-card {
+            background-color: #ffcccc !important;  
+            border: 2px solid #ff4d4d !important;  
+            color: #b21f2d !important;             
         }
-        .winner-card .cat-number {
-            color: #000000 !important;             /* Textfarbe für die Startnummer */
+        div[data-testid="column"]:not(:last-child) .winner-card .cat-number {
+            color: #1a4a9e !important;             
+            font-weight: bold !important;
+        }
+        
+        /* Rechte BIS-Spalte: Bleibt unverändert (Gold/Gelb) */
+        div[data-testid="column"]:last-child .winner-card {
+            background-color: #ffd700 !important;  
+            border: 2px solid #d4af37 !important;  
+            color: #000000 !important;             
+        }
+        div[data-testid="column"]:last-child .winner-card .cat-number {
+            color: #000000 !important;             
             font-weight: bold !important;
         }
         """
+
         
         # Da style_rules jetzt niemals leer ist, rendern wir das Stylesheet direkt
         st.markdown(f"<style>{style_rules}</style>", unsafe_allow_html=True)
