@@ -547,8 +547,11 @@ def roman_to_numeric(text):
     return str(text)
 
 
-@st.cache_data(ttl=600)
 def load_labels():
+    return _load_labels_cached(store.data.get("admin_selected_day", "Tag 1"))
+
+@st.cache_data(ttl=600)
+def _load_labels_cached(day_selector):
     try:
         df = pd.read_excel("2026.xlsx", engine='openpyxl', header=0)
         df.columns = [str(c).strip().upper() for c in df.columns]
@@ -568,7 +571,7 @@ def load_labels():
         #    df['SELECTION'] = df['SELECTION 1'] if 'SELECTION 1' in df.columns else df.get('SELECTION', '-')
         # -----------------------------------------------------------
 # --- NEU: FEHLERTOLERANTE WEICHE FÜR TAG 1 & TAG 2 ---
-        day_selector = st.session_state.get("judge_day_selector", "Tag 1")
+        #day_selector = st.session_state.get("judge_day_selector", "Tag 1")
         
         if "2" in str(day_selector):
             if 'SELECTION 2' in df.columns:
@@ -829,26 +832,21 @@ elif st.session_state.view == "Home":
     
     # 1. Richter-Fixierung
     if "steward_lock" not in st.session_state:
-        st.session_state.steward_lock = True
-    st.session_state.steward_lock = st.toggle(
+        st.session_state.steward_lock = st.toggle(
         "Richter-Auswahl für Stewards sperren (Lockdown)", 
         value=st.session_state.steward_lock
     )
 
-    # Initialisiere den sicheren Speicher, falls er beim allerersten Start noch leer ist
-    if "admin_selected_day" not in st.session_state:
-        st.session_state.admin_selected_day = "Tag 1"
-
-    # HIER IST JETZT DIE FUNKTION: Sauber eingerückt auf der Modulebene des Admin-Panels
+    # Der Tag liegt jetzt im gemeinsamen Speicher (gilt für alle Geräte)
     def save_admin_day():
-        st.session_state.admin_selected_day = st.session_state.admin_radio_widget
+        store.set_data("admin_selected_day", None, st.session_state.admin_radio_widget)
 
     st.subheader("⚙️ Globaler Event-Status")
     st.radio(
         "Aktiven Tag für die gesamte Ausstellung festlegen:", 
         ["Tag 1", "Tag 2"], 
         key="admin_radio_widget",
-        index=0 if st.session_state.admin_selected_day == "Tag 1" else 1,
+        index=0 if store.data.get("admin_selected_day", "Tag 1") == "Tag 1" else 1,
         on_change=save_admin_day
     )
 
@@ -971,7 +969,7 @@ elif st.session_state.view == "BIS_Public":
     if df_full is not None:
         df_full = df_full.drop_duplicates() # Füge dies hinzu, um Geisterzeilen zu vermeiden
         # --- ANFANG DER ÄNDERUNG: AUTOMATISCHE TAGES-SYNCHRONISATION FÜR DAS PUBLIKUM ---
-        global_admin_day = st.session_state.get("admin_selected_day", "Tag 1")
+        global_admin_day = store.data.get("admin_selected_day", "Tag 1")
         current_tag = global_admin_day.upper()
         
         st.session_state['bis_stable_tag'] = current_tag
@@ -1122,7 +1120,7 @@ elif st.session_state.view == "Dashboard":
     display_header_with_logo("📢 Live-Aufruf & Status")
     
     # Holt sich den vom Admin festgesetzten Tag (völlig immun gegen das st_autorefresh)
-    admin_day = st.session_state.get("admin_selected_day", "Tag 1")
+    admin_day = store.data.get("admin_selected_day", "Tag 1")
     tag = "TAG 2" if "2" in str(admin_day) else "TAG 1"
     
     # Passive Info-Anzeige in der Seitenleiste
@@ -1215,7 +1213,7 @@ elif st.session_state.view == "Steward_Panel":
         url_judge_name = st.session_state.get("url_judge", "--")
         
         # 2. Automatisch ermitteln, welcher Tag gilt (Standard ist der sichere ADMIN-TAG)
-        admin_day = st.session_state.get("admin_selected_day", "Tag 1")
+        admin_day = store.data.get("admin_selected_day", "Tag 1")
         calculated_tag = "TAG 2" if "2" in str(admin_day) else "TAG 1"
         
         # Falls in der URL explizit ein Tag steht (?day=2), überschreibt dieser den Admin-Tag
@@ -1422,7 +1420,7 @@ elif st.session_state.view == "Judge_Voting":
     if df_full is not None:
         # --- ANFANG DER ÄNDERUNG: AUTOMATISCHE TAGES-SYNCHRONISATION STATT MANUELLER AUSWAHL ---
         # WIR HOLEN DEN GLOBALEN TAG, DEN DER ADMIN IN SEINER HOME-FUNKTION GEWÄHLT HAT
-        global_admin_day = st.session_state.get("admin_selected_day", "Tag 1")
+        global_admin_day = store.data.get("admin_selected_day", "Tag 1")
         
         # WIR ZWINGEN DEINEN EXISTIERENDEN SELECTOR-KEY AUF DEN GLOBALEN ADMIN-TAG.
         # DADURCH BLEIBT DEINE KOMPLETTE FILTER-LOGIK IN 'load_labels()' ZU 100% ERHALTEN, 
@@ -2423,7 +2421,7 @@ elif st.session_state.view == "Admin_Panel":
     st.write("Die Excel-Datei wird automatisch alle 10 Minuten neu eingelesen. Hier kannst du das Laden sofort erzwingen:")
     
     if st.button("🔥 Excel-Daten JETZT sofort neu einlesen", key="clear_cache_button"):
-        load_labels.clear()  # Löscht den 10-Minuten-Cache sofort
+        st.cache_data.clear()  # Löscht den 10-Minuten-Cache sofort
         st.success("Der Cache wurde geleert! Die Excel-Datei wird beim nächsten Aufruf frisch geladen.")
         st.rerun()
     st.markdown("---")
@@ -2850,7 +2848,7 @@ elif st.session_state.view == "Admin_Panel":
     st.write("Die Excel-Datei wird automatisch alle 10 Minuten neu eingelesen. Hier kannst du das Laden sofort erzwingen:")
     
     if st.button("🔥 Excel-Daten JETZT sofort neu einlesen", key="clear_cache_button"):
-        load_labels.clear()  # Löscht den 10-Minuten-Cache sofort
+        st.cache_data.clear()  # Löscht den 10-Minuten-Cache sofort
         st.success("Der Cache wurde geleert! Die Excel-Datei wird beim nächsten Aufruf frisch geladen.")
         st.rerun()
     st.markdown("---")
@@ -2872,7 +2870,7 @@ elif st.session_state.view == "Live_Voting":
     df_full = load_labels()
     if df_full is not None:
         # AUTOMATISCHE TAGES-SYNCHRONISATION
-        global_admin_day = st.session_state.get("admin_selected_day", "Tag 1")
+        global_admin_day = store.data.get("admin_selected_day", "Tag 1")
         st.session_state["judge_day_selector"] = global_admin_day
         st.sidebar.info(f"📅 Aktiver Ausstellungstag: {global_admin_day}")
         tag = global_admin_day.upper()
