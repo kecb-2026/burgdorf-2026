@@ -832,10 +832,12 @@ elif st.session_state.view == "Home":
     
     # 1. Richter-Fixierung
     if "steward_lock" not in st.session_state:
-        st.session_state.steward_lock = st.toggle(
+        st.session_state.steward_lock = True
+    st.session_state.steward_lock = st.toggle(
         "Richter-Auswahl für Stewards sperren (Lockdown)", 
         value=st.session_state.steward_lock
     )
+
 
     # Der Tag liegt jetzt im gemeinsamen Speicher (gilt für alle Geräte)
     def save_admin_day():
