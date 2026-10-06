@@ -477,11 +477,17 @@ class GlobalStore:
         # GEÄNDERT: Vorher gab es einen Versuch, und Fehler wurden mit
         # "except Exception: pass" verschluckt. Jetzt gibt es zwei Versuche,
         # und bei Misserfolg wird der Fehler gemerkt und geloggt.
+        # NEU: pandas/numpy-Werte (z. B. int64) in normale Python-Werte umwandeln
+        def _plain(o):
+            return o.item() if hasattr(o, "item") else str(o)
+        payload = json.loads(json.dumps(self.data, default=_plain))
+
         for attempt in range(2):
             try:
-                self.client.table("app_data").upsert({"id": 1, "content": self.data}).execute()
-                self.last_error = None   # NEU: Warnung verschwindet, sobald es wieder klappt
+                self.client.table("app_data").upsert({"id": 1, "content": payload}).execute()
+                self.last_error = None
                 return True
+
             except Exception as e:
                 self.last_error = f"Speichern fehlgeschlagen: {e}"
                 print("[STORE]", self.last_error)
