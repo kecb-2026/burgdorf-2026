@@ -725,12 +725,16 @@ st.session_state.view = st.sidebar.radio(
     index=available_views.index(st.session_state.view) if st.session_state.view in available_views else 0,
     format_func=lambda x: x.replace("_", " ")
 )
-#if st.session_state.view != "BIS_Public":
+##if st.session_state.view != "BIS_Public":
    # store.active_overlay = None	
+
+if store.last_error:
+    st.sidebar.error(f"⚠️ Datenbank-Problem – Stimmen evtl. nicht gesichert!\n\n{store.last_error}")
 
 if st.session_state.authenticated:
     if st.sidebar.button("Abmelden"): logout()
 elif st.session_state.view != "Login":
+
     if st.sidebar.button("🔒 Interner Login"): set_view("Login")
 
 # --- Copyright Bereich ---
