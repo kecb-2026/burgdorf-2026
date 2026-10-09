@@ -281,8 +281,8 @@ st.markdown("""
 
 	.cat-card.dash-big { height: 100px; min-height: 100px; max-height: 100px; overflow: hidden; box-sizing: border-box; padding: 4px; }
     .cat-card.dash-big .cat-number { font-size: 36px !important; }
-    .cat-card.dash-big .cat-details { font-size: 19px !important; }
-    .cat-card.dash-big .tag { font-weight: 400; padding: 2px 8px; font-size: 18px; }
+    .cat-card.dash-big .cat-details { font-size: 18px !important; }
+    .cat-card.dash-big .tag { font-weight: 400; padding: 2px 8px; font-size: 17px; }
 
     /* Richter Initialen Kreise */
     .judge-initials-container {
