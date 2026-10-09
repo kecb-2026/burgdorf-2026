@@ -308,12 +308,12 @@ st.markdown("""
         cursor: help;
     }
 
-    .cat-card.bis-card { padding: 2px 4px; }
-    .cat-card.bis-card .bis-top { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; column-gap: 8px; width: 100%; }
-    .cat-card.bis-card .cat-number { font-size: 38px !important; line-height: 1; justify-self: end; }
-    .cat-card.bis-card .cat-details { font-size: 16px !important; margin-top: 0; justify-self: center; }
-    .cat-card.bis-card .judge-initials-container { margin-top: 0; padding-top: 2px; gap: 3px; }
-    .cat-card.bis-card .judge-circle { width: 30px; height: 30px; font-size: 14px; }
+    .cat-card.bis-card { padding: 2px 4px; justify-content: center; }
+    .cat-card.bis-card .bis-top { display: flex; flex-direction: column; align-items: center; gap: 0; width: 100%; }
+    .cat-card.bis-card .cat-number { font-size: 32px !important; line-height: 1; }
+    .cat-card.bis-card .cat-details { font-size: 16px !important; line-height: 1.1; margin-top: 0; text-align: center; }
+    .cat-card.bis-card .judge-initials-container { margin-top: 1px; padding-top: 2px; gap: 3px; }
+    .cat-card.bis-card .judge-circle { width: 26px; height: 26px; font-size: 12px; }
 
     /* Overlay als zentrierte Box (80% Größe) */
     .winner-overlay {
