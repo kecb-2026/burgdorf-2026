@@ -268,7 +268,7 @@ st.markdown("""
     
     .class-label-box { 
         background-color: #e9ecef; color: #1a4a9e; padding: 5px; border-radius: 10px; text-align: center; 
-        font-size: clamp(18px, 1.8vw, 32px) !important; text-transform: uppercase; font-weight: 900; 
+        font-size: clamp(14px, 1.3vw, 22px) !important; text-transform: uppercase; font-weight: 900;
         border: 2px solid #1a4a9e; display: flex; align-items: center; justify-content: center; 
         height: 90px; width: 100%; line-height: 1.1; word-break: break-word; 
     }
