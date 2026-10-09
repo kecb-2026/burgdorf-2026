@@ -279,6 +279,11 @@ st.markdown("""
     .cat-number { font-size: 28px !important; font-weight: 900 !important; color: #1a4a9e; line-height: 1.0; }
     .cat-details { font-size: 14px !important; color: #333; font-weight: bold; margin-top: 2px; line-height: 1.1; }
 
+	.cat-card.dash-big { height: 100px; min-height: 100px; max-height: 100px; overflow: hidden; box-sizing: border-box; padding: 4px; }
+    .cat-card.dash-big .cat-number { font-size: 26px !important; }
+    .cat-card.dash-big .cat-details { font-size: 15px !important; }
+    .cat-card.dash-big .tag { font-weight: 900; padding: 2px 8px; font-size: 14px; }
+
     /* Richter Initialen Kreise */
     .judge-initials-container {
         display: flex;
@@ -1261,7 +1266,7 @@ elif st.session_state.view == "Dashboard":
                         
                         if tags_html: 
                             st.markdown(f"""
-                                <div class='cat-card'>
+                                <div class='cat-card dash-big'>
                                     <div class='cat-number'>{kat_nr}</div>
                                     <div class='cat-details'>{get_full_label(m_row)}</div>
                                     <div class='tag-container'>{tags_html}</div>
