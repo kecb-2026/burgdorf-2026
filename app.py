@@ -311,9 +311,9 @@ st.markdown("""
     .cat-card.bis-card { padding: 2px 4px; justify-content: center; }
     .cat-card.bis-card .bis-top { display: flex; flex-direction: column; align-items: center; gap: 0; width: 100%; }
     .cat-card.bis-card .cat-number { font-size: 32px !important; line-height: 1; }
-    .cat-card.bis-card .cat-details { font-size: 16px !important; line-height: 1.1; margin-top: 0; text-align: center; }
+    .cat-card.bis-card .cat-details { font-size: 14px !important; line-height: 1.1; margin-top: 0; text-align: center; }
     .cat-card.bis-card .judge-initials-container { margin-top: 1px; padding-top: 2px; gap: 3px; }
-    .cat-card.bis-card .judge-circle { width: 26px; height: 26px; font-size: 12px; }
+    .cat-card.bis-card .judge-circle { width: 28px; height: 28px; font-size: 14px; }
 
     /* Overlay als zentrierte Box (80% Größe) */
     .winner-overlay {
