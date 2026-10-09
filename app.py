@@ -308,10 +308,11 @@ st.markdown("""
         cursor: help;
     }
 
-	.cat-card.bis-card .bis-top { display: flex; align-items: center; justify-content: center; gap: 10px; }
-    .cat-card.bis-card .cat-number { font-size: 30px !important; }
-    .cat-card.bis-card .cat-details { font-size: 16px !important; margin-top: 0; }
-    .cat-card.bis-card .judge-initials-container { margin-top: 2px; padding-top: 3px; gap: 4px; }
+    .cat-card.bis-card { padding: 2px 4px; }
+    .cat-card.bis-card .bis-top { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; column-gap: 8px; width: 100%; }
+    .cat-card.bis-card .cat-number { font-size: 38px !important; line-height: 1; justify-self: end; }
+    .cat-card.bis-card .cat-details { font-size: 16px !important; margin-top: 0; justify-self: center; }
+    .cat-card.bis-card .judge-initials-container { margin-top: 0; padding-top: 2px; gap: 3px; }
     .cat-card.bis-card .judge-circle { width: 30px; height: 30px; font-size: 14px; }
 
     /* Overlay als zentrierte Box (80% Größe) */
