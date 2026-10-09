@@ -308,6 +308,12 @@ st.markdown("""
         cursor: help;
     }
 
+	.cat-card.bis-card .bis-top { display: flex; align-items: center; justify-content: center; gap: 10px; }
+    .cat-card.bis-card .cat-number { font-size: 30px !important; }
+    .cat-card.bis-card .cat-details { font-size: 16px !important; margin-top: 0; }
+    .cat-card.bis-card .judge-initials-container { margin-top: 2px; padding-top: 3px; gap: 4px; }
+    .cat-card.bis-card .judge-circle { width: 30px; height: 30px; font-size: 14px; }
+
     /* Overlay als zentrierte Box (80% Größe) */
     .winner-overlay {
         position: fixed;
@@ -1179,7 +1185,7 @@ elif st.session_state.view == "BIS_Public":
 
                             card_css_class = "cat-card winner-card" if (winner_revealed and row_winner_nr and kat_nr == row_winner_nr) else "cat-card"
 
-                            st.markdown(f"<div class='{card_css_class}'><div class='cat-number'>{kat_nr}</div><div class='cat-details'>{get_full_label(m.iloc[0])}</div>{circles_html}</div>", unsafe_allow_html=True)
+                            st.markdown(f"<div class='{card_css_class} bis-card'><div class='bis-top'><div class='cat-number'>{kat_nr}</div><div class='cat-details'>{get_full_label(m.iloc[0])}</div></div>{circles_html}</div>", unsafe_allow_html=True)
                         else: st.markdown("<div class='placeholder-box'>–</div>", unsafe_allow_html=True)
                     else: st.markdown("<div class='placeholder-box'>🔒</div>", unsafe_allow_html=True)
 
