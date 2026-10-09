@@ -280,7 +280,7 @@ st.markdown("""
     .cat-details { font-size: 14px !important; color: #333; font-weight: bold; margin-top: 2px; line-height: 1.1; }
 
 	.cat-card.dash-big { height: 100px; min-height: 100px; max-height: 100px; overflow: hidden; box-sizing: border-box; padding: 4px; }
-    .cat-card.dash-big .cat-number { font-size: 26px !important; }
+    .cat-card.dash-big .cat-number { font-size: 32px !important; }
     .cat-card.dash-big .cat-details { font-size: 15px !important; }
     .cat-card.dash-big .tag { font-weight: 900; padding: 2px 8px; font-size: 14px; }
 
