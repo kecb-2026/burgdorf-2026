@@ -313,7 +313,7 @@ st.markdown("""
     .cat-card.bis-card .cat-number { font-size: 32px !important; line-height: 1; }
     .cat-card.bis-card .cat-details { font-size: 14px !important; line-height: 1.1; margin-top: 0; text-align: center; }
     .cat-card.bis-card .judge-initials-container { margin-top: 1px; padding-top: 2px; gap: 3px; }
-    .cat-card.bis-card .judge-circle { width: 30px; height: 30px; font-size: 16px; }
+    .cat-card.bis-card .judge-circle { width: 30px; height: 30px; font-size: 16px; font-weight: 400;}
 
     /* Overlay als zentrierte Box (80% Größe) */
     .winner-overlay {
