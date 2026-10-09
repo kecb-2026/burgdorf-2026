@@ -260,8 +260,9 @@ st.markdown("""
     /* Dashboard & Richter-Layout Styles */
     .judge-header-box { 
         background-color: #1a4a9e; color: white; padding: 8px; border-radius: 10px; text-align: center; 
-        font-size: 12px !important; text-transform: uppercase; font-weight: bold; 
-        margin-bottom: 10px; border: 2px solid #0d2a5e; height: 60px; 
+        font-size: clamp(20px, 2.4vw, 44px) !important; text-transform: uppercase; font-weight: 900; 
+        line-height: 1.1; word-break: break-word; 
+        margin-bottom: 10px; border: 2px solid #0d2a5e; min-height: 110px; height: auto; 
         display: flex; align-items: center; justify-content: center; 
     }
     
