@@ -497,7 +497,7 @@ class GlobalStore:
 
         for attempt in range(2):
             try:
-			    payload = json.loads(json.dumps(self.data, default=_plain))
+            payload = json.loads(json.dumps(self.data, default=_plain))
                 self.client.table("app_data").upsert({"id": 1, "content": payload}).execute()
                 self.last_error = None
                 return True
