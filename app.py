@@ -3221,8 +3221,28 @@ elif st.session_state.view == "Live_Voting":
 
 # ==============================================================================
 # NEUER SEPARATER MENÜPUNKT: 🎛️ [Test] Live-Admin
+# (FIX: Checkboxen schreiben nur noch bei echtem Klick, siehe Kommentare "# NEU")
 # ==============================================================================
 elif st.session_state.view == "Live_Admin":
+    # NEU: Diese Funktionen schreiben NUR, wenn jemand ein Feld wirklich angeklickt hat.
+    # Eine zweite oder vergessene Admin-Seite kann dadurch nichts mehr zurücksetzen.
+    def _store_set(store_key, widget_key):
+        store.data[store_key] = st.session_state[widget_key]
+        store.save_backup()
+
+    def _live_vote_changed(widget_key, cat, label, tag):
+        if st.session_state[widget_key]:
+            store.data["test_live_cat"] = cat
+            store.data["test_live_label"] = label
+            store.data["test_live_tag"] = tag
+        elif (store.data.get("test_live_cat") == cat
+              and store.data.get("test_live_label") == label
+              and store.data.get("test_live_tag") == tag):
+            store.data["test_live_cat"] = None
+            store.data["test_live_label"] = None
+            store.data["test_live_tag"] = None
+        store.save_backup()
+
     # --- AUTOMATISCHER REFRESH FÜR ECHTEZEIT-ANZEIGE ---
     # Aktualisiert das Admin-Panel alle 2000 Millisekunden (2 Sekunden) von selbst.
     # Da wir nur das RAM abfragen, ist das extrem performant und flackerfrei!
@@ -3266,64 +3286,47 @@ elif st.session_state.view == "Live_Admin":
                     key_override = f"override_{admin_tag}_{sel_cat}_{label}"
                     
                     # Interaktionen abfangen und geänderte Zustände direkt persistieren (ohne Rerun-Konflikt)
-                    old_reveal = store.data.get(key_reveal, False)
-                    new_reveal = st.checkbox("Nominationen anzeigen", value=old_reveal, key=f"cb1_{key_reveal}")
-                    if new_reveal != old_reveal:
-                        store.data[key_reveal] = new_reveal
-                        store.save_backup()
+                    # NEU: Anzeige immer aus dem Speicher, geschrieben wird nur bei echtem Klick
+                    st.session_state[f"cb1_{key_reveal}"] = store.data.get(key_reveal, False)
+                    st.checkbox("Nominationen anzeigen", key=f"cb1_{key_reveal}",
+                                on_change=_store_set, args=(key_reveal, f"cb1_{key_reveal}"))
                     
                     # --- ANFANG DER NEUEN ZUSÄTZLICHEN CHECKBOX ---
                     # HIER PRÜFEN WIR, OB DIESE KLASSE GERADE ALS AKTIVE TEST-RUNDE GESPEICHERT IST
                     is_live_now = (store.data.get("test_live_cat") == sel_cat) and (store.data.get("test_live_label") == label) and (store.data.get("test_live_tag") == admin_tag)
                     
-                    activate_voting = st.checkbox("🟢 Diese Klasse für Richter freischalten (Live-Voting)", value=is_live_now, key=f"live_vote_{admin_tag}_{sel_cat}_{label}")
-                    
-                    if activate_voting and not is_live_now:
-                        store.data["test_live_cat"] = sel_cat
-                        store.data["test_live_label"] = label
-                        store.data["test_live_tag"] = admin_tag
-                        store.save_backup()
-                    elif not activate_voting and is_live_now:
-                        store.data["test_live_cat"] = None
-                        store.data["test_live_label"] = None
-                        store.data["test_live_tag"] = None
-                        store.save_backup()
+                    # NEU: Anzeige immer aus dem Speicher, geschrieben wird nur bei echtem Klick
+                    _lv_key = f"live_vote_{admin_tag}_{sel_cat}_{label}"
+                    st.session_state[_lv_key] = is_live_now
+                    st.checkbox("🟢 Diese Klasse für Richter freischalten (Live-Voting)", key=_lv_key,
+                                on_change=_live_vote_changed, args=(_lv_key, sel_cat, label, admin_tag))
                     # --- ENDE DER NEUEN ZUSÄTZLICHEN CHECKBOX ---
 
 
                     # --- NEU: COMPAKTE CHECKBOX STATT RADIO BOX ---
                     # KOMMENTAR: Wir erstellen den eindeutigen Schlüssel für den Speicher
                     key_voting_closed = f"voting_closed_{admin_tag}_{sel_cat}_{label}"
-                    old_closed_status = store.data.get(key_voting_closed, False)
-                    
-                    # KOMMENTAR: Die übersichtliche Checkbox zum Beenden der Abstimmung
-                    new_closed_status = st.checkbox(
-                        "🛑⁠ Abstimmung beenden (Richter sperren) ", 
-                        value=old_closed_status, 
-                        key=f"cb_closed_{admin_tag}_{sel_cat}_{label}"
-                    )
-                    
-                    # KOMMENTAR: Wenn der Haken geändert wird, sofort im RAM & Backup speichern
-                    if new_closed_status != old_closed_status:
-                        store.data[key_voting_closed] = new_closed_status
-                        store.save_backup()
+                    # NEU: Anzeige immer aus dem Speicher, geschrieben wird nur bei echtem Klick
+                    _cl_key = f"cb_closed_{admin_tag}_{sel_cat}_{label}"
+                    st.session_state[_cl_key] = store.data.get(key_voting_closed, False)
+                    st.checkbox("🛑 Abstimmung beenden (Richter sperren) ", key=_cl_key,
+                                on_change=_store_set, args=(key_voting_closed, _cl_key))
                     # --- ENDE NEU ---
 
                     # --- BIS GEWINNER ANZEIGEN (Ganz ans Ende verschoben) ---
-                    old_winner_reveal = store.data.get(key_winner_reveal, False)
-                    new_winner_reveal = st.checkbox("BIS Gewinner anzeigen", value=old_winner_reveal, key=f"cb2_{key_winner_reveal}")
-                    if new_winner_reveal != old_winner_reveal:
-                        store.data[key_winner_reveal] = new_winner_reveal
-                        store.save_backup()
+                    # NEU: Anzeige immer aus dem Speicher, geschrieben wird nur bei echtem Klick
+                    st.session_state[f"cb2_{key_winner_reveal}"] = store.data.get(key_winner_reveal, False)
+                    st.checkbox("BIS Gewinner anzeigen", key=f"cb2_{key_winner_reveal}",
+                                on_change=_store_set, args=(key_winner_reveal, f"cb2_{key_winner_reveal}"))
 					
                     pool = df_full[(df_full['SELECTION'].astype(str).str.upper() == 'X') & (df_full['KATEGORIE'] == sel_cat) & (df_full['KLASSE_INTERNAL'].isin(klassen)) & (df_full['GESCHLECHT'].astype(str).str.upper() == geschl)]
                     options = ["Automatisch (Stimmen)"] + sorted(pool['KAT_STR'].unique().tolist())
                     
-                    old_override = store.data.get(key_override, "Automatisch (Stimmen)")
-                    new_override = st.selectbox(f"Gewinner festlegen:", options, index=options.index(old_override) if old_override in options else 0, key=f"sb_{key_override}")
-                    if new_override != old_override:
-                        store.data[key_override] = new_override
-                        store.save_backup()
+                    # NEU: Anzeige immer aus dem Speicher, geschrieben wird nur bei echtem Klick
+                    _ov = store.data.get(key_override, "Automatisch (Stimmen)")
+                    st.session_state[f"sb_{key_override}"] = _ov if _ov in options else "Automatisch (Stimmen)"
+                    st.selectbox("Gewinner festlegen:", options, key=f"sb_{key_override}",
+                                 on_change=_store_set, args=(key_override, f"sb_{key_override}"))
 
                     final_nr = None
                     if store.data.get(key_override, "Automatisch (Stimmen)") != "Automatisch (Stimmen)": 
@@ -3450,7 +3453,6 @@ elif st.session_state.view == "Live_Admin":
                                 st.session_state[confirm_key] = False
                                 st.rerun()
                     # -------------------------------------------------------------
-
                                 
     if st.button("⬅️ Zurück zum Hauptmenü", key="back_from_bisadmin"):
         set_view("Home")
