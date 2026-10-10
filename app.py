@@ -3138,15 +3138,21 @@ elif st.session_state.view == "Live_Voting":
                             # 4. RADIO-BUTTON & SPEICHER-LOGIK
                             # --------------------------------------------------
                             # Hilfsfunktion: Feuert live bei Klick und setzt den Status zurück!
-                            def on_radio_change():
-                                current_radio_val = st.session_state[f"r_test_{v_key}"]
+                            def on_radio_change(v_key=v_key, opts=opts):
+                                _wk = f"r_test_{v_key}"
+                                if _wk not in st.session_state:
+                                    return
+                                current_radio_val = st.session_state[_wk]
                                 if current_radio_val != "Keine Wahl/Not chosen yet":
+                                    if current_radio_val not in opts:
+                                        return
                                     kat_nummer = opts[current_radio_val]["kat_nr"]
                                     # Bei jeder Änderung überschreiben wir die Bestätigung und setzen zurück auf "wählt"
                                     store.data["votes"][v_key] = {
                                         "katze": kat_nummer,
                                         "status": "wählt"
                                     }
+
                                 else:
                                     store.data["votes"][v_key] = "Keine Wahl/Not chosen yet"
                                 store.save_backup()
