@@ -2490,10 +2490,15 @@ elif st.session_state.view == "Nominated_Cats":
 elif st.session_state.view == "Admin_Panel":
     display_header_with_logo("⚙️ Admin-Konsole")
     
-    if st.button("ALLE DATEN ZURÜCKSETZEN"):
+    _reset_ok = st.checkbox("Ja, wirklich ALLE Stimmen und Status löschen", key="confirm_reset_all")
+    if st.button("ALLE DATEN ZURÜCKSETZEN", disabled=not _reset_ok):
         store.data = {}
         store.active_overlay = None
+        store.save_backup()
         st.success("Speicher geleert!")
+
+    # --- HIER IST DER NEUE BUTTON SAUBER EINIGERÜCKT ---
+
 
     # --- HIER IST DER NEUE BUTTON SAUBER EINIGERÜCKT ---
     st.markdown("---")  # Eine kleine Trennlinie für die Optik
